@@ -1,0 +1,7 @@
+{
+  "name": "EV Charger Card",
+  "render_readme": true,
+  "content_in_root": false,
+  "filename": "ha-ev-charger-card.js",
+  "homeassistant": "2024.8.0"
+}

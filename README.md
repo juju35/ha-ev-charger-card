@@ -1,0 +1,234 @@
+# ha-ev-charger-card
+
+[![Marketplace](https://img.shields.io/badge/Marketplace-Custom-41BDF5.svg)](https://www.home-assistant.io/integrations/marketplace/)
+[![HACS Validation](https://github.com/juju35/ha-ev-charger-card/actions/workflows/hacs.yml/badge.svg)](https://github.com/juju35/ha-ev-charger-card/actions/workflows/hacs.yml)
+[![Validate](https://github.com/juju35/ha-ev-charger-card/actions/workflows/validate.yml/badge.svg)](https://github.com/juju35/ha-ev-charger-card/actions/workflows/validate.yml)
+[![Lint](https://github.com/juju35/ha-ev-charger-card/actions/workflows/lint.yml/badge.svg)](https://github.com/juju35/ha-ev-charger-card/actions/workflows/lint.yml)
+[![Release](https://img.shields.io/github/v/release/juju35/ha-ev-charger-card)](https://github.com/juju35/ha-ev-charger-card/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/juju35/ha-ev-charger-card/blob/main/LICENSE)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/julienstep9)
+
+<p align="center"><img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/icon.svg" alt="EV Charger Card" width="120"></p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/wallbox.svg" alt="Wallbox" height="20">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/easee.svg" alt="Easee" height="24">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/zaptec.svg" alt="Zaptec" height="28">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/ohme.svg" alt="Ohme" height="24">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/myenergi.svg" alt="myenergi" height="24">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/tesla.svg" alt="Tesla" height="28">
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/go-e.svg" alt="go-e" height="24">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/alfen.svg" alt="Alfen" height="24">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/peblar.svg" alt="Peblar" height="24">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/abb.svg" alt="ABB" height="20">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/schneider-electric.svg" alt="Schneider Electric" height="28">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/ocpp.svg" alt="Open Charge Alliance (OCPP)" height="28">
+</p>
+
+An illustrated Lovelace card for Home Assistant's **EV chargers**: the wallbox, its cable and the car, with energy flowing along the cable while it charges; the session in three tiles; pause / start, the current limit and the cable lock. Pick the charger, the card finds its entities by itself, whatever the integration.
+
+[![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-ev-charger-card&category=plugin)
+
+| Card | Type | What it shows |
+|---|---|---|
+| [EV charger](#ev-charger) | `custom:ev-charger-card` | The charger illustrated, its state and power, three tiles for the session, and its controls. |
+| [EV charger mini](#ev-charger-mini) | `custom:ev-charger-mini-card` | The same charger on two lines: a battery ring, the key readings, a zoom to the full card. |
+
+| Charging | Plugged in | Charged | Mini |
+|---|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging.gif" alt="Charging" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-waiting.png" alt="Plugged in" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-done-dark.png" alt="Charged" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-charging.png" alt="Mini" width="400"> |
+
+The cards share the look of the other ha-* cards (header with a status pill, tinted tiles), a visual editor covering every option (`entities` as YAML in its folded **Advanced** section), labels in 22 languages following the Home Assistant language, light and dark themes, and come in a single Marketplace install with no dependency.
+
+## Features
+
+### EV charger
+
+`custom:ev-charger-card` — The charger of a `device` (the first charger of the home when none is set).
+
+- **Illustration**: the wallbox with its LED ring, the cable and the car with its charging port, on a wall and a floor that follow the light or dark theme; a glass pill shows the car's battery level (`battery`) or, without it, the charging power
+- **Five states**, from the charger's own status in the integration's words (*charging*, *awaiting_start*, *Paused by user*, *connected_finished*, *disconnected*…): **charging** (blue, energy flowing along the cable, the LED ring breathing), **plugged in** (amber), **charged** (green), **no car** (grey, the cable hanging from the wallbox), **error** (red, the charger's error under the illustration); *offline* when the charger cannot report. Without a status sensor, the power and the plug sensor tell
+- **Header**: the charger's name, its room and model, and a pill with the state and the power (*Charging · 7.2 kW*)
+- **Three tiles**, the ones that matter in each state among what the charger reports: the session's energy, time and cost while charging or charged; the current limit, the last session and the lifetime total when a car waits or none is plugged in
+- **Controls**: **Pause** while charging and **Start** when a car waits (the charger's start / stop buttons, or its charging switch), **Unlock cable** once charged, the **current limit** in steps of the number entity (− 32 A +, within its range), and the **cable lock**
+- A tap on the illustration opens the charger's status dialog
+- `show_scene: false` keeps the header, tiles and controls; `animations: false` stops the flow and the breathing (also when the system asks for reduced motion); `show_controls: false` leaves the card read-only
+
+### EV charger mini
+
+`custom:ev-charger-mini-card` — The charger on two lines: a ring as the badge (the car's battery level, or the charging power against `max_power`), the name, then the key readings as pills (*7.2 kW · 68 % · 1 h 42* while charging, *Plugged in · 31 % · 16 A* when a car waits). The **zoom** button (top right) opens the full card in place, a click anywhere else folds it back (`zoom: false` removes the button).
+
+## Supported integrations
+
+The card reads what the charger's device exposes, by device class, unit and domain (and the entity's name when that is not enough), so most charger integrations work out of the box:
+
+| Integration | Chargers |
+|---|---|
+| [Wallbox](https://www.home-assistant.io/integrations/wallbox/) (built in) | Wallbox Pulsar, Commander, Copper |
+| [Tesla Wall Connector](https://www.home-assistant.io/integrations/tesla_wall_connector/) (built in) | Tesla Wall Connector |
+| [Ohme](https://www.home-assistant.io/integrations/ohme/) (built in) | Ohme Home Pro, ePod |
+| [Peblar](https://www.home-assistant.io/integrations/peblar/) (built in) | Peblar Home, Business |
+| [Easee](https://github.com/nordicopen/easee_hass) (Marketplace) | Easee Home, Charge, One |
+| [Zaptec](https://github.com/custom-components/zaptec) (Marketplace) | Zaptec Go, Pro |
+| [myenergi](https://github.com/CJNE/ha-myenergi) (Marketplace) | myenergi zappi |
+| [OCPP](https://github.com/lbbrhzn/ocpp) (Marketplace) | Any OCPP charger: Alfen, ABB, Schneider Electric… |
+| go-e, Alfen and other charger integrations | Their chargers |
+
+When the card picks the wrong entity for a role, or misses one, set it in `entities` (see [Configuration](#configuration)) and open an issue with the charger's entities so that the discovery learns it.
+
+## Installation
+
+### Via the Marketplace (recommended)
+
+Click the button below to add the repository directly:
+
+[![Add to the Marketplace](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-ev-charger-card&category=plugin)
+
+Or manually:
+
+1. Open **Settings → Marketplace → Add from link** (top right; this needs a GitHub account connected)
+2. Add `https://github.com/juju35/ha-ev-charger-card` — Type: **Dashboard**
+3. Open **EV Charger Card** and click **Install**
+4. Clear your browser cache and refresh
+
+The Marketplace registers the dashboard resource for you.
+
+### Manual
+
+1. Download `ha-ev-charger-card.js` and the `ha-ev-charger-card.i18n.*.js` translation files from the [latest release](https://github.com/juju35/ha-ev-charger-card/releases/latest)
+2. Copy them all to `/config/www/` (without the translation files, the cards show in English)
+3. Go to **Settings → Dashboards → Resources** → Add resource:
+   - URL: `/local/ha-ev-charger-card.js`
+   - Type: **JavaScript Module**
+4. Clear your browser cache and refresh
+
+## Configuration
+
+Every option is in the visual editor. In YAML:
+
+```yaml
+type: custom:ev-charger-card
+device: 3f2a…            # the charger's device ID (the visual editor offers a device picker)
+battery: sensor.car_battery_level
+
+# Two lines on a phone dashboard
+type: custom:ev-charger-mini-card
+device: 3f2a…
+max_power: 11
+
+# A role the discovery missed
+type: custom:ev-charger-card
+device: 3f2a…
+entities:
+  energy: sensor.wallbox_added_energy
+  lock: switch.wallbox_cable_lock
+```
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `device` | string | the first charger found | The charger's device ID |
+| `entity` | string | | Any entity of the charger, instead of `device` |
+| `title` | string | the charger's name | Card title |
+| `show_title` | boolean | `true` | Show the title |
+| `navigation_path` | string | | A tap on the header opens this dashboard path |
+| `battery` | string | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
+| `show_scene` | boolean | `true` | The illustration |
+| `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
+| `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
+| `max_power` | number | `7.4` | Mini card: the power (kW) of a full ring when the car's battery level is unknown |
+| `zoom` | boolean | `true` | Mini card: the zoom button |
+| `entities` | map | | Advanced (YAML): the entity of a role, over the discovery — `status`, `plug`, `power`, `energy`, `total`, `limit`, `current`, `phases`, `switch`, `start`, `stop`, `lock`, `cost`, `duration`, `error`, `battery` |
+| `language` | string | Home Assistant's | Advanced: one of the [languages](#translations) |
+
+## Screenshots
+
+| Charging | Plugged in | Charged |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging.png" alt="Charging" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-waiting.png" alt="Plugged in" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-done.png" alt="Charged" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging-dark.png" alt="Charging, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-waiting-dark.png" alt="Plugged in, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-done-dark.png" alt="Charged, dark" width="400"> |
+
+| No car | Error | Without the illustration (`show_scene: false`) |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle.png" alt="No car" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error.png" alt="Error" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact.png" alt="Without the illustration" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle-dark.png" alt="No car, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error-dark.png" alt="Error, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact-dark.png" alt="Without the illustration, dark" width="400"> |
+
+**Charging animation**: energy flows from the wallbox to the car along the cable and the LED ring breathes (steady with `animations: false`, or when the system asks for reduced motion).
+
+| Light | Dark |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging.gif" alt="Charging animation" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging-dark.gif" alt="Charging animation, dark" width="400"> |
+
+### EV charger mini
+
+| Charging | Plugged in | Zoomed in |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-charging.png" alt="Mini, charging" width="320"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-waiting.png" alt="Mini, plugged in" width="320"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-zoom.png" alt="Mini, zoomed in" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-charging-dark.png" alt="Mini, charging, dark" width="320"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-waiting-dark.png" alt="Mini, plugged in, dark" width="320"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-zoom-dark.png" alt="Mini, zoomed in, dark" width="400"> |
+
+## How it works
+
+- **Charger**: the `device` set in the card, or the device of `entity`; without either, the first device of a known charger integration (Easee, Wallbox, Zaptec, Ohme, myenergi, Tesla Wall Connector, go-e, Alfen, Peblar, OCPP…), else the first device named like a charger that has a power sensor or a current limit
+- **Roles**, on the charger's device: `status` (a sensor whose state is a charger status), `plug` (a `plug` binary sensor), `power` (`power` sensor, W or kW), `energy` (an `energy` sensor named *session*, *added*, *charged*…), `total` (the lifetime `energy` sensor), `limit` (a `number` in A), `current`, `phases`, `switch` (a switch named *charging*, *enable*, *pause*…), `start` / `stop` (buttons), `lock` (a `lock`, or a switch named *lock*), `cost` (`monetary` sensor), `duration`, `error` (a sensor named *error*, or a `problem` binary sensor), `battery`; `entities` sets any of them
+- **State**: the status in the integration's words, brought down to five states; an active error sensor wins
+- **Actions**: Pause / Start press the charger's buttons or turn its switch off / on, the limit goes through `number.set_value` within the entity's range and step, the lock through `lock.lock` / `lock.unlock` (or the switch); nothing else
+
+## Development
+
+```bash
+npm install
+npm run build        # stamps the version of package.json into dist/ha-ev-charger-card.js
+npm run check        # builds and checks the bundle (run in CI)
+npm test             # unit tests
+npm run screenshots  # renders the cards with a mock charger into screenshots/ (and the charging GIFs, needs ffmpeg)
+```
+
+`dist/` is not committed: `npm run build` creates it locally, CI builds it on every push, and the release workflow attaches the built files to the release, which is where the Marketplace installs them from.
+
+### Releasing
+
+1. Bump `version` in `package.json`
+2. Add a `## <version>` section at the top of [CHANGELOG.md](https://github.com/juju35/ha-ev-charger-card/blob/main/CHANGELOG.md)
+3. Push to `main`: the **Release** workflow builds the card, creates the tag and the GitHub release with the changelog section as notes, and attaches `ha-ev-charger-card.js` and its translation files
+
+## Translations
+
+The card auto-detects the language from your Home Assistant settings. Currently supported:
+
+| Language | Code |
+|---|---|
+| English | `en` |
+| Français | `fr` |
+| Deutsch | `de` |
+| Español | `es` |
+| Српски | `sr` |
+| Srpski (latinica) | `sr-Latn` |
+| Italiano | `it` |
+| Nederlands | `nl` |
+| Português (Portugal) | `pt` |
+| Polski | `pl` |
+| Română | `ro` |
+| Dansk | `da` |
+| Svenska | `sv` |
+| Български | `bg` |
+| Русский | `ru` |
+| Українська | `uk` |
+| Magyar | `hu` |
+| Slovenčina | `sk` |
+| Čeština | `cs` |
+| Slovenščina | `sl` |
+| Latviešu | `lv` |
+| Ελληνικά | `el` |
+
+Contributions for additional languages are welcome!
+
+## License
+
+[MIT](https://github.com/juju35/ha-ev-charger-card/blob/main/LICENSE)
+
+## Support
+
+If you find this project useful, you can support its development:
+
+<a href="https://buymeacoffee.com/julienstep9"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="50"></a>

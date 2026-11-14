@@ -1,0 +1,27 @@
+{
+  "name": "ha-ev-charger-card",
+  "version": "1.0.0",
+  "description": "An illustrated Lovelace card for Home Assistant's EV chargers: wallbox, cable and car, charging power, session, pause / start, current limit and cable lock.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juju35/ha-ev-charger-card.git"
+  },
+  "bugs": {
+    "url": "https://github.com/juju35/ha-ev-charger-card/issues"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs && node --check dist/ha-ev-charger-card.js",
+    "test": "node --test test/*.test.mjs",
+    "screenshots": "npm run build && node scripts/screenshots/ev.mjs && node scripts/screenshots/animations.mjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@mdi/js": "^7.4.47",
+    "acorn": "^8.19.0",
+    "css-tree": "^3.2.1",
+    "playwright": "^1.64.1"
+  }
+}
