@@ -104,6 +104,9 @@ test("actions: pause turns the switch off, the limit steps within its range, the
   const card = make("ev-charger-card", { device: "charger" }, h);
   click(card, ".act-pause");
   click(card, ".act-lower");
+  // Unlocking while charging: the first press arms, the second unlocks.
+  click(card, ".act-lock");
+  assert.match(card.shadowRoot.innerHTML, /act-lock armed[\s\S]*Press again to unlock/);
   click(card, ".act-lock");
   assert.deepEqual(json(h.calls), [
     ["switch", "turn_off", { entity_id: "switch.garage_charger_enabled" }],
@@ -185,9 +188,39 @@ test("a charger lock (Wallbox) is no cable lock: no unlock after charging, its o
   h.states["lock.garage_locked"] = st("lock.garage_locked", "locked", { friendly_name: "Garage Locked" });
   const card = make("ev-charger-card", { device: "charger" }, h);
   assert.equal(card._primary(card._items), null);
-  assert.match(card.shadowRoot.innerHTML, /act-lock" title="Unlock the charger"/);
+  assert.match(card.shadowRoot.innerHTML, /act-lock" data-k="lock" aria-pressed="true"[^>]*>[\s\S]*?<span>Unlock the charger<\/span>/);
   const easee = make("ev-charger-card", { device: "charger" }, makeHass({ status: "completed", power: "0" }));
   assert.equal(easee._primary(easee._items), "unlock");
+});
+
+test("quick presses on the limit add up, shown at once", () => {
+  const h = makeHass({ status: "awaiting_start", power: "0" });
+  const card = make("ev-charger-card", { device: "charger" }, h);
+  for (let i = 0; i < 3; i++) click(card, ".act-lower");
+  assert.deepEqual(json(h.calls.map((c) => c[2].value)), [31, 30, 29]);
+  assert.equal(card._nodes[".seg b"].textContent, "29 A");
+  assert.doesNotMatch(card.shadowRoot.innerHTML, /<span class="xl">Limit/, "no limit tile above the stepper");
+});
+
+test("redraws only when something shown changes", () => {
+  const h = makeHass();
+  const card = make("ev-charger-card", { device: "charger" }, h);
+  let writes = 0;
+  const root = card.shadowRoot;
+  let html = root.innerHTML;
+  Object.defineProperty(root, "innerHTML", { get: () => html, set: (v) => { writes++; html = v; } });
+  for (let i = 1; i <= 50; i++) {
+    card.hass = { ...h, states: { ...h.states, "sensor.garage_session_energy": st("sensor.garage_session_energy", String(12.4 + i * 0.0004), { device_class: "energy", unit_of_measurement: "kWh", friendly_name: "Garage Session energy" }) } };
+  }
+  assert.equal(writes, 0);
+});
+
+test("no charger: a message, no scene", () => {
+  const h = makeHass();
+  h.entities = {};
+  const card = make("ev-charger-card", {}, h);
+  assert.match(card.shadowRoot.innerHTML, /No charger found/);
+  assert.doesNotMatch(card.shadowRoot.innerHTML, /class="scene"|class="ctl"/);
 });
 
 test("reduced motion: the energy stops flowing", () => {

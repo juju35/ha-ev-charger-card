@@ -1517,6 +1517,7 @@ const EV_I18N = {
     ed_entities: "Entities (YAML)",
     ed_entities_helper: "Overrides of the found entities, by role: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Empty: the charger's name",
+    confirm: "Press again to unlock",
   },
   fr: {
     title: "Borne de recharge",
@@ -1557,6 +1558,7 @@ const EV_I18N = {
     ed_entities: "Entités (YAML)",
     ed_entities_helper: "Remplace les entités trouvées, par rôle : status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Vide : le nom de la borne",
+    confirm: "Appuyez encore pour déverrouiller",
   },
   de: {
     title: "Wallbox",
@@ -1597,6 +1599,7 @@ const EV_I18N = {
     ed_entities: "Entitäten (YAML)",
     ed_entities_helper: "Ersetzt gefundene Entitäten nach Rolle: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Leer: der Name der Wallbox",
+    confirm: "Zum Entsperren erneut drücken",
   },
   es: {
     title: "Cargador",
@@ -1637,6 +1640,7 @@ const EV_I18N = {
     ed_entities: "Entidades (YAML)",
     ed_entities_helper: "Sustituye las entidades encontradas, por rol: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Vacío: el nombre del cargador",
+    confirm: "Pulse de nuevo para desbloquear",
   },
   sr: {
     title: "Пуњач",
@@ -1677,6 +1681,7 @@ const EV_I18N = {
     ed_entities: "Ентитети (YAML)",
     ed_entities_helper: "Замењује пронађене ентитете по улози: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Празно: назив пуњача",
+    confirm: "Притисните поново за откључавање",
   },
   "sr-Latn": {
     title: "Punjač",
@@ -1717,6 +1722,7 @@ const EV_I18N = {
     ed_entities: "Entiteti (YAML)",
     ed_entities_helper: "Zamenjuje pronađene entitete po ulozi: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Prazno: naziv punjača",
+    confirm: "Pritisnite ponovo za otključavanje",
   },
   it: {
     title: "Wallbox",
@@ -1757,6 +1763,7 @@ const EV_I18N = {
     ed_entities: "Entità (YAML)",
     ed_entities_helper: "Sostituisce le entità trovate, per ruolo: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Vuoto: il nome della wallbox",
+    confirm: "Premi di nuovo per sbloccare",
   },
   nl: {
     title: "Laadpaal",
@@ -1797,6 +1804,7 @@ const EV_I18N = {
     ed_entities: "Entiteiten (YAML)",
     ed_entities_helper: "Vervangt gevonden entiteiten per rol: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Leeg: de naam van de laadpaal",
+    confirm: "Druk nogmaals om te ontgrendelen",
   },
   pt: {
     title: "Carregador",
@@ -1837,6 +1845,7 @@ const EV_I18N = {
     ed_entities: "Entidades (YAML)",
     ed_entities_helper: "Substitui as entidades encontradas, por função: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Vazio: o nome do carregador",
+    confirm: "Prima de novo para desbloquear",
   },
   pl: {
     title: "Ładowarka",
@@ -1877,6 +1886,7 @@ const EV_I18N = {
     ed_entities: "Encje (YAML)",
     ed_entities_helper: "Zastępuje znalezione encje według roli: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Puste: nazwa ładowarki",
+    confirm: "Naciśnij ponownie, aby odblokować",
   },
   ro: {
     title: "Stație de încărcare",
@@ -1917,6 +1927,7 @@ const EV_I18N = {
     ed_entities: "Entități (YAML)",
     ed_entities_helper: "Înlocuiește entitățile găsite, pe rol: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Gol: numele stației",
+    confirm: "Apăsați din nou pentru deblocare",
   },
   da: {
     title: "Ladeboks",
@@ -1957,6 +1968,7 @@ const EV_I18N = {
     ed_entities: "Enheder (YAML)",
     ed_entities_helper: "Erstatter fundne enheder efter rolle: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Tom: ladeboksens navn",
+    confirm: "Tryk igen for at låse op",
   },
   sv: {
     title: "Laddbox",
@@ -1997,6 +2009,7 @@ const EV_I18N = {
     ed_entities: "Entiteter (YAML)",
     ed_entities_helper: "Ersätter hittade entiteter per roll: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Tomt: laddboxens namn",
+    confirm: "Tryck igen för att låsa upp",
   },
   bg: {
     title: "Зарядна станция",
@@ -2037,6 +2050,7 @@ const EV_I18N = {
     ed_entities: "Обекти (YAML)",
     ed_entities_helper: "Заменя намерените обекти по роля: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Празно: името на станцията",
+    confirm: "Натиснете отново за отключване",
   },
   ru: {
     title: "Зарядная станция",
@@ -2077,6 +2091,7 @@ const EV_I18N = {
     ed_entities: "Объекты (YAML)",
     ed_entities_helper: "Заменяет найденные объекты по ролям: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Пусто: название станции",
+    confirm: "Нажмите ещё раз для разблокировки",
   },
   uk: {
     title: "Зарядна станція",
@@ -2117,6 +2132,7 @@ const EV_I18N = {
     ed_entities: "Об'єкти (YAML)",
     ed_entities_helper: "Замінює знайдені об'єкти за ролями: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Порожньо: назва станції",
+    confirm: "Натисніть ще раз для розблокування",
   },
   hu: {
     title: "Töltő",
@@ -2157,6 +2173,7 @@ const EV_I18N = {
     ed_entities: "Entitások (YAML)",
     ed_entities_helper: "Szerepkör szerint felülírja a talált entitásokat: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Üres: a töltő neve",
+    confirm: "Nyomja meg újra a feloldáshoz",
   },
   sk: {
     title: "Nabíjačka",
@@ -2197,6 +2214,7 @@ const EV_I18N = {
     ed_entities: "Entity (YAML)",
     ed_entities_helper: "Nahrádza nájdené entity podľa úlohy: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Prázdne: názov nabíjačky",
+    confirm: "Stlačte znova na odomknutie",
   },
   cs: {
     title: "Nabíječka",
@@ -2237,6 +2255,7 @@ const EV_I18N = {
     ed_entities: "Entity (YAML)",
     ed_entities_helper: "Nahrazuje nalezené entity podle role: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Prázdné: název nabíječky",
+    confirm: "Stiskněte znovu pro odemknutí",
   },
   sl: {
     title: "Polnilnica",
@@ -2277,6 +2296,7 @@ const EV_I18N = {
     ed_entities: "Entitete (YAML)",
     ed_entities_helper: "Nadomesti najdene entitete po vlogi: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Prazno: ime polnilnice",
+    confirm: "Pritisnite znova za odklepanje",
   },
   lv: {
     title: "Uzlādes stacija",
@@ -2317,6 +2337,7 @@ const EV_I18N = {
     ed_entities: "Entītijas (YAML)",
     ed_entities_helper: "Aizstāj atrastās entītijas pēc lomas: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Tukšs: stacijas nosaukums",
+    confirm: "Nospiediet vēlreiz, lai atbloķētu",
   },
   el: {
     title: "Φορτιστής",
@@ -2357,6 +2378,7 @@ const EV_I18N = {
     ed_entities: "Οντότητες (YAML)",
     ed_entities_helper: "Αντικαθιστά τις οντότητες που βρέθηκαν, ανά ρόλο: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Κενό: το όνομα του φορτιστή",
+    confirm: "Πατήστε ξανά για ξεκλείδωμα",
   },
 };
 
@@ -2670,8 +2692,11 @@ class RcCard extends HTMLElement {
   }
 
   _paint(level, head, tiles, extraClass = "") {
-    // The tile with the keyboard focus keeps it through the redraw (a toggle or a brightness step from the keyboard).
-    const focused = this._byPointer ? null : this.shadowRoot.activeElement?.dataset?.id;
+    // The tile or control with the keyboard focus keeps it through the redraw (a toggle, a step or a two-tap
+    // confirmation from the keyboard): tiles by their data-id, controls by their data-k.
+    const active = this._byPointer ? null : this.shadowRoot.activeElement;
+    const focused = active?.dataset?.id;
+    const focusKey = active?.dataset?.k;
     this.shadowRoot.innerHTML = `
       <style>${RC_BASE_STYLES}${this.constructor.styles}</style>
       <ha-card class="lvl-${level}${extraClass}${this._tiles() ? " layout-tiles" : ""}">
@@ -2687,6 +2712,7 @@ class RcCard extends HTMLElement {
       if (focused && el.dataset.id === focused) el.focus({ preventScroll: true });
     }
     this._bindAfter(root);
+    if (focusKey) root.querySelector(`[data-k="${focusKey}"]`)?.focus({ preventScroll: true });
   }
 
   // What a card adds under its tiles (the Lights card's scenes), and its event wiring.
@@ -3278,7 +3304,10 @@ const RC_BASE_STYLES = `
   :host([hide-title]) .head > .title { visibility: hidden; }
   .pill { all: unset; flex: 0 1 auto; min-width: 0; box-sizing: border-box; position: relative;
           display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 500;
-          padding: 1px 8px; border-radius: 999px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+          padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--c) 14%, transparent);
+          /* Coloured text is half the accent, half the text colour: 4.5:1 on its tint in light and dark themes, where
+             the bare accent (amber above all) is not. */
+          color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); }
   .pt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pill ha-icon { flex: none; }
   /* A card this narrow (6 columns of the Sections view on a phone): the title is at its few letters already, so the
@@ -3347,7 +3376,8 @@ const RC_BASE_STYLES = `
 // Mini cards: layout, chips and zoom button. A chip is plain (icon and text) until it needs a look: then a tinted pill.
 // The zoom / detail button of the mini cards and the overviews.
 const RC_ZOOM_STYLES = `
-  .zoom { all: unset; flex: none; cursor: pointer; width: 24px; height: 24px; margin: -4px -4px -4px 0; border-radius: 50%;
+  /* 40 px to tap, laid out as the 24 px it looks (the negative margins). */
+  .zoom { all: unset; flex: none; cursor: pointer; width: 40px; height: 40px; margin: -12px -12px -12px -8px; border-radius: 50%;
           display: grid; place-items: center; color: var(--secondary-text-color); }
   .zoom ha-icon { --mdc-icon-size: 16px; }
   .zoom:hover { background: color-mix(in srgb, var(--rc-idle) 16%, transparent); color: var(--primary-text-color); }
@@ -3402,7 +3432,7 @@ const RC_ROOM_GRID_STYLES = `
   /* The state (a sentence: "Water leak", "Too humid +1") wraps between its words only; a word too long for its line
      ends with "…" rather than being broken ("Pr|es|en|ce"). */
   .room .state { grid-area: state; overflow-wrap: normal; overflow: hidden; text-overflow: ellipsis; }
-  .room:not(.lvl-ok) .state { color: var(--t); }
+  .room:not(.lvl-ok) .state { color: color-mix(in srgb, var(--t) 50%, var(--primary-text-color, #212121)); }
   .chips { grid-area: chips; display: flex; flex-wrap: wrap; }
   .chips:empty { display: none; }
   .empty { grid-column: 1 / -1; padding: 12px; text-align: center; font-size: 13px; color: var(--secondary-text-color); }
@@ -3432,11 +3462,11 @@ const RC_MINI_STYLES = `${RC_ZOOM_STYLES}
   /* A chip never runs past the card: a long name ends with an ellipsis. */
   .r { all: unset; cursor: pointer; display: inline-flex; align-items: baseline; gap: 1px; padding: 0 5px 0 4px;
        box-sizing: border-box; min-width: 0; max-width: 100%; overflow: hidden;
-       border-radius: 999px; font-size: 12px; font-weight: 500; line-height: 18px; white-space: nowrap; --t: var(--rc-ok);
+       border-radius: 999px; font-size: 12px; font-weight: 500; line-height: 24px; white-space: nowrap; --t: var(--rc-ok);
        color: var(--primary-text-color); }
   .r ha-icon { --mdc-icon-size: 13px; flex: none; color: var(--t); align-self: center; margin-right: 2px; }
   .r > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  .r.pill { color: var(--t); background: color-mix(in srgb, var(--t) 14%, transparent); }
+  .r.pill { color: color-mix(in srgb, var(--t) 50%, var(--primary-text-color, #212121)); background: color-mix(in srgb, var(--t) 14%, transparent); }
   .r:hover { background: color-mix(in srgb, var(--t) 20%, var(--secondary-background-color, transparent)); }
   .r:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 `;
