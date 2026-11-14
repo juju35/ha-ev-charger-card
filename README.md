@@ -64,17 +64,17 @@ The cards share the look of the other ha-* cards (header with a status pill, tin
 
 The card reads what the charger's device exposes, by device class, unit and domain (and the entity's name when that is not enough), so most charger integrations work out of the box:
 
-| Integration | Chargers |
-|---|---|
-| [Wallbox](https://www.home-assistant.io/integrations/wallbox/) (built in) | Wallbox Pulsar, Commander, Copper |
-| [Tesla Wall Connector](https://www.home-assistant.io/integrations/tesla_wall_connector/) (built in) | Tesla Wall Connector |
-| [Ohme](https://www.home-assistant.io/integrations/ohme/) (built in) | Ohme Home Pro, ePod |
-| [Peblar](https://www.home-assistant.io/integrations/peblar/) (built in) | Peblar Home, Business |
-| [Easee](https://github.com/nordicopen/easee_hass) (Marketplace) | Easee Home, Charge, One |
-| [Zaptec](https://github.com/custom-components/zaptec) (Marketplace) | Zaptec Go, Pro |
-| [myenergi](https://github.com/CJNE/ha-myenergi) (Marketplace) | myenergi zappi |
-| [OCPP](https://github.com/lbbrhzn/ocpp) (Marketplace) | Any OCPP charger: Alfen, ABB, Schneider Electric… |
-| go-e, Alfen and other charger integrations | Their chargers |
+| | Integration | Chargers |
+|:---:|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/wallbox.svg" alt="Wallbox" height="14"> | [Wallbox](https://www.home-assistant.io/integrations/wallbox/) (built in) | Wallbox Pulsar, Commander, Copper |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/tesla.svg" alt="Tesla" height="20"> | [Tesla Wall Connector](https://www.home-assistant.io/integrations/tesla_wall_connector/) (built in) | Tesla Wall Connector |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/ohme.svg" alt="Ohme" height="17"> | [Ohme](https://www.home-assistant.io/integrations/ohme/) (built in) | Ohme Home Pro, ePod |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/peblar.svg" alt="Peblar" height="17"> | [Peblar](https://www.home-assistant.io/integrations/peblar/) (built in) | Peblar Home, Business |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/easee.svg" alt="Easee" height="17"> | [Easee](https://github.com/nordicopen/easee_hass) (Marketplace) | Easee Home, Charge, One |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/zaptec.svg" alt="Zaptec" height="20"> | [Zaptec](https://github.com/custom-components/zaptec) (Marketplace) | Zaptec Go, Pro |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/myenergi.svg" alt="myenergi" height="17"> | [myenergi](https://github.com/CJNE/ha-myenergi) (Marketplace) | myenergi zappi |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/ocpp.svg" alt="Open Charge Alliance (OCPP)" height="20"> | [OCPP](https://github.com/lbbrhzn/ocpp) (Marketplace) | Any OCPP charger: Alfen, ABB, Schneider Electric… |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/go-e.svg" alt="go-e" height="17">&nbsp;<img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/alfen.svg" alt="Alfen" height="17"> | go-e, Alfen and other charger integrations | Their chargers |
 
 When the card picks the wrong entity for a role, or misses one, set it in `entities` (see [Configuration](#configuration)) and open an issue with the charger's entities so that the discovery learns it.
 
