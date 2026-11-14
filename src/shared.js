@@ -1346,11 +1346,13 @@ const RC_I18N = {
 // The state comes from the charger's status sensor, in the integration's own words, brought down to five: charging,
 // waiting (a car is plugged in, not charging), done (charged), idle (no car), error; `offline` when the charger cannot report.
 const EV_STATE_RULES = [
-  ["error", /(error|fault|failure|defect)/],
-  ["done", /(complete|finished|full|charged|done|termin)/],
+  ["error", /(error|fault|failure|failed|defect)/],
+  ["done", /(complete|finish|full|charged|done|termin)/],
+  // Before charging: "not_charging", "charging_stopped" are no charge.
+  ["waiting", /(^|_)not_charging|charging_(stopped|paused|suspended)/],
   ["charging", /(^|_)(charging|in_progress|laden|ladend|charge_en_cours|en_charge)($|_)/],
-  ["idle", /(disconnected|not_connected|unplugged|no_car|no_vehicle|awaiting_car(?!_demand)|waiting_for_car(?!_demand)|ready_for_car|available|idle|standby|^off$)/],
-  ["waiting", /(connected|plugged|ready|wait|paus|suspend|schedul|preparing|delay|eco|smart|occupied|authori|pending|requesting)/],
+  ["idle", /(disconnected|not_connected|unplugged|no_car|no_ev|no_vehicle|awaiting_car(?!_demand)|waiting_for_car(?!_demand)|ready_for_car|^ready$|available|idle|standby|^off$)/],
+  ["waiting", /(connected|plugged|ready|wait|paus|suspend|schedul|preparing|delay|eco|smart|occupied|authori|pending|requesting|reserv)/],
 ];
 const evNorm = (s) =>
   String(s ?? "")
@@ -1445,7 +1447,12 @@ const evFind = (hass, device, overrides = {}) => {
   r.limit = pick((id) => dom(id) === "number" && (unit(id) === "A" || dc(id) === "current"), (id) => named(id, /limit|max|current|courant|strom/i));
   r.current = pick((id) => dom(id) === "sensor" && dc(id) === "current", (id) => !named(id, /max|limit/i));
   r.phases = pick((id) => dom(id) === "sensor" && named(id, /phase/i) && evNum(st(id)) != null);
-  r.switch = pick((id) => dom(id) === "switch" && named(id, /charg|enable|pause|start|ladung|recharge/i) && !named(id, /lock|verrou|sperr/i));
+  // The switch that allows charging; a "pause" switch works the other way round (see `switchPause`). A mode switch
+  // (smart, eco, schedule) is not it.
+  r.switch = pick(
+    (id) => dom(id) === "switch" && named(id, /charg|enable|pause|start|allow|ladung|recharge/i) && !named(id, /lock|verrou|sperr|smart|eco|mode|schedul|solar|boost/i),
+    (id) => named(id, /enable|allow|pause.?resume|start.?stop|activ/i),
+  );
   r.start = pick((id) => dom(id) === "button" && named(id, /start|resume|reprendre|demarr/i));
   r.stop = pick((id) => dom(id) === "button" && named(id, /stop|pause/i));
   r.lock = pick((id) => dom(id) === "lock") || pick((id) => dom(id) === "switch" && named(id, /lock|verrou|sperr/i));

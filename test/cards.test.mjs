@@ -48,6 +48,14 @@ test("states: the integrations' words brought down to five", () => {
     Idle: "idle",
     error: "error",
     Fault: "error",
+    Ready: "idle",
+    no_ev_connected: "idle",
+    not_charging: "waiting",
+    charging_stopped: "waiting",
+    Finishing: "done",
+    Reserved: "waiting",
+    Faulted: "error",
+    "Waiting MID failed": "error",
   };
   for (const [raw, want] of Object.entries(cases)) assert.equal(ev.evStateOf(raw), want, raw);
   assert.equal(ev.evStateOf("unavailable"), undefined);
@@ -132,6 +140,42 @@ test("offline, and a charger without a status sensor", () => {
   const noStatus = makeHass();
   delete noStatus.states["sensor.garage_status"];
   assert.equal(make("ev-charger-card", { device: "charger" }, noStatus)._items.state, "charging", "power above 50 W");
+});
+
+test("OCPP: a capitalised Unavailable is offline", () => {
+  const h = makeHass({ status: "Unavailable", power: "0" });
+  assert.equal(make("ev-charger-card", { device: "charger" }, h)._items.state, "offline");
+});
+
+test("a status reading unknown at start is found once it reports", () => {
+  const h = makeHass({ status: "unknown", power: "0" });
+  h.states["sensor.garage_status"].attributes.friendly_name = "Garage Charger mode";
+  const card = make("ev-charger-card", { device: "charger" }, h);
+  card.hass = { ...h, states: { ...h.states, "sensor.garage_status": st("sensor.garage_status", "connected_charging", { friendly_name: "Garage Charger mode" }) } };
+  assert.equal(card._items.state, "charging");
+});
+
+test("a pause switch works the other way round", () => {
+  const h = makeHass({ status: "charging" });
+  delete h.states["switch.garage_charger_enabled"];
+  h.entities["switch.garage_pause_charging"] = { device_id: "charger", platform: "zappi" };
+  h.states["switch.garage_pause_charging"] = st("switch.garage_pause_charging", "off", { friendly_name: "Garage Pause charging" });
+  const card = make("ev-charger-card", { device: "charger" }, h);
+  click(card, ".act-pause");
+  assert.deepEqual(json(h.calls.at(-1)), ["switch", "turn_on", { entity_id: "switch.garage_pause_charging" }]);
+});
+
+test("redraws when the current changes", () => {
+  const h = makeHass();
+  delete h.states["sensor.garage_charging_time"];
+  delete h.states["sensor.garage_session_cost"];
+  h.entities["sensor.garage_current"] = { device_id: "charger", platform: "easee" };
+  const amps = (v) => ({ ...h.states, "sensor.garage_current": st("sensor.garage_current", v, { device_class: "current", unit_of_measurement: "A" }) });
+  const card = make("ev-charger-card", { device: "charger" }, { ...h, states: amps("16") });
+  assert.match(card.shadowRoot.innerHTML, /16<small>A/);
+  card.hass = { ...h, states: amps("6") };
+  assert.match(card.shadowRoot.innerHTML, /6<small>A/);
+  assert.doesNotMatch(card.shadowRoot.innerHTML, /16<small>A/);
 });
 
 test("reduced motion: the energy stops flowing", () => {

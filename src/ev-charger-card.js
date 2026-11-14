@@ -163,7 +163,8 @@ class EvChargerCard extends RcCard {
     const h = this._hass;
     const c = this._config;
     const device = this._deviceId();
-    const e = rcMemo((this._memo ||= {}), "find", [device, c.entities, h.entities, h.devices], () => evFind(h, device, c.entities || {}));
+    // The roles depend on the states too (a status sensor reading "unknown" at start is skipped): found again when they change.
+    const e = rcMemo((this._memo ||= {}), "find", [device, c.entities, h.entities, h.devices, h.states], () => evFind(h, device, c.entities || {}));
     const st = (role) => (e[role] ? h.states[e[role]] : undefined);
     const on = (role) => st(role)?.state === "on";
     const watts = evWatts(st("power"));
@@ -171,7 +172,9 @@ class EvChargerCard extends RcCard {
     const errSt = st("error");
     const errOn = errSt && !rcUnavailable(errSt) && (errSt.entity_id.startsWith("binary_sensor.") ? errSt.state === "on" : !EV_NO_ERROR.test(evNorm(errSt.state)) && !!errSt.state);
     let state = raw && !rcUnavailable(raw) ? evStateOf(raw.state) : undefined;
-    if (!state) state = watts > 50 ? "charging" : st("plug") ? (on("plug") ? "waiting" : "idle") : raw && rcUnavailable(raw) ? "offline" : "idle";
+    // OCPP publishes "Unavailable" with a capital: offline too.
+    const rawOff = raw && (rcUnavailable(raw) || evNorm(raw.state) === "unavailable");
+    if (!state) state = watts > 50 ? "charging" : st("plug") ? (on("plug") ? "waiting" : "idle") : rawOff ? "offline" : "idle";
     if (errOn) state = "error";
     const limit = st("limit");
     const lock = st("lock");
@@ -198,6 +201,8 @@ class EvChargerCard extends RcCard {
       lock: lock && !rcUnavailable(lock) ? { id: lock.entity_id, locked: lock.state === "locked" || lock.state === "on", domain: lock.entity_id.split(".")[0] } : null,
       switchId: e.switch && h.states[e.switch] && !rcUnavailable(h.states[e.switch]) ? e.switch : null,
       switchOn: on("switch"),
+      // A "Pause charging" switch is on while paused: pause turns it on, start turns it off.
+      switchPause: !!e.switch && /pause/i.test(`${e.switch} ${h.states[e.switch]?.attributes.friendly_name || ""}`) && !/resume/i.test(`${e.switch} ${h.states[e.switch]?.attributes.friendly_name || ""}`),
       startId: e.start && h.states[e.start] ? e.start : null,
       stopId: e.stop && h.states[e.stop] ? e.stop : null,
       soc: evNum(battery),
@@ -269,7 +274,7 @@ class EvChargerCard extends RcCard {
   _draw(m) {
     const c = this._config;
     const dark = this._dark();
-    const parts = [m.state, m.raw, m.name, m.sub, m.watts && Math.round(m.watts / 100), m.session, m.total, m.duration, m.cost, m.error, m.limit, m.lock, m.switchOn, m.soc, dark];
+    const parts = [m.state, m.raw, m.name, m.sub, m.watts && Math.round(m.watts / 100), m.session, m.total, m.duration, m.cost, m.error, m.limit, m.lock, m.switchOn, m.soc, m.amps, m.phases, dark];
     if (!this._changed(parts)) return;
     const status = this._status(m);
     const head = `
@@ -315,8 +320,9 @@ class EvChargerCard extends RcCard {
       fn();
     });
     root.querySelector(".sc")?.addEventListener("click", () => rcMoreInfo(this, m.ids.status || m.ids.power || m.ids.limit));
-    on(".act-pause", () => (m.stopId ? rcCall(h, "button", "press", { entity_id: m.stopId }) : rcCall(h, "switch", "turn_off", { entity_id: m.switchId })));
-    on(".act-start", () => (m.startId ? rcCall(h, "button", "press", { entity_id: m.startId }) : rcCall(h, "switch", "turn_on", { entity_id: m.switchId })));
+    const allow = (yes) => rcCall(h, "switch", yes !== m.switchPause ? "turn_on" : "turn_off", { entity_id: m.switchId });
+    on(".act-pause", () => (m.stopId ? rcCall(h, "button", "press", { entity_id: m.stopId }) : allow(false)));
+    on(".act-start", () => (m.startId ? rcCall(h, "button", "press", { entity_id: m.startId }) : allow(true)));
     const lockTo = (locked) =>
       m.lock.domain === "lock"
         ? rcCall(h, "lock", locked ? "lock" : "unlock", { entity_id: m.lock.id })
