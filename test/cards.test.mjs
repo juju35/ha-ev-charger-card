@@ -134,10 +134,36 @@ test("offline, and a charger without a status sensor", () => {
   assert.equal(make("ev-charger-card", { device: "charger" }, noStatus)._items.state, "charging", "power above 50 W");
 });
 
+test("reduced motion: the energy stops flowing", () => {
+  const prev = ev.window.matchMedia;
+  ev.window.matchMedia = (q) => ({ matches: q.includes("reduce") });
+  try {
+    assert.doesNotMatch(make("ev-charger-card", { device: "charger" }).shadowRoot.innerHTML, /repeatCount="indefinite"/);
+  } finally {
+    ev.window.matchMedia = prev;
+  }
+});
+
+test("discovery: a charge mode select is no status", () => {
+  const h = makeHass();
+  h.entities = { "select.garage_charge_mode": { device_id: "charger", platform: "easee" }, ...h.entities };
+  h.states["select.garage_charge_mode"] = st("select.garage_charge_mode", "eco", { friendly_name: "Garage Charge mode", options: ["eco", "fast"] });
+  assert.equal(ev.evFind(h, "charger").status, "sensor.garage_status");
+  assert.equal(make("ev-charger-card", { device: "charger" }, h)._items.state, "charging");
+  // A select named a status still counts when it is the only one.
+  const only = makeHass();
+  delete only.states["sensor.garage_status"];
+  only.entities = { "select.garage_charger_status": { device_id: "charger", platform: "easee" }, ...only.entities };
+  only.states["select.garage_charger_status"] = st("select.garage_charger_status", "charging", { friendly_name: "Garage Charger status" });
+  assert.equal(ev.evFind(only, "charger").status, "select.garage_charger_status");
+});
+
 test("options: no illustration, no animation, no controls", () => {
   const card = make("ev-charger-card", { device: "charger", show_scene: false, show_controls: false });
   assert.doesNotMatch(card.shadowRoot.innerHTML, /class="scene"|class="ctl"/);
-  assert.doesNotMatch(make("ev-charger-card", { device: "charger", animations: false }).shadowRoot.innerHTML, /animateMotion/);
+  const still = make("ev-charger-card", { device: "charger", animations: false }).shadowRoot.innerHTML;
+  assert.doesNotMatch(still, /repeatCount="indefinite"/, "nothing moves");
+  assert.match(still, /fill="freeze"/, "the particles stay on the cable");
 });
 
 test("mini card: the readings as pills, a ring badge", () => {

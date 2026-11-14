@@ -1430,10 +1430,13 @@ const evFind = (hass, device, overrides = {}) => {
     return (prefer && all.find(prefer)) || all[0];
   };
   const r = {};
-  r.status = pick(
-    (id) => ["sensor", "select"].includes(dom(id)) && !dc(id) && evNum(st(id)) == null && !named(id, /error|fault|erreur|fehler/i) && !!evStateOf(st(id).state),
-    (id) => named(id, /status|state|mode|etat|zustand/i),
-  ) || pick((id) => dom(id) === "sensor" && named(id, /status|state|etat|zustand/i) && evNum(st(id)) == null && !named(id, /error|fault/i));
+  // A sensor first; a select only when named a status (a "Charge mode" select set to *eco* is no status).
+  const STATUS = /status|state|etat|zustand/i;
+  const statusLike = (id) => !dc(id) && evNum(st(id)) == null && !named(id, /error|fault|erreur|fehler/i) && !!evStateOf(st(id).state);
+  r.status =
+    pick((id) => dom(id) === "sensor" && statusLike(id), (id) => named(id, STATUS)) ||
+    pick((id) => dom(id) === "select" && statusLike(id) && named(id, STATUS)) ||
+    pick((id) => dom(id) === "sensor" && named(id, STATUS) && evNum(st(id)) == null && !named(id, /error|fault/i));
   r.plug = pick((id) => dom(id) === "binary_sensor" && dc(id) === "plug");
   r.power = pick((id) => dom(id) === "sensor" && dc(id) === "power", (id) => !named(id, /max|limit|offered|avail/i));
   const energy = ids.filter((id) => dom(id) === "sensor" && dc(id) === "energy" && st(id));

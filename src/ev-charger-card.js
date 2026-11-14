@@ -28,10 +28,13 @@ const evScene = ({ state, dark, uid, pct, pill, label, animate }) => {
   const txt = dark ? "#f0f0f0" : "#1f2329";
   const cable = car ? "M78 133 C78 180, 162 184, 198 160 S 222 128 227 121" : "M78 133 C78 172, 118 174, 120 150 C121 138, 112 132, 104 132";
   const flowing = animate && state === "charging";
-  const particles = flowing
+  // Still (no animation): the particles stay along the cable, each frozen at a quarter of the way.
+  const particles = state === "charging"
     ? [0, 1, 2, 3]
         .map((i) => {
-          const motion = `<animateMotion dur="1.8s" begin="${i * 0.45}s" repeatCount="indefinite"><mpath href="#c${uid}"/></animateMotion>`;
+          const motion = flowing
+            ? `<animateMotion dur="1.8s" begin="${i * 0.45}s" repeatCount="indefinite"><mpath href="#c${uid}"/></animateMotion>`
+            : `<animateMotion dur="1s" fill="freeze" calcMode="linear" keyPoints="${0.15 + i * 0.25};${0.15 + i * 0.25}" keyTimes="0;1"><mpath href="#c${uid}"/></animateMotion>`;
           return `<circle r="3" fill="#fff">${motion}</circle><circle r="6" fill="${acc}" opacity=".55" filter="url(#bl${uid})">${motion}</circle>`;
         })
         .join("")
@@ -252,6 +255,17 @@ class EvChargerCard extends RcCard {
     return null;
   }
 
+  // The energy flowing along the cable is an SVG animation, which CSS cannot stop: off with `animations: false` and when
+  // the system asks for reduced motion.
+  _animate() {
+    if (this._config.animations === false) return false;
+    try {
+      return !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+      return true;
+    }
+  }
+
   _draw(m) {
     const c = this._config;
     const dark = this._dark();
@@ -270,7 +284,7 @@ class EvChargerCard extends RcCard {
     const scene =
       c.show_scene === false
         ? ""
-        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: `${this._uid ||= Math.random().toString(36).slice(2, 8)}`, pct: m.soc != null && !noCar ? m.soc : null, pill, label: !pill || pill === this._t(`st_${m.state}`) ? "" : this._t(`st_${m.state}`), animate: c.animations !== false })}</button>`;
+        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: `${this._uid ||= Math.random().toString(36).slice(2, 8)}`, pct: m.soc != null && !noCar ? m.soc : null, pill, label: !pill || pill === this._t(`st_${m.state}`) ? "" : this._t(`st_${m.state}`), animate: this._animate() })}</button>`;
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
     this._paint(m.state, head + scene + error, this._tileList(m).map((t) => this._tile(t)).join(""));
   }
