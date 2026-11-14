@@ -198,7 +198,15 @@ class EvChargerCard extends RcCard {
       limit: limit && !rcUnavailable(limit)
         ? { id: limit.entity_id, value: evNum(limit), min: limit.attributes.min ?? 6, max: limit.attributes.max ?? 32, step: limit.attributes.step || 1 }
         : null,
-      lock: lock && !rcUnavailable(lock) ? { id: lock.entity_id, locked: lock.state === "locked" || lock.state === "on", domain: lock.entity_id.split(".")[0] } : null,
+      // A lock named after the cable locks the cable (Easee); any other locks the whole charger (Wallbox).
+      lock: lock && !rcUnavailable(lock)
+        ? {
+            id: lock.entity_id,
+            locked: lock.state === "locked" || lock.state === "on",
+            domain: lock.entity_id.split(".")[0],
+            cable: /cable|c[aâ]ble|kabel|cavo|plug|connector|stecker/i.test(`${lock.entity_id} ${lock.attributes.friendly_name || ""}`),
+          }
+        : null,
       switchId: e.switch && h.states[e.switch] && !rcUnavailable(h.states[e.switch]) ? e.switch : null,
       switchOn: on("switch"),
       // A "Pause charging" switch is on while paused: pause turns it on, start turns it off.
@@ -256,7 +264,7 @@ class EvChargerCard extends RcCard {
   _primary(m) {
     if (m.state === "charging" && (m.stopId || m.switchId)) return "pause";
     if (m.state === "waiting" && (m.startId || m.switchId)) return "start";
-    if ((m.state === "done" || m.state === "idle") && m.lock?.locked) return "unlock";
+    if ((m.state === "done" || m.state === "idle") && m.lock?.locked && m.lock.cable) return "unlock";
     return null;
   }
 
@@ -306,7 +314,7 @@ class EvChargerCard extends RcCard {
       : "";
     const lock =
       m.lock && primary !== "unlock"
-        ? `<button class="gb act-lock" title="${rcEsc(this._t(m.lock.locked ? "unlock" : "lock"))}">${evIcon(EV_SVG[m.lock.locked ? "lock" : "unlock"])}<span>${rcEsc(this._t(m.lock.locked ? "locked" : "unlocked"))}</span></button>`
+        ? `<button class="gb act-lock" title="${rcEsc(this._t(`${m.lock.locked ? "unlock" : "lock"}${m.lock.cable ? "" : "_box"}`))}">${evIcon(EV_SVG[m.lock.locked ? "lock" : "unlock"])}<span>${rcEsc(this._t(m.lock.locked ? "locked" : "unlocked"))}</span></button>`
         : "";
     return btn || step || lock ? `<div class="ctl">${btn}${step}${lock}</div>` : "";
   }

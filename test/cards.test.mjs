@@ -178,6 +178,18 @@ test("redraws when the current changes", () => {
   assert.doesNotMatch(card.shadowRoot.innerHTML, /16<small>A/);
 });
 
+test("a charger lock (Wallbox) is no cable lock: no unlock after charging, its own label", () => {
+  const h = makeHass({ status: "completed", power: "0" });
+  delete h.states["lock.garage_cable_locked"];
+  h.entities["lock.garage_locked"] = { device_id: "charger", platform: "wallbox" };
+  h.states["lock.garage_locked"] = st("lock.garage_locked", "locked", { friendly_name: "Garage Locked" });
+  const card = make("ev-charger-card", { device: "charger" }, h);
+  assert.equal(card._primary(card._items), null);
+  assert.match(card.shadowRoot.innerHTML, /act-lock" title="Unlock the charger"/);
+  const easee = make("ev-charger-card", { device: "charger" }, makeHass({ status: "completed", power: "0" }));
+  assert.equal(easee._primary(easee._items), "unlock");
+});
+
 test("reduced motion: the energy stops flowing", () => {
   const prev = ev.window.matchMedia;
   ev.window.matchMedia = (q) => ({ matches: q.includes("reduce") });
