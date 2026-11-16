@@ -22,7 +22,7 @@ const EV_ICONS = {
 const EV_VEHICLES = {
   // A fastback saloon: long bonnet, sloping roof, body-coloured roof above the windows.
   sedan: {
-    R: 242, F: 378, r: 18, ar: 21.5, sill: 146, top: 87, shadow: [310, 124],
+    R: 242, F: 378, r: 19, sill: 146, top: 87, shadow: [310, 124],
     body: "M204 146 C199 146 197 143 197 139 L197 126 C197 120 198 115 201 112 L214 108.5 C238 99 262 90 292 88 C306 87.2 318 87.6 328 89.5 C340 92 352 99 362 105.5 C384 107.5 404 110 413 114 C419 117 421 122 421 128 L421 138 C421 143 418 146 413 146",
     glass: "M219 108.2 C240 99.6 263 90.9 292 89 C306 88.2 318 88.6 327.6 90.4 C339 93 350 99.4 357.6 105.2 L356.6 107.8 Z",
     refl: "M232 102.6 C252 95.6 272 92 292 90.8",
@@ -38,7 +38,7 @@ const EV_VEHICLES = {
   },
   // A five-door hatchback: short bonnet, long roof, an upright tailgate, a body-coloured rear pillar.
   hatch: {
-    R: 240, F: 368, r: 18, ar: 21.5, sill: 146, top: 88, shadow: [302, 108],
+    R: 240, F: 368, r: 18.5, sill: 146, top: 88, shadow: [302, 108],
     body: "M207 146 C202 146 200 143 200 139 L200 116 C200 108 202 101.5 206 97 L211 92.6 C218 89.6 232 88.4 252 88.2 L300 88 C312 88.2 320 90.4 328 94.6 C336 99 344 104 350 107.4 C370 109.2 388 111.8 396 115 C401 117.6 403.6 122 403.6 128 L403.6 138 C403.6 143 401 146 397 146",
     glass: "M214 103 L216 96.6 C221 93 234 92.2 254 92 L298 91.9 C308 92.1 314 93.8 320 97 C327 101 334 104.6 339 107.6 L214 107.6 Z",
     refl: "M220 100 C238 94 262 93 288 92.6",
@@ -54,7 +54,7 @@ const EV_VEHICLES = {
   },
   // An estate: a long flat roof down to an upright tailgate, a rear quarter window behind the rear doors.
   estate: {
-    R: 242, F: 380, r: 18, ar: 21.5, sill: 146, top: 88, shadow: [310, 124],
+    R: 242, F: 380, r: 19, sill: 146, top: 88, shadow: [310, 124],
     body: "M204 146 C199.5 146 197.5 143 197.5 139 L197.5 116 C197.5 108 199 102 202 97.6 L207 92 C214 89.6 226 89 244 88.8 L310 88.4 C324 88.6 334 91 344 96 C352 100 360 104.6 367 107.6 C388 109.4 404 112 412.6 115.6 C418.6 118.6 421 123 421 129 L421 138.6 C420.6 143.4 418 146 413 146",
     glass: "M209 104 L211 96.4 C216 93.4 228 92.8 246 92.6 L308 92.3 C320 92.5 330 94.6 338 98.6 C346 102.6 352 105.6 356.6 108.4 L209 108.4 Z",
     refl: "M216 100 C240 94.4 270 93.2 300 93",
@@ -72,7 +72,7 @@ const EV_VEHICLES = {
   // A fastback crossover: tall, one rounded roofline in black glass from the windscreen down to a small lip on the
   // hatch, a short sloping bonnet, grey aero wheel covers.
   crossover: {
-    R: 243, F: 378, r: 19.5, ar: 23, sill: 144, top: 82, shadow: [310, 124], aero: true,
+    R: 243, F: 378, r: 20, sill: 144, top: 82, shadow: [310, 124], aero: true,
     body: "M205 146 C200 146 198 143 198 139 L198 120 C198 113 200 108.5 204 105.6 L210.4 103 C222 98.4 236 89.4 252 85.6 C268 82.6 284 82 300 81.8 C326 81.6 346 88 374 101 C392 103.4 406 106.5 413.6 110.4 C419 113.4 421.4 118.4 421.4 125 L421 138.6 C420.6 143.4 418 146 413 146",
     glass: "M212.6 103.4 C225 97 238 89.6 253 86.4 C268 83.4 284 82.8 300 82.6 C326 82.4 345 88.8 371.6 101.4 L370 102.6 C320 102 268 101.8 214 103.6 Z",
     panes: "M318 102 L318 87 C334 87.2 349 92.8 362 100.6 L361 102 Z M311.6 102 L311.6 86.2 C292 86 270 89 254 95.2 L252 102 Z M247.6 98.4 C238 100.4 230 101.8 223 102.4 L247 102.4 Z",
@@ -89,7 +89,7 @@ const EV_VEHICLES = {
   },
   // A coupé SUV: an SUV's height and cladding under a roof sloping down to the tailgate.
   coupe_suv: {
-    R: 244, F: 376, r: 19.5, ar: 23.5, sill: 143, top: 80, shadow: [310, 124], cladding: true,
+    R: 244, F: 376, r: 20.5, sill: 143, top: 80, shadow: [310, 124], cladding: true,
     body: "M205 146 C200 146 198 143 198 139 L198 114 C198 108 199.6 104 202.6 101.6 L209 99.4 C222 94.4 238 86 262 82.6 C278 80.8 300 80.6 318 81.2 C330 81.6 338 83 346 87 C354 91 362 96.6 368 101 C388 103 404 106 412 110 C418 113 421 118 421 124 L421 139 C421 143 418 146 414 146",
     glass: "M212 101.4 C224 96 240 88.6 262 85.8 C278 84 300 84 318 84.6 C328 85 335 86.6 342 90 C350 94 356 98.5 361 102.6 L213 102.6 Z",
     refl: "M226 97 C246 89.4 272 86 300 85.6",
@@ -104,7 +104,7 @@ const EV_VEHICLES = {
   },
   // A small urban SUV: short and tall, roof rails, black wheel-arch cladding.
   small_suv: {
-    R: 240, F: 356, r: 19, ar: 23, sill: 143, top: 82, shadow: [296, 104], cladding: true,
+    R: 240, F: 356, r: 19.5, sill: 143, top: 82, shadow: [296, 104], cladding: true,
     body: "M207 146 C202 146 200 143 200 139 L200 110 C200 102 202 96 206 92 L211 87.4 C218 84 230 82.6 248 82.4 L290 82.2 C300 82.4 307 84 314 88.4 C322 93.4 330 99 336 102.6 C356 104.4 372 107.6 380 111.6 C386 114.6 389 119 389 125 L389 139 C389 143 386 146 382 146",
     glass: "M213 98 L215 91.4 C220 87.6 232 86.6 250 86.4 L288 86.3 C297 86.5 303 88 309 91.6 C316 96 322 99.6 327 102.4 L213 102.4 Z",
     refl: "M220 95 C236 89.6 258 87.6 284 87.2",
@@ -121,7 +121,7 @@ const EV_VEHICLES = {
   },
   // A crossover SUV: taller, roof rails, black wheel-arch and sill cladding.
   suv: {
-    R: 244, F: 376, r: 19.5, ar: 23.5, sill: 143, top: 80, shadow: [310, 124], cladding: true,
+    R: 244, F: 376, r: 20.5, sill: 143, top: 80, shadow: [310, 124], cladding: true,
     body: "M205 146 C200 146 198 143 198 139 L198 112 C198 104 201 98 206 95 L214 89 C222 84.5 236 82 260 81 L318 80.5 C330 80.5 338 82 346 86 C354 90 362 96 368 101 C388 103 404 106 412 110 C418 113 421 118 421 124 L421 139 C421 143 418 146 414 146",
     glass: "M214 99 L217 92 C224 88 238 86 262 85.4 L318 85 C328 85 335 86.5 342 90 C350 94 356 98.5 361 102.6 L215 102.6 Z",
     refl: "M222 96 C240 90 268 88 300 87.6",
@@ -137,7 +137,7 @@ const EV_VEHICLES = {
   },
   // A city car: short, upright, two short overhangs.
   city: {
-    R: 238, F: 350, r: 18, ar: 21.5, sill: 146, top: 83, shadow: [293, 100],
+    R: 238, F: 350, r: 17.5, sill: 146, top: 83, shadow: [293, 100],
     body: "M207 146 C202 146 200 143 200 139 L200 112 C200 104 202 98 206 94 L211 89 C217 85 228 83.5 246 83.2 L292 83 C302 83.2 309 85 316 89.5 C323 94 330 99.5 336 104 C356 106 372 109 380 113 C384 116 386 120 386 126 L386 138 C386 143 383 146 379 146",
     glass: "M214 100 L216 93 C221 89 232 87.5 248 87.4 L290 87.3 C299 87.5 305 89 310.5 92.5 C317 97 322.5 100.5 327 104 L214 104 Z",
     refl: "M220 97 C236 91 258 89.4 284 88.6",
@@ -152,7 +152,7 @@ const EV_VEHICLES = {
   },
   // An MPV / van: a tall box, a short bonnet, a sliding rear door and an upright tailgate.
   van: {
-    R: 240, F: 374, r: 18.5, ar: 22, sill: 145, top: 72, shadow: [309, 122],
+    R: 240, F: 374, r: 19, sill: 145, top: 72, shadow: [309, 122],
     body: "M205 146 C200.5 146 198.5 143 198.5 139 L198.5 86 C198.5 79 202 74.4 210 73.6 L330 72.4 C340 72.6 346 74.4 350 78 C356 84 364 93 370 100.6 C388 102.8 404 106 411.6 110 C417.6 113 420 118 420 124 L420 138.6 C420 143.4 417.4 146 412.6 146",
     glass: "M206 98 L206 82 C206 79 208 77.6 212 77.4 L330 76.4 C337 76.4 341 77.8 344 80.6 C350 86.6 356 93.6 362 100.8 L206 100.8 Z",
     refl: "M214 92 C240 82 280 79 320 78.4",
@@ -191,78 +191,100 @@ const evArch = (cx, cy, r, sill) => {
   const dx = Math.sqrt(r * r - (sill - cy) ** 2);
   return `L${evN(cx + dx)} ${sill} A${r} ${r} 0 1 0 ${evN(cx - dx)} ${sill}`;
 };
-// A tyre and its aero wheel: a disc with five openings and the hub.
+// A wheel: the tyre and its sidewall, the brake disc behind the spokes, then either five twin spokes and the rim's
+// polished lip, or (`aero`) a flat cover with five openings; the centre cap.
 const evWheel = (cx, cy, r, k, dark, aero) => {
-  const rr = r * 0.68;
+  const rr = r * 0.7;
   const at = (rad, a) => `${evN(cx + rad * Math.cos(a))} ${evN(cy + rad * Math.sin(a))}`;
-  const ro = rr * 0.9;
-  const ri = rr * 0.5;
-  const pockets = [0, 1, 2, 3, 4]
-    .map((i) => {
-      const a = (i * 2 * Math.PI) / 5 - Math.PI / 2 + 0.2;
-      return `M${at(ro, a - 0.38)} A${evN(ro)} ${evN(ro)} 0 0 1 ${at(ro, a + 0.38)} L${at(ri, a + 0.24)} A${evN(ri)} ${evN(ri)} 0 0 0 ${at(ri, a - 0.24)} Z`;
-    })
-    .join(" ");
-  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#16181b"/><circle cx="${cx}" cy="${cy}" r="${evN(r - 1.6)}" fill="none" stroke="#2b2f35"/><circle cx="${cx}" cy="${cy}" r="${evN(rr + 0.8)}" fill="#0c0d0f"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="url(#${aero ? "aw" : "rim"}${k})"/><path d="${pockets}" fill="${dark ? "#0b0c0e" : "#22262c"}"/><circle cx="${cx}" cy="${cy}" r="${evN(rr * 0.32)}" fill="url(#hub${k})"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width=".6"/>`;
+  const circle = (rad, attrs) => `<circle cx="${cx}" cy="${cy}" r="${evN(rad)}" ${attrs}/>`;
+  const five = (f) => [0, 1, 2, 3, 4].map((i) => f((i * 2 * Math.PI) / 5 - Math.PI / 2 + 0.2)).join(" ");
+  const face = aero
+    ? `${circle(rr, `fill="url(#aw${k})"`)}<path d="${five((a) => `M${at(rr * 0.9, a - 0.36)} A${evN(rr * 0.9)} ${evN(rr * 0.9)} 0 0 1 ${at(rr * 0.9, a + 0.36)} L${at(rr * 0.52, a + 0.22)} A${evN(rr * 0.52)} ${evN(rr * 0.52)} 0 0 0 ${at(rr * 0.52, a - 0.22)} Z`)}" fill="#0b0c0e" opacity=".85"/>`
+    : `<path d="${five((a) => [-0.19, 0.19].map((o) => `M${at(rr * 0.28, a + o - 0.2)} L${at(rr * 0.97, a + o - 0.095)} L${at(rr * 0.97, a + o + 0.095)} L${at(rr * 0.28, a + o + 0.2)} Z`).join(" "))}" fill="url(#rim${k})"/>${circle(rr * 0.97, `fill="none" stroke="url(#rim${k})" stroke-width="${evN(r * 0.09)}"`)}`;
+  return `<g>${circle(r, `fill="url(#ty${k})"`)}${circle(r - 1.4, 'fill="none" stroke="#3a3f46" stroke-opacity=".7" stroke-width=".7"')}${circle(rr + 0.9, 'fill="#08090b"')}${circle(rr * 0.78, `fill="${dark ? "#2c3036" : "#3d4248"}"`)}${circle(rr * 0.78, 'fill="none" stroke="#5a6068" stroke-width=".6" stroke-opacity=".7"')}${face}${circle(rr * 0.3, `fill="url(#hub${k})"`)}${circle(rr * 0.12, 'fill="#9aa2ac" opacity=".7"')}${circle(rr + 0.2, 'fill="none" stroke="#fff" stroke-opacity=".28" stroke-width=".5"')}</g>`;
 };
-// A car of EV_VEHICLES: contact shadows, wheel wells, the body and its lower trim, the windows, the lines and details,
-// the lights, the charging port (in the colour of the state) and the wheels.
+// A car of EV_VEHICLES: contact shadows, wheel wells, the body (with its curvature, arch lips and lower trim), the
+// windows with their trim, the lines and details, the lights, the charging port (in the colour of the state) and the
+// wheels; and its faint reflection on the floor.
 const evCar = (v, { uid, dark, acc, color }) => {
   const k = `v${uid}`;
   const p = evPaint(color, dark);
   const glass = dark ? ["#2a323c", "#12171d", "#07090c"] : ["#5d6b7c", "#252d38", "#11161c"];
   const cy = 159 - v.r;
-  const body = `${v.body} ${evArch(v.F, cy, v.ar, v.sill)} ${evArch(v.R, cy, v.ar, v.sill)} Z`;
+  // Tight arches: a premium car shows little gap between its tyres and its wings.
+  const ar = v.r + 2.6;
+  const body = `${v.body} ${evArch(v.F, cy, ar, v.sill)} ${evArch(v.R, cy, ar, v.sill)} Z`;
   const axles = [v.R, v.F];
-  const well = (cx) => {
-    const dx = Math.sqrt(v.ar ** 2 - (v.sill - cy) ** 2);
-    return `<path d="M${evN(cx - dx)} ${v.sill} A${v.ar} ${v.ar} 0 1 1 ${evN(cx + dx)} ${v.sill} Z" fill="#0d0f12"/>`;
+  const arc = (cx, rad, y, sweep) => {
+    const dx = Math.sqrt(rad ** 2 - (y - cy) ** 2);
+    return `M${evN(cx - dx)} ${y} A${evN(rad)} ${evN(rad)} 0 1 ${sweep} ${evN(cx + dx)} ${y}`;
   };
-  // Black plastic around the wheel arches (SUV).
+  const well = (cx) => `<path d="${arc(cx, ar, v.sill, 1)} Z" fill="url(#wl${k})"/>`;
+  // The lip of each arch: a shadow on its edge, a highlight just above.
+  const lip = (cx) =>
+    `<path d="${arc(cx, ar + 0.6, v.sill, 1)}" fill="none" stroke="#000" stroke-opacity="${dark ? 0.5 : 0.22}" stroke-width="1.4"/><path d="${arc(cx, ar + 2, v.sill - 1, 1)}" fill="none" stroke="${p.hi}" stroke-opacity="${dark ? 0.25 : 0.6}" stroke-width=".9"/>`;
+  // Black plastic around the wheel arches (SUVs).
   const cladding = (cx) => {
     const y = v.sill + 3;
-    const ro = v.ar + 3.2;
-    const di = Math.sqrt(v.ar ** 2 - (y - cy) ** 2);
-    return `<path d="M${evN(cx - ro + 0.2)} ${y} A${ro} ${ro} 0 0 1 ${evN(cx + ro - 0.2)} ${y} L${evN(cx + di)} ${y} A${v.ar} ${v.ar} 0 0 0 ${evN(cx - di)} ${y} Z" fill="${p.trim}" opacity=".85"/>`;
+    const ro = ar + 3.2;
+    const di = Math.sqrt(ar ** 2 - (y - cy) ** 2);
+    return `<path d="M${evN(cx - ro + 0.2)} ${y} A${evN(ro)} ${evN(ro)} 0 0 1 ${evN(cx + ro - 0.2)} ${y} L${evN(cx + di)} ${y} A${evN(ar)} ${evN(ar)} 0 0 0 ${evN(cx - di)} ${y} Z" fill="${p.trim}" opacity=".9"/>`;
   };
-  const lowY = v.cladding ? 136 : 139;
-  const light = (d, color, glow) =>
-    `<path d="${d}" stroke="${color}" stroke-width="2.5" stroke-linecap="round" fill="none"/>${glow ? `<path d="${d}" stroke="${glow}" stroke-width="5" stroke-linecap="round" fill="none" opacity=".35" filter="url(#bl${uid})"/>` : ""}`;
-  return `
-    <defs>
-      <linearGradient id="bd${k}" x1="0" x2="0" y1="${v.top}" y2="147" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${p.hi}"/><stop offset=".38" stop-color="${p.base}"/><stop offset=".5" stop-color="${p.crease}"/><stop offset=".56" stop-color="${p.base}"/><stop offset=".82" stop-color="${p.base}"/><stop offset="1" stop-color="${p.low}"/></linearGradient>
-      <linearGradient id="gl${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${glass[0]}"/><stop offset=".55" stop-color="${glass[1]}"/><stop offset="1" stop-color="${glass[2]}"/></linearGradient>
-      <linearGradient id="rf${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity="${dark ? 0.12 : 0.28}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-      <linearGradient id="sl${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity="${dark ? 0.22 : 0.9}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-      <radialGradient id="rim${k}" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="${dark ? "#c9ced5" : "#eef1f4"}"/><stop offset=".6" stop-color="${dark ? "#8a929c" : "#b8bfc8"}"/><stop offset="1" stop-color="${dark ? "#5b626b" : "#808892"}"/></radialGradient>
-      <radialGradient id="aw${k}" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="${dark ? "#8d949d" : "#a9b0b8"}"/><stop offset=".7" stop-color="${dark ? "#5f666f" : "#7c848e"}"/><stop offset="1" stop-color="${dark ? "#40464d" : "#5c636c"}"/></radialGradient>
-      <radialGradient id="hub${k}"><stop offset="0" stop-color="#6b737d"/><stop offset="1" stop-color="#2a2f35"/></radialGradient>
-      <clipPath id="bc${k}"><path d="${body}"/></clipPath>
-    </defs>
-    <ellipse cx="${v.shadow[0]}" cy="158" rx="${v.shadow[1]}" ry="5.5" fill="url(#sh${uid})"/>
-    ${axles.map((x) => `<ellipse cx="${x}" cy="158.5" rx="${v.ar}" ry="2.5" fill="#000" opacity="${dark ? 0.6 : 0.35}"/>`).join("")}
+  const lowY = v.cladding ? 136 : 140;
+  // A lamp: its dark housing, the LED line and its glow.
+  const lamp = (d, led, glow) =>
+    `<path d="${d}" stroke="#16191d" stroke-width="4.4" stroke-linecap="round" fill="none"/><path d="${d}" stroke="${led}" stroke-width="1.7" stroke-linecap="round" fill="none"/><path d="${d}" stroke="${glow}" stroke-width="5" stroke-linecap="round" fill="none" opacity="${dark ? 0.5 : 0.3}" filter="url(#bl${uid})"/>`;
+  const car = `
     ${axles.map(well).join("")}
-    <path d="${body}" fill="url(#bd${k})" stroke="${p.line}" stroke-width=".8"/>
-    <g clip-path="url(#bc${k})"><rect x="190" y="${lowY}" width="240" height="12" fill="${p.trim}" opacity="${v.cladding ? 0.85 : dark ? 0.55 : 0.12}"/></g>
-    ${v.sideskirt ? `<path d="${v.sideskirt}" stroke="${p.trim}" stroke-width="5" opacity=".72"/>` : ""}
+    <path d="${body}" fill="url(#bd${k})"/>
+    <g clip-path="url(#bc${k})">
+      <rect x="190" y="70" width="240" height="90" fill="url(#cv${k})"/>
+      <rect x="190" y="${lowY}" width="240" height="12" fill="${p.trim}" opacity="${v.cladding ? 0.9 : dark ? 0.6 : 0.16}"/>
+      ${axles.map(lip).join("")}
+    </g>
+    <path d="${body}" fill="none" stroke="${p.line}" stroke-opacity=".7" stroke-width=".6"/>
+    ${v.sideskirt ? `<path d="${v.sideskirt}" stroke="${p.trim}" stroke-width="4" stroke-linecap="round" opacity="${dark ? 0.8 : 0.55}"/>` : ""}
     ${v.cladding ? axles.map(cladding).join("") : ""}
-    ${v.rails ? `<path d="${v.rails}" stroke="${p.trim}" stroke-width="2" stroke-linecap="round" fill="none" opacity=".85"/>` : ""}
-    <path d="${v.glass}" fill="url(#gl${k})"/>
-    ${v.panes ? `<path d="${v.panes}" fill="#fff" opacity="${dark ? 0.05 : 0.09}"/>` : ""}
-    <path d="${v.refl}" stroke="url(#rf${k})" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="${v.pillars}" stroke="${p.trim}" stroke-width="3"/>
+    ${v.rails ? `<path d="${v.rails}" stroke="${p.trim}" stroke-width="2" stroke-linecap="round" fill="none" opacity=".9"/><path d="${v.rails}" stroke="#fff" stroke-opacity="${dark ? 0.15 : 0.35}" stroke-width=".6" fill="none" transform="translate(0 -.6)"/>` : ""}
+    <path d="${v.glass}" fill="url(#gl${k})" stroke="${dark ? "#6f7781" : "#aeb6bf"}" stroke-width=".9" stroke-linejoin="round"/>
+    ${v.panes ? `<path d="${v.panes}" fill="#fff" opacity="${dark ? 0.05 : 0.08}"/>` : ""}
+    <g clip-path="url(#gc${k})"><path d="M190 120 L300 70 L330 70 L220 120 Z" fill="#fff" opacity="${dark ? 0.05 : 0.1}"/><path d="M${v.R + 64} 120 l50 -50 h10 l-50 50 z" fill="#fff" opacity="${dark ? 0.04 : 0.07}"/></g>
+    <path d="${v.refl}" stroke="url(#rf${k})" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="${v.pillars}" stroke="#0c0e11" stroke-width="3"/>
     ${v.cpillar ? `<path d="${v.cpillar}" stroke="${p.base}" stroke-width="5"/>` : ""}
-    <path d="${v.shoulder}" stroke="url(#sl${k})" stroke-width="1.6" fill="none"/>
-    <path d="${v.crease}" stroke="${p.line}" stroke-width=".7" fill="none" opacity=".7"/>
-    <path d="${v.doors}" stroke="${p.line}" stroke-width=".8" fill="none"/>
-    ${v.handles.slice(0, 2).map((x) => `<rect x="${x}" y="${v.handles[2]}" width="12" height="2.2" rx="1.1" fill="${p.line}"/>`).join("")}
-    <path d="${v.mirror}" fill="${p.trim}"/>
-    ${light(v.head, dark ? "#ffe9b0" : "#fff3cf", "#ffd166")}${light(v.tail, "#e5484d")}
-    <rect x="207" y="112.5" width="12" height="9.5" rx="3" fill="#15181c"/>
+    <path d="${v.shoulder}" stroke="url(#sl${k})" stroke-width="1.3" fill="none"/>
+    <path d="${v.shoulder}" stroke="#000" stroke-opacity="${dark ? 0.25 : 0.08}" stroke-width=".8" fill="none" transform="translate(0 1.6)"/>
+    <path d="${v.crease}" stroke="${p.hi}" stroke-opacity="${dark ? 0.2 : 0.6}" stroke-width=".9" fill="none"/>
+    <path d="${v.crease}" stroke="${p.line}" stroke-opacity=".5" stroke-width=".6" fill="none" transform="translate(0 1)"/>
+    <path d="${v.doors}" stroke="${p.line}" stroke-opacity=".75" stroke-width=".6" fill="none"/>
+    ${v.handles.slice(0, 2).map((x) => `<rect x="${x}" y="${v.handles[2]}" width="12" height="2" rx="1" fill="${p.line}" opacity=".75"/><rect x="${x + 1}" y="${v.handles[2] + 2}" width="10" height=".6" rx=".3" fill="#fff" opacity="${dark ? 0.15 : 0.7}"/>`).join("")}
+    <path d="${v.mirror}" fill="url(#gl${k})"/>
+    ${lamp(v.head, dark ? "#fff6dc" : "#ffffff", "#ffd98a")}${lamp(v.tail, "#ff4d55", "#e5484d")}
+    <rect x="207" y="112.5" width="12" height="9.5" rx="3" fill="#15181c" stroke="#000" stroke-opacity=".3" stroke-width=".6"/>
     <circle cx="213" cy="117.2" r="2.3" fill="${acc}"/><circle cx="213" cy="117.2" r="5.5" fill="${acc}" opacity=".4" filter="url(#bl${uid})"/>
     ${axles.map((x) => evWheel(x, cy, v.r, k, dark, v.aero)).join("")}`;
+  return `
+    <defs>
+      <linearGradient id="bd${k}" x1="0" x2="0" y1="${v.top}" y2="147" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${p.hi}"/><stop offset=".3" stop-color="${p.base}"/><stop offset=".44" stop-color="${p.crease}"/><stop offset=".5" stop-color="${p.base}"/><stop offset=".78" stop-color="${p.base}"/><stop offset=".9" stop-color="${p.low}"/><stop offset="1" stop-color="${p.crease}"/></linearGradient>
+      <linearGradient id="cv${k}" x1="${v.body.match(/^M(\d+)/)[1] - 8}" x2="${v.shadow[0] * 2 - v.body.match(/^M(\d+)/)[1] + 16}" y1="0" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000" stop-opacity="${dark ? 0.35 : 0.14}"/><stop offset=".12" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="${dark ? 0.35 : 0.14}"/></linearGradient>
+      <linearGradient id="gl${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${glass[0]}"/><stop offset=".55" stop-color="${glass[1]}"/><stop offset="1" stop-color="${glass[2]}"/></linearGradient>
+      <linearGradient id="rf${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity="${dark ? 0.12 : 0.28}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="sl${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity="${dark ? 0.25 : 0.95}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="rim${k}" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="${dark ? "#d5dae0" : "#f4f6f8"}"/><stop offset=".5" stop-color="${dark ? "#8f97a1" : "#b9c0c8"}"/><stop offset="1" stop-color="${dark ? "#5b626b" : "#7d858f"}"/></linearGradient>
+      <radialGradient id="aw${k}" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="${dark ? "#8d949d" : "#a9b0b8"}"/><stop offset=".7" stop-color="${dark ? "#5f666f" : "#7c848e"}"/><stop offset="1" stop-color="${dark ? "#40464d" : "#5c636c"}"/></radialGradient>
+      <radialGradient id="ty${k}"><stop offset=".72" stop-color="#1c1f23"/><stop offset=".9" stop-color="#2a2e33"/><stop offset="1" stop-color="#121417"/></radialGradient>
+      <radialGradient id="hub${k}" cx=".4" cy=".35"><stop offset="0" stop-color="#7a828c"/><stop offset="1" stop-color="#23272c"/></radialGradient>
+      <radialGradient id="wl${k}" cy=".9" r=".9"><stop offset="0" stop-color="#050607" stop-opacity="0"/><stop offset=".5" stop-color="#0a0b0d"/><stop offset="1" stop-color="#16191d"/></radialGradient>
+      <linearGradient id="fade${k}" x1="0" x2="0" y1="159" y2="182" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="${dark ? 0.22 : 0.14}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <mask id="mk${k}" maskUnits="userSpaceOnUse" x="180" y="159" width="250" height="31"><rect x="180" y="159" width="250" height="31" fill="url(#fade${k})"/></mask>
+      <clipPath id="bc${k}"><path d="${body}"/></clipPath>
+      <clipPath id="gc${k}"><path d="${v.glass}"/></clipPath>
+    </defs>
+    <g mask="url(#mk${k})"><g transform="matrix(1 0 0 -1 0 318)">${car}</g></g>
+    <ellipse cx="${v.shadow[0]}" cy="158" rx="${v.shadow[1]}" ry="5.5" fill="url(#sh${uid})"/>
+    ${axles.map((x) => `<ellipse cx="${x}" cy="158.6" rx="${evN(ar - 1)}" ry="2.2" fill="#000" opacity="${dark ? 0.65 : 0.4}"/>`).join("")}
+    ${car}`;
 };
-
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
 // charging) and the car (`vehicle`, painted `color`) with its charging port; a glass pill with the car's battery
 // level, else the charging power. No car when none is plugged in: the cable hangs from the wallbox.
