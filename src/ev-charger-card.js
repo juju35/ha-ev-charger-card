@@ -167,6 +167,8 @@ const EV_VEHICLES = {
     sideskirt: "M262 141 L352 141",
   },
 };
+// A number per card on the page: the ids of its illustration's gradients, masks and paths stay its own.
+let evCards = 0;
 const EV_CABLE = "M78 133 C78 180, 150 186, 184 162 S 207 128 213 121";
 const EV_CABLE_HANGING = "M78 133 C78 172, 118 174, 120 150 C121 138, 112 132, 104 132";
 
@@ -555,7 +557,7 @@ class EvChargerCard extends RcCard {
     const scene =
       c.show_scene === false
         ? ""
-        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: `${this._uid ||= Math.random().toString(36).slice(2, 8)}`, pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle, color: c.color })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
+        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: (this._uid ||= `e${(++evCards).toString(36)}`), pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle, color: c.color })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
     this._paint(m.state, head + scene + error, tiles.map((t) => this._tile(t)).join(""));
   }
