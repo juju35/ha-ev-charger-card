@@ -255,12 +255,83 @@ test("options: no illustration, no animation, no controls", () => {
   assert.match(still, /fill="freeze"/, "the particles stay on the cable");
 });
 
-test("mini card: the readings as pills, a ring badge", () => {
+test("options: each car and paint draws its own illustration, an unknown one the saloon", () => {
+  const scene = (config) => {
+    const card = make("ev-charger-card", { device: "charger", animations: false, ...config });
+    const html = card.shadowRoot.innerHTML;
+    const start = html.indexOf('<svg class="scene"');
+    return html.slice(start, html.indexOf("</svg>", start)).replace(new RegExp(`${card._uid}(?=[")])`, "g"), "");
+  };
+  const cars = ["sedan", "hatch", "estate", "crossover", "coupe_suv", "small_suv", "suv", "city", "van"].map((vehicle) => scene({ vehicle }));
+  assert.equal(new Set(cars).size, cars.length, "nine different cars");
+  assert.equal(scene({ vehicle: "spaceship" }), scene({}), "unknown car: the saloon");
+  const paints = ["white", "silver", "grey", "black", "blue", "red", "green"].map((color) => scene({ color }));
+  assert.equal(new Set(paints).size, paints.length, "seven different paints");
+  assert.equal(scene({ color: "pink" }), scene({}), "unknown paint: the theme's");
+});
+
+test("illustration theme: forced, else the sun, else the dark theme", () => {
+  const sky = (config, hass) => {
+    const html = make("ev-charger-card", { device: "charger", ...config }, hass).shadowRoot.innerHTML;
+    return /class="banner night"/.test(html) && /#0f1a34/.test(html.slice(html.indexOf('<svg class="scene"'))) ? "night" : "day";
+  };
+  const sun = (state, dark = false) => {
+    const h = makeHass();
+    h.states["sun.sun"] = st("sun.sun", state);
+    h.themes = { darkMode: dark };
+    return h;
+  };
+  assert.equal(sky({ illustration_theme: "night" }, sun("above_horizon")), "night");
+  assert.equal(sky({ illustration_theme: "day" }, sun("below_horizon", true)), "day");
+  assert.equal(sky({}, sun("below_horizon")), "night", "the sun has set");
+  assert.equal(sky({}, sun("above_horizon", true)), "day", "the sun first, the dark theme after");
+  const noSun = makeHass();
+  delete noSun.states["sun.sun"];
+  noSun.themes = { darkMode: true };
+  assert.equal(sky({}, noSun), "night", "no sun: the dark theme");
+});
+
+test("show_background: false keeps the wallbox and the car, not the backdrop", () => {
+  const html = make("ev-charger-card", { device: "charger", show_background: false }).shadowRoot.innerHTML;
+  const svg = html.slice(html.indexOf('<svg class="scene"'));
+  assert.match(html, /class="banner bare"/);
+  assert.doesNotMatch(svg, /#a4cf96|#1d3045/, "no hills");
+  assert.match(svg, /animateMotion|<circle/, "the wallbox and its cable");
+  assert.match(svg, /id="bdv/, "the car");
+  const mini = make("ev-charger-mini-card", { device: "charger", show_background: false }).shadowRoot.innerHTML;
+  assert.match(mini, /class="banner bare"/);
+});
+
+test("mini card: the illustrated banner — the ring, the level in large, the state and the readings", () => {
   const mini = make("ev-charger-mini-card", { device: "charger", battery: "sensor.car_battery" });
   const html = mini.shadowRoot.innerHTML;
+  assert.match(html, /class="lvl-charging mb"/);
+  assert.match(html, /<svg class="scene"/);
+  assert.match(html, /class="ringb"/);
+  assert.match(html, /<b>68 %<\/b><span class="chip"[^>]*>Charging<\/span>/);
+  assert.match(html, /7.2 kW · 1 h 42/);
+  assert.equal(mini._config.zoom, true);
+  assert.equal(mini.getCardSize(), 2);
+});
+
+test("mini card without the illustration: the readings as pills, a ring badge", () => {
+  const mini = make("ev-charger-mini-card", { device: "charger", battery: "sensor.car_battery", show_scene: false });
+  const html = mini.shadowRoot.innerHTML;
+  assert.doesNotMatch(html, /<svg class="scene"/);
+  assert.match(html, /class="r pill/);
   assert.match(html, /7.2 kW/);
   assert.match(html, /68 %/);
-  assert.equal(mini._config.zoom, true);
+  assert.equal(mini.getCardSize(), 1);
+});
+
+test("full card: the illustrated header, or the classic one without the illustration", () => {
+  const card = make("ev-charger-card", { device: "charger", battery: "sensor.car_battery" }).shadowRoot.innerHTML;
+  assert.match(card, /class="banner/);
+  assert.match(card, /class="chip"[^>]*>Charging · 7.2 kW</);
+  assert.match(card, /<b>68 %<\/b>/);
+  const plain = make("ev-charger-card", { device: "charger", show_scene: false }).shadowRoot.innerHTML;
+  assert.doesNotMatch(plain, /class="banner/);
+  assert.match(plain, /class="pill"/);
 });
 
 test("editors: defaults stay out of the YAML, every field has a label", () => {

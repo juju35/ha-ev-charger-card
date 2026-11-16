@@ -34,7 +34,7 @@ An illustrated Lovelace card for Home Assistant's **EV chargers**: the wallbox, 
 | Card | Type | What it shows |
 |---|---|---|
 | [EV charger](#ev-charger) | `custom:ev-charger-card` | The charger illustrated, its state and power, three tiles for the session, and its controls. |
-| [EV charger mini](#ev-charger-mini) | `custom:ev-charger-mini-card` | The same charger on two lines: a battery ring, the key readings, a zoom to the full card. |
+| [EV charger mini](#ev-charger-mini) | `custom:ev-charger-mini-card` | The same charger as an illustrated banner: a battery ring, the level and state, the key readings, a zoom to the full card. |
 
 | Charging | Plugged in | Charged | Mini |
 |---|---|---|---|
@@ -48,17 +48,16 @@ The cards share the look of the other ha-* cards (header with a status pill, tin
 
 `custom:ev-charger-card` — The charger of a `device` (the first charger of the home when none is set).
 
-- **Illustration**: the wallbox with its LED ring, the cable and the car with its charging port, on a wall and a floor that follow the light or dark theme; a glass pill shows the car's battery level (`battery`) or, without it, the charging power
+- **Illustrated header**, as on the flight and train boards: the scene (the wallbox with its LED ring on the garage, the cable and the car with its charging port) at the right, fading into the sky; on the sky at the left the charger's icon, name, room and model, a chip with the state and the power (*Charging · 7.2 kW*), and the car's battery level (`battery`) as a bar
 - **Five states**, from the charger's own status in the integration's words (*charging*, *awaiting_start*, *Paused by user*, *connected_finished*, *disconnected*…): **charging** (blue, energy flowing along the cable, the LED ring breathing), **plugged in** (amber), **charged** (green), **no car** (grey, the cable hanging from the wallbox), **error** (red, the charger's error under the illustration); *offline* when the charger cannot report. Without a status sensor, the power and the plug sensor tell
-- **Header**: the charger's name, its room and model, and a pill with the state and the power (*Charging · 7.2 kW*)
 - **Three tiles**, the ones that matter in each state among what the charger reports: the session's energy, time and cost while charging or charged; the current limit, the last session and the lifetime total when a car waits or none is plugged in
 - **Controls**: **Pause** while charging and **Start** when a car waits (the charger's start / stop buttons, or its charging switch), **Unlock cable** once charged, the **current limit** in steps of the number entity (− 32 A +, within its range), and the **lock**: the cable's when the lock is named after the cable (Easee), else the whole charger's (Wallbox), which is never unlocked on its own once charged
 - A tap on the illustration opens the charger's status dialog
-- `show_scene: false` keeps the header, tiles and controls; `animations: false` stops the flow and the breathing (also when the system asks for reduced motion); `show_controls: false` leaves the card read-only
+- `show_scene: false` gives a classic header (name and state pill) over the tiles and controls; `animations: false` stops the flow and the breathing (also when the system asks for reduced motion); `show_controls: false` leaves the card read-only
 
 ### EV charger mini
 
-`custom:ev-charger-mini-card` — The charger on two lines: a ring as the badge (the car's battery level, or the charging power against `max_power`), the name, then the key readings as pills (*7.2 kW · 68 % · 1 h 42* while charging, *Plugged in · 31 % · 16 A* when a car waits). The **zoom** button (top right) opens the full card in place, a click anywhere else folds it back (`zoom: false` removes the button).
+`custom:ev-charger-mini-card` — The same illustrated header, lower: a ring as the badge (the car's battery level, or the charging power against `max_power`), the level in large with the state as a chip, then the name and the key readings (*68 % Charging — Wallbox · 7.2 kW · 1 h 42*, *31 % Plugged in — Wallbox · 16 A*), the scene at the right. With `show_scene: false`, two lines with the readings as pills. The **zoom** button (top right) opens the full card in place, a click anywhere else folds it back (`zoom: false` removes the button).
 
 ## Supported integrations
 
@@ -112,6 +111,10 @@ Every option is in the visual editor. In YAML:
 type: custom:ev-charger-card
 device: 3f2a…            # the charger's device ID (the visual editor offers a device picker)
 battery: sensor.car_battery_level
+vehicle: suv             # sedan (default), hatch, estate, crossover, coupe_suv, small_suv, suv, city, van
+color: blue              # the paint; none: the theme's
+illustration_theme: auto # auto (sun.sun), day or night
+show_background: true    # false: the wallbox and the car without the backdrop
 
 # Two lines on a phone dashboard
 type: custom:ev-charger-mini-card
@@ -134,7 +137,11 @@ entities:
 | `show_title` | boolean | `true` | Show the title |
 | `navigation_path` | string | | A tap on the header opens this dashboard path |
 | `battery` | string | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
-| `show_scene` | boolean | `true` | The illustration |
+| `vehicle` | string | `sedan` | The car of the illustration: `sedan` (saloon), `hatch` (five-door hatchback), `estate`, `crossover` (fastback crossover), `coupe_suv`, `small_suv`, `suv`, `city` (city car) or `van` (MPV / van) |
+| `color` | string | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
+| `illustration_theme` | string | `auto` | The illustration's sky: `auto` (night while `sun.sun` is below the horizon; without `sun.sun`, Home Assistant's dark theme), `day` or `night` |
+| `show_scene` | boolean | `true` | The illustrated header (`false`: a classic header, and the mini card on two lines) |
+| `show_background` | boolean | `true` | The illustration's backdrop (sky, hills, garage, drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
 | `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
 | `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
 | `max_power` | number | `7.4` | Mini card: the power (kW) of a full ring when the car's battery level is unknown |
@@ -153,6 +160,40 @@ entities:
 |---|---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle.png" alt="No car" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error.png" alt="Error" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact.png" alt="Without the illustration" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle-dark.png" alt="No car, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error-dark.png" alt="Error, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact-dark.png" alt="Without the illustration, dark" width="400"> |
+
+**Day and night**: the illustration has the backdrop of the flight and train boards — a sky with the sun and clouds by day, the stars and the moon by night (the garage window lit), hills, the garage and the paved drive. `illustration_theme: auto` follows `sun.sun`, or force `day` / `night`.
+
+| Day (`illustration_theme: day`) | Night (`illustration_theme: night`) |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-day.png" alt="Day" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-night.png" alt="Night" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-day-dark.png" alt="Day, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-night-dark.png" alt="Night, dark" width="400"> |
+
+**Without the backdrop** (`show_background: false`): the wallbox, the cable and the car stay, on the card itself; the header takes the theme's colours.
+
+| Full card | Mini card |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-no-background.png" alt="Without the backdrop" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-no-background.png" alt="Mini card without the backdrop" width="320"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-no-background-dark.png" alt="Without the backdrop, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-no-background-dark.png" alt="Mini card without the backdrop, dark" width="320"> |
+
+| Saloon (`vehicle: sedan`, default) | Hatchback (`hatch`) | Estate (`estate`) |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging.png" alt="Saloon" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-hatch.png" alt="Hatchback" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-estate.png" alt="Estate" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging-dark.png" alt="Saloon, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-hatch-dark.png" alt="Hatchback, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-estate-dark.png" alt="Estate, dark" width="400"> |
+
+| Fastback crossover (`crossover`) | Coupé SUV (`coupe_suv`) | Small SUV (`small_suv`) |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-crossover.png" alt="Fastback crossover" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-coupe-suv.png" alt="Coupé SUV" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-small-suv.png" alt="Small SUV" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-crossover-dark.png" alt="Fastback crossover, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-coupe-suv-dark.png" alt="Coupé SUV, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-small-suv-dark.png" alt="Small SUV, dark" width="400"> |
+
+| SUV (`suv`) | City car (`city`) | MPV / van (`van`) |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-suv.png" alt="SUV" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-city.png" alt="City car" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-van.png" alt="MPV / van" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-suv-dark.png" alt="SUV, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-city-dark.png" alt="City car, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-van-dark.png" alt="MPV / van, dark" width="400"> |
+
+| Blue (`color: blue`) | Red (`color: red`) | Black (`color: black`) |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-color-blue.png" alt="Blue" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-color-red.png" alt="Red" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-color-black.png" alt="Black" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-color-blue-dark.png" alt="Blue, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-color-red-dark.png" alt="Red, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-color-black-dark.png" alt="Black, dark" width="400"> |
 
 **Charging animation**: energy flows from the wallbox to the car along the cable and the LED ring breathes (steady with `animations: false`, or when the system asks for reduced motion).
 
