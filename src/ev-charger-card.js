@@ -36,9 +36,42 @@ const EV_VEHICLES = {
     tail: "M197.6 116 C202 112.5 207 110.6 214 109.2",
     sideskirt: "M262 141.5 L356 141.5",
   },
-  // Tesla Model Y style: a tall fastback crossover, one bubble roofline in black glass from the windscreen down to a
-  // ducktail hatch, a short sloping bonnet with a round grille-less nose, grey aero wheel covers.
-  tesla: {
+  // A five-door hatchback: short bonnet, long roof, an upright tailgate, a body-coloured rear pillar.
+  hatch: {
+    R: 240, F: 368, r: 18, ar: 21.5, sill: 146, top: 88, shadow: [302, 108],
+    body: "M207 146 C202 146 200 143 200 139 L200 116 C200 108 202 101.5 206 97 L211 92.6 C218 89.6 232 88.4 252 88.2 L300 88 C312 88.2 320 90.4 328 94.6 C336 99 344 104 350 107.4 C370 109.2 388 111.8 396 115 C401 117.6 403.6 122 403.6 128 L403.6 138 C403.6 143 401 146 397 146",
+    glass: "M214 103 L216 96.6 C221 93 234 92.2 254 92 L298 91.9 C308 92.1 314 93.8 320 97 C327 101 334 104.6 339 107.6 L214 107.6 Z",
+    refl: "M220 100 C238 94 262 93 288 92.6",
+    pillars: "M268 92 L269.5 107.6",
+    cpillar: "M232 92.4 C228.6 98 227.6 103 227.6 107.6",
+    shoulder: "M204 109 L340 109 C364 110.6 384 113 396 116",
+    crease: "M204 124 C250 123 320 123.4 394 125",
+    doors: "M270 108.4 C269.6 120 270 131 271 140 M236 108.4 C235 114 235 118 236 123",
+    handles: [248, 302, 112],
+    mirror: "M334 104 C336 100.6 341 100 344 101.6 L344 106.4 L335 106.4 Z",
+    head: "M384 114 C390 115 396 116.8 400.6 119.6",
+    tail: "M200.6 113 L200.6 103.6 C201.4 100.6 203.4 98.4 206 97.2",
+  },
+  // An estate: a long flat roof down to an upright tailgate, a rear quarter window behind the rear doors.
+  estate: {
+    R: 242, F: 380, r: 18, ar: 21.5, sill: 146, top: 88, shadow: [310, 124],
+    body: "M204 146 C199.5 146 197.5 143 197.5 139 L197.5 116 C197.5 108 199 102 202 97.6 L207 92 C214 89.6 226 89 244 88.8 L310 88.4 C324 88.6 334 91 344 96 C352 100 360 104.6 367 107.6 C388 109.4 404 112 412.6 115.6 C418.6 118.6 421 123 421 129 L421 138.6 C420.6 143.4 418 146 413 146",
+    glass: "M209 104 L211 96.4 C216 93.4 228 92.8 246 92.6 L308 92.3 C320 92.5 330 94.6 338 98.6 C346 102.6 352 105.6 356.6 108.4 L209 108.4 Z",
+    refl: "M216 100 C240 94.4 270 93.2 300 93",
+    pillars: "M304 92.4 L305.4 108.4",
+    cpillar: "M250 92.6 L250.4 108.4",
+    shoulder: "M202 110 L356 110 C384 111.6 404 114 412.6 117",
+    crease: "M202 124 C260 123 330 123.4 404 125",
+    doors: "M305.4 109.4 C305 120 305.4 131 306.4 140 M251 109.4 C250 115 249.8 119 250.4 123.6",
+    handles: [280, 330, 113.2],
+    mirror: "M352 104.6 C354 101.2 359 100.6 362 102.2 L362 107.2 L353 107.2 Z",
+    head: "M402 115.6 C409 116.4 415.4 118 419.6 121",
+    tail: "M198.2 114 L198.2 104 C199 100.4 201 98 204 96.6",
+    sideskirt: "M264 141.5 L358 141.5",
+  },
+  // A fastback crossover: tall, one rounded roofline in black glass from the windscreen down to a small lip on the
+  // hatch, a short sloping bonnet, grey aero wheel covers.
+  crossover: {
     R: 243, F: 378, r: 19.5, ar: 23, sill: 144, top: 82, shadow: [310, 124], aero: true,
     body: "M205 146 C200 146 198 143 198 139 L198 120 C198 113 200 108.5 204 105.6 L210.4 103 C222 98.4 236 89.4 252 85.6 C268 82.6 284 82 300 81.8 C326 81.6 346 88 374 101 C392 103.4 406 106.5 413.6 110.4 C419 113.4 421.4 118.4 421.4 125 L421 138.6 C420.6 143.4 418 146 413 146",
     glass: "M212.6 103.4 C225 97 238 89.6 253 86.4 C268 83.4 284 82.8 300 82.6 C326 82.4 345 88.8 371.6 101.4 L370 102.6 C320 102 268 101.8 214 103.6 Z",
@@ -53,6 +86,38 @@ const EV_VEHICLES = {
     head: "M402 108.4 C409 109 415.4 110.8 419.2 114.4",
     tail: "M198.8 113.6 C200.4 109.6 203.6 106.4 208.4 104.6 L215 103.4",
     sideskirt: "M267 140.6 L354 140.6",
+  },
+  // A coupé SUV: an SUV's height and cladding under a roof sloping down to the tailgate.
+  coupe_suv: {
+    R: 244, F: 376, r: 19.5, ar: 23.5, sill: 143, top: 80, shadow: [310, 124], cladding: true,
+    body: "M205 146 C200 146 198 143 198 139 L198 114 C198 108 199.6 104 202.6 101.6 L209 99.4 C222 94.4 238 86 262 82.6 C278 80.8 300 80.6 318 81.2 C330 81.6 338 83 346 87 C354 91 362 96.6 368 101 C388 103 404 106 412 110 C418 113 421 118 421 124 L421 139 C421 143 418 146 414 146",
+    glass: "M212 101.4 C224 96 240 88.6 262 85.8 C278 84 300 84 318 84.6 C328 85 335 86.6 342 90 C350 94 356 98.5 361 102.6 L213 102.6 Z",
+    refl: "M226 97 C246 89.4 272 86 300 85.6",
+    pillars: "M252 87.4 L252.4 102.6 M305 84.6 L307 102.6",
+    shoulder: "M206 104.2 L362 104.2 C386 106 404 108.5 413 112",
+    crease: "M203 121 C260 120 330 120.5 404 122",
+    doors: "M306 104 C305.6 116 305.8 126 306.6 136 M254 104 C253 112 253 116 254 120",
+    handles: [282, 333, 108.6],
+    mirror: "M356 99.5 C358 96 363 95.5 366 97 L366 102 L357 102 Z",
+    head: "M402 110.5 C409 111.6 415 113.4 419.8 116.6",
+    tail: "M198.6 112 L198.6 105 C199.6 102.6 202 101 205 100.2",
+  },
+  // A small urban SUV: short and tall, roof rails, black wheel-arch cladding.
+  small_suv: {
+    R: 240, F: 356, r: 19, ar: 23, sill: 143, top: 82, shadow: [296, 104], cladding: true,
+    body: "M207 146 C202 146 200 143 200 139 L200 110 C200 102 202 96 206 92 L211 87.4 C218 84 230 82.6 248 82.4 L290 82.2 C300 82.4 307 84 314 88.4 C322 93.4 330 99 336 102.6 C356 104.4 372 107.6 380 111.6 C386 114.6 389 119 389 125 L389 139 C389 143 386 146 382 146",
+    glass: "M213 98 L215 91.4 C220 87.6 232 86.6 250 86.4 L288 86.3 C297 86.5 303 88 309 91.6 C316 96 322 99.6 327 102.4 L213 102.4 Z",
+    refl: "M220 95 C236 89.6 258 87.6 284 87.2",
+    pillars: "M272 86.4 L273.4 102.4",
+    cpillar: "M232 86.6 C229 92 228 97 228 102.4",
+    rails: "M222 84.6 C230 82.4 240 81.6 252 81.4 L292 81.2",
+    shoulder: "M204 104.4 L330 104.4 C352 106 372 108.6 381 112.6",
+    crease: "M204 121 C250 120 310 120.4 382 122",
+    doors: "M274 103.6 C273.6 116 274 126 274.8 136 M232 103.6 C231 110 231 114 232 119",
+    handles: [250, 300, 108.2],
+    mirror: "M322 98.4 C324 95 329 94.4 332 96 L332 101 L323 101 Z",
+    head: "M370 110.4 C376 111.4 381 113.2 385.6 116.4",
+    tail: "M200.6 110 L200.6 99",
   },
   // A crossover SUV: taller, roof rails, black wheel-arch and sill cladding.
   suv: {
@@ -85,11 +150,42 @@ const EV_VEHICLES = {
     head: "M372 111.8 C378 112.8 382 114.4 385.4 117",
     tail: "M200.6 110 L200.6 101",
   },
+  // An MPV / van: a tall box, a short bonnet, a sliding rear door and an upright tailgate.
+  van: {
+    R: 240, F: 374, r: 18.5, ar: 22, sill: 145, top: 72, shadow: [309, 122],
+    body: "M205 146 C200.5 146 198.5 143 198.5 139 L198.5 86 C198.5 79 202 74.4 210 73.6 L330 72.4 C340 72.6 346 74.4 350 78 C356 84 364 93 370 100.6 C388 102.8 404 106 411.6 110 C417.6 113 420 118 420 124 L420 138.6 C420 143.4 417.4 146 412.6 146",
+    glass: "M206 98 L206 82 C206 79 208 77.6 212 77.4 L330 76.4 C337 76.4 341 77.8 344 80.6 C350 86.6 356 93.6 362 100.8 L206 100.8 Z",
+    refl: "M214 92 C240 82 280 79 320 78.4",
+    pillars: "M262 77 L262.6 100.8 M318 76.6 L320 100.8",
+    shoulder: "M202 103.4 L362 103.4 C388 105 404 108 412 111.6",
+    crease: "M202 122 C260 121 330 121.4 404 123",
+    doors: "M321 101.8 C320.6 116 321 128 322 138 M262.6 101.8 L262.6 138",
+    handles: [296, 334, 107.4],
+    mirror: "M358 96 C360 92.6 365 92 368 93.6 L368 99 L359 99 Z",
+    head: "M400 109.6 C407 110.6 413.6 112.6 418 116",
+    tail: "M199.2 112 L199.2 92",
+    sideskirt: "M262 141 L352 141",
+  },
 };
 const EV_CABLE = "M78 133 C78 180, 150 186, 184 162 S 207 128 213 121";
 const EV_CABLE_HANGING = "M78 133 C78 172, 118 174, 120 150 C121 138, 112 132, 104 132";
 
 const evN = (n) => +n.toFixed(1);
+// The paints of `color`; none: white in a light theme, graphite in a dark one.
+const EV_COLORS = { white: "#f3f5f8", silver: "#c9ced5", grey: "#6b727c", black: "#2a2d32", blue: "#2f5d9e", red: "#b3262e", green: "#3f6b55" };
+const evMix = (a, b, t) =>
+  `#${[1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, "0")).join("")}`;
+const evPaint = (color, dark) => {
+  const trim = dark ? "#121417" : "#1d2126";
+  if (!EV_COLORS[color]) {
+    return dark
+      ? { hi: "#7b838e", base: "#4b525c", crease: "#3c424a", low: "#2a2e34", line: "#22262b", trim }
+      : { hi: "#ffffff", base: "#f3f5f8", crease: "#dde2e8", low: "#c3cad3", line: "#aab2bc", trim };
+  }
+  // A dark theme dims the paint a little, as a garage at night.
+  const base = dark ? evMix(EV_COLORS[color], "#000000", 0.18) : EV_COLORS[color];
+  return { hi: evMix(base, "#ffffff", 0.4), base, crease: evMix(base, "#000000", 0.1), low: evMix(base, "#000000", 0.3), line: evMix(base, "#000000", 0.35), trim };
+};
 // The cut of a wheel arch in the body's outline, from the front of the arch to its rear, over the top.
 const evArch = (cx, cy, r, sill) => {
   const dx = Math.sqrt(r * r - (sill - cy) ** 2);
@@ -111,11 +207,9 @@ const evWheel = (cx, cy, r, k, dark, aero) => {
 };
 // A car of EV_VEHICLES: contact shadows, wheel wells, the body and its lower trim, the windows, the lines and details,
 // the lights, the charging port (in the colour of the state) and the wheels.
-const evCar = (v, { uid, dark, acc }) => {
+const evCar = (v, { uid, dark, acc, color }) => {
   const k = `v${uid}`;
-  const p = dark
-    ? { hi: "#7b838e", base: "#4b525c", crease: "#3c424a", low: "#2a2e34", line: "#22262b", trim: "#121417" }
-    : { hi: "#ffffff", base: "#f3f5f8", crease: "#dde2e8", low: "#c3cad3", line: "#aab2bc", trim: "#1d2126" };
+  const p = evPaint(color, dark);
   const glass = dark ? ["#2a323c", "#12171d", "#07090c"] : ["#5d6b7c", "#252d38", "#11161c"];
   const cy = 159 - v.r;
   const body = `${v.body} ${evArch(v.F, cy, v.ar, v.sill)} ${evArch(v.R, cy, v.ar, v.sill)} Z`;
@@ -157,6 +251,7 @@ const evCar = (v, { uid, dark, acc }) => {
     ${v.panes ? `<path d="${v.panes}" fill="#fff" opacity="${dark ? 0.05 : 0.09}"/>` : ""}
     <path d="${v.refl}" stroke="url(#rf${k})" stroke-width="3" fill="none" stroke-linecap="round"/>
     <path d="${v.pillars}" stroke="${p.trim}" stroke-width="3"/>
+    ${v.cpillar ? `<path d="${v.cpillar}" stroke="${p.base}" stroke-width="5"/>` : ""}
     <path d="${v.shoulder}" stroke="url(#sl${k})" stroke-width="1.6" fill="none"/>
     <path d="${v.crease}" stroke="${p.line}" stroke-width=".7" fill="none" opacity=".7"/>
     <path d="${v.doors}" stroke="${p.line}" stroke-width=".8" fill="none"/>
@@ -169,9 +264,9 @@ const evCar = (v, { uid, dark, acc }) => {
 };
 
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
-// charging) and the car (`vehicle`: sedan, tesla, suv or city) with its charging port; a glass pill with the car's battery
+// charging) and the car (`vehicle`, painted `color`) with its charging port; a glass pill with the car's battery
 // level, else the charging power. No car when none is plugged in: the cable hangs from the wallbox.
-const evScene = ({ state, dark, uid, pct, pill, label, animate, vehicle }) => {
+const evScene = ({ state, dark, uid, pct, pill, label, animate, vehicle, color }) => {
   const acc = EV_ACCENTS[state];
   const car = state !== "idle" && state !== "offline";
   const W = dark ? ["#262a30", "#1d2025", "#17191d"] : ["#f7f9fc", "#e8ecf2", "#dfe4eb"];
@@ -191,7 +286,7 @@ const evScene = ({ state, dark, uid, pct, pill, label, animate, vehicle }) => {
         })
         .join("")
     : "";
-  const carSvg = car ? evCar(EV_VEHICLES[vehicle] || EV_VEHICLES.sedan, { uid, dark, acc }) : "";
+  const carSvg = car ? evCar(EV_VEHICLES[vehicle] || EV_VEHICLES.sedan, { uid, dark, acc, color }) : "";
   const bar = pct != null ? `<rect x="304" y="44" width="98" height="6" rx="3" fill="${dark ? "#2c3138" : "#e3e8ef"}"/><rect x="304" y="44" width="${((98 * Math.max(0, Math.min(100, pct))) / 100).toFixed(1)}" height="6" rx="3" fill="${acc}"/>` : "";
   const pillTop = pct != null ? 36 : 43;
   return `
@@ -438,7 +533,7 @@ class EvChargerCard extends RcCard {
     const scene =
       c.show_scene === false
         ? ""
-        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: `${this._uid ||= Math.random().toString(36).slice(2, 8)}`, pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
+        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: `${this._uid ||= Math.random().toString(36).slice(2, 8)}`, pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle, color: c.color })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
     this._paint(m.state, head + scene + error, tiles.map((t) => this._tile(t)).join(""));
   }
@@ -581,6 +676,12 @@ const evSchema = (booleans) => (lang) => [
   {
     name: "vehicle",
     selector: { select: { mode: "dropdown", options: Object.keys(EV_VEHICLES).map((value) => ({ value, label: rcT(EV_I18N, lang, `ed_vehicle_${value}`) })) } },
+  },
+  {
+    name: "color",
+    selector: {
+      select: { mode: "dropdown", options: ["", ...Object.keys(EV_COLORS)].map((value) => ({ value, label: rcT(EV_I18N, lang, `ed_color_${value || "auto"}`) })) },
+    },
   },
   ...rcBooleans(...booleans),
   ...rcAdvanced(EV_I18N, lang, "entities", "language"),

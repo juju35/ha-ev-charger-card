@@ -7,9 +7,12 @@ import { setup } from "./mock.mjs";
 // are SVG animations it does not: they would land elsewhere at each run, and every capture would count as changed.
 const still = (file, s) => pair(file, { ...s, config: { animations: false, ...s.config } });
 const scenes = ["charging", "waiting", "done", "idle", "error"].flatMap((scene) => still(scene, { scene }));
-// The other cars of the illustration (`vehicle`), the saloon being the default.
-const vehicles = ["tesla", "suv", "city"].flatMap((vehicle) => still(`vehicle-${vehicle}`, { scene: "charging", config: { vehicle } }));
-await shoot({ prefix: "ev", tag: "ev-charger-card", shots: [...scenes, ...vehicles, ...still("compact", { scene: "charging", config: { show_scene: false } })], setup });
+// The other cars of the illustration (`vehicle`), the saloon being the default, and a few paints (`color`).
+const vehicles = ["hatch", "estate", "crossover", "coupe_suv", "small_suv", "suv", "city", "van"].flatMap((vehicle) =>
+  still(`vehicle-${vehicle.replace("_", "-")}`, { scene: "charging", config: { vehicle } }),
+);
+const colors = ["blue", "red", "black"].flatMap((color) => still(`color-${color}`, { scene: "charging", config: { color } }));
+await shoot({ prefix: "ev", tag: "ev-charger-card", shots: [...scenes, ...vehicles, ...colors, ...still("compact", { scene: "charging", config: { show_scene: false } })], setup });
 await shoot({
   prefix: "ev-mini",
   tag: "ev-charger-mini-card",

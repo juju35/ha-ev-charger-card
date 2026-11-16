@@ -255,6 +255,21 @@ test("options: no illustration, no animation, no controls", () => {
   assert.match(still, /fill="freeze"/, "the particles stay on the cable");
 });
 
+test("options: each car and paint draws its own illustration, an unknown one the saloon", () => {
+  const scene = (config) => {
+    const card = make("ev-charger-card", { device: "charger", animations: false, ...config });
+    const html = card.shadowRoot.innerHTML;
+    const start = html.indexOf('<svg class="scene"');
+    return html.slice(start, html.indexOf("</svg>", start)).replaceAll(card._uid, "");
+  };
+  const cars = ["sedan", "hatch", "estate", "crossover", "coupe_suv", "small_suv", "suv", "city", "van"].map((vehicle) => scene({ vehicle }));
+  assert.equal(new Set(cars).size, cars.length, "nine different cars");
+  assert.equal(scene({ vehicle: "spaceship" }), scene({}), "unknown car: the saloon");
+  const paints = ["white", "silver", "grey", "black", "blue", "red", "green"].map((color) => scene({ color }));
+  assert.equal(new Set(paints).size, paints.length, "seven different paints");
+  assert.equal(scene({ color: "pink" }), scene({}), "unknown paint: the theme's");
+});
+
 test("mini card: the readings as pills, a ring badge", () => {
   const mini = make("ev-charger-mini-card", { device: "charger", battery: "sensor.car_battery" });
   const html = mini.shadowRoot.innerHTML;
