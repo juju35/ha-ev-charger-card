@@ -15,18 +15,150 @@ const EV_ICONS = {
   offline: "mdi:lan-disconnect",
 };
 
+// The cars, seen from the side, rear to the wallbox: each one is its wheels (rear and front axle, radius, wheel arch,
+// sill), its body and window outlines, its lights, door lines, handles and mirror, drawn by `evCar` with the same
+// paint, glass, aero wheels and shadows. The charging port sits on the rear wing, at the same place on every car,
+// where the cable ends.
+const EV_VEHICLES = {
+  // A fastback saloon with a glass roof, Tesla Model 3 style.
+  sedan: {
+    R: 242, F: 378, r: 18, ar: 21.5, sill: 146, top: 87, shadow: [310, 124],
+    body: "M204 146 C199 146 197 143 197 139 L197 126 C197 120 198 115 201 112 L214 108.5 C238 99 262 90 292 88 C306 87.2 318 87.6 328 89.5 C340 92 352 99 362 105.5 C384 107.5 404 110 413 114 C419 117 421 122 421 128 L421 138 C421 143 418 146 413 146",
+    glass: "M219 108.2 C240 99.6 263 90.9 292 89 C306 88.2 318 88.6 327.6 90.4 C339 93 350 99.4 357.6 105.2 L356.6 107.8 Z",
+    refl: "M232 102.6 C252 95.6 272 92 292 90.8",
+    pillars: "M313 89.6 L316 107.6",
+    shoulder: "M214 109.5 C262 110 340 109 362 107.5 C388 109.5 405 112 413 115",
+    crease: "M206 122 C260 121 330 121.5 400 123",
+    doors: "M316 108.5 C315.5 120 316 132 317.5 140 M268 108.5 C266 116 265.5 120 266 124",
+    handles: [292, 333, 112.4],
+    mirror: "M350 104.5 C352 101 357 100.5 360 102 L360 106.5 L351 106.5 Z",
+    head: "M403 115.4 C409 116.2 415 117.6 419.5 120",
+    tail: "M197.6 116 C202 112.5 207 110.6 214 109.2",
+    sideskirt: "M262 141.5 L356 141.5",
+  },
+  // A crossover SUV: taller, roof rails, black wheel-arch and sill cladding.
+  suv: {
+    R: 244, F: 376, r: 19.5, ar: 23.5, sill: 143, top: 80, shadow: [310, 124], cladding: true,
+    body: "M205 146 C200 146 198 143 198 139 L198 112 C198 104 201 98 206 95 L214 89 C222 84.5 236 82 260 81 L318 80.5 C330 80.5 338 82 346 86 C354 90 362 96 368 101 C388 103 404 106 412 110 C418 113 421 118 421 124 L421 139 C421 143 418 146 414 146",
+    glass: "M214 99 L217 92 C224 88 238 86 262 85.4 L318 85 C328 85 335 86.5 342 90 C350 94 356 98.5 361 102.6 L215 102.6 Z",
+    refl: "M222 96 C240 90 268 88 300 87.6",
+    pillars: "M248 85.6 L250 102.6 M305 85.2 L307 102.6",
+    rails: "M228 83.2 C238 81.4 250 80.4 262 80 L326 79.8",
+    shoulder: "M202 104.5 L362 104.5 C386 106 404 108.5 413 112",
+    crease: "M203 121 C260 120 330 120.5 404 122",
+    doors: "M306 104 C305.6 116 305.8 126 306.6 136 M252 104 C251 112 251 116 252 120",
+    handles: [282, 333, 108.6],
+    mirror: "M356 99.5 C358 96 363 95.5 366 97 L366 102 L357 102 Z",
+    head: "M402 110.5 C409 111.6 415 113.4 419.8 116.6",
+    tail: "M198.6 110 L198.6 99.5 C199.5 97 201.5 95.5 204 94.6",
+  },
+  // A city car: short, upright, two short overhangs.
+  city: {
+    R: 238, F: 350, r: 18, ar: 21.5, sill: 146, top: 83, shadow: [293, 100],
+    body: "M207 146 C202 146 200 143 200 139 L200 112 C200 104 202 98 206 94 L211 89 C217 85 228 83.5 246 83.2 L292 83 C302 83.2 309 85 316 89.5 C323 94 330 99.5 336 104 C356 106 372 109 380 113 C384 116 386 120 386 126 L386 138 C386 143 383 146 379 146",
+    glass: "M214 100 L216 93 C221 89 232 87.5 248 87.4 L290 87.3 C299 87.5 305 89 310.5 92.5 C317 97 322.5 100.5 327 104 L214 104 Z",
+    refl: "M220 97 C236 91 258 89.4 284 88.6",
+    pillars: "M270 87.4 L271.5 104",
+    shoulder: "M204 106 L330 106 C352 107.5 370 110 380 114",
+    crease: "M205 121 C250 120 310 120.5 380 122",
+    doors: "M272 105 C271.6 118 272 130 273 140 M232 105 C231 112 231 116 232 121",
+    handles: [250, 300, 109.6],
+    mirror: "M322 100.5 C324 97 329 96.5 332 98 L332 103 L323 103 Z",
+    head: "M372 111.8 C378 112.8 382 114.4 385.4 117",
+    tail: "M200.6 110 L200.6 101",
+  },
+};
+const EV_CABLE = "M78 133 C78 180, 150 186, 184 162 S 207 128 213 121";
+const EV_CABLE_HANGING = "M78 133 C78 172, 118 174, 120 150 C121 138, 112 132, 104 132";
+
+const evN = (n) => +n.toFixed(1);
+// The cut of a wheel arch in the body's outline, from the front of the arch to its rear, over the top.
+const evArch = (cx, cy, r, sill) => {
+  const dx = Math.sqrt(r * r - (sill - cy) ** 2);
+  return `L${evN(cx + dx)} ${sill} A${r} ${r} 0 1 0 ${evN(cx - dx)} ${sill}`;
+};
+// A tyre and its aero wheel: a disc with five openings and the hub.
+const evWheel = (cx, cy, r, k, dark) => {
+  const rr = r * 0.68;
+  const at = (rad, a) => `${evN(cx + rad * Math.cos(a))} ${evN(cy + rad * Math.sin(a))}`;
+  const ro = rr * 0.9;
+  const ri = rr * 0.5;
+  const pockets = [0, 1, 2, 3, 4]
+    .map((i) => {
+      const a = (i * 2 * Math.PI) / 5 - Math.PI / 2 + 0.2;
+      return `M${at(ro, a - 0.38)} A${evN(ro)} ${evN(ro)} 0 0 1 ${at(ro, a + 0.38)} L${at(ri, a + 0.24)} A${evN(ri)} ${evN(ri)} 0 0 0 ${at(ri, a - 0.24)} Z`;
+    })
+    .join(" ");
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#16181b"/><circle cx="${cx}" cy="${cy}" r="${evN(r - 1.6)}" fill="none" stroke="#2b2f35"/><circle cx="${cx}" cy="${cy}" r="${evN(rr + 0.8)}" fill="#0c0d0f"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="url(#rim${k})"/><path d="${pockets}" fill="${dark ? "#0b0c0e" : "#22262c"}"/><circle cx="${cx}" cy="${cy}" r="${evN(rr * 0.32)}" fill="url(#hub${k})"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width=".6"/>`;
+};
+// A car of EV_VEHICLES: contact shadows, wheel wells, the body and its lower trim, the windows, the lines and details,
+// the lights, the charging port (in the colour of the state) and the wheels.
+const evCar = (v, { uid, dark, acc }) => {
+  const k = `v${uid}`;
+  const p = dark
+    ? { hi: "#7b838e", base: "#4b525c", crease: "#3c424a", low: "#2a2e34", line: "#22262b", trim: "#121417" }
+    : { hi: "#ffffff", base: "#f3f5f8", crease: "#dde2e8", low: "#c3cad3", line: "#aab2bc", trim: "#1d2126" };
+  const glass = dark ? ["#2a323c", "#12171d", "#07090c"] : ["#5d6b7c", "#252d38", "#11161c"];
+  const cy = 159 - v.r;
+  const body = `${v.body} ${evArch(v.F, cy, v.ar, v.sill)} ${evArch(v.R, cy, v.ar, v.sill)} Z`;
+  const axles = [v.R, v.F];
+  const well = (cx) => {
+    const dx = Math.sqrt(v.ar ** 2 - (v.sill - cy) ** 2);
+    return `<path d="M${evN(cx - dx)} ${v.sill} A${v.ar} ${v.ar} 0 1 1 ${evN(cx + dx)} ${v.sill} Z" fill="#0d0f12"/>`;
+  };
+  // Black plastic around the wheel arches (SUV).
+  const cladding = (cx) => {
+    const y = v.sill + 3;
+    const ro = v.ar + 3.2;
+    const di = Math.sqrt(v.ar ** 2 - (y - cy) ** 2);
+    return `<path d="M${evN(cx - ro + 0.2)} ${y} A${ro} ${ro} 0 0 1 ${evN(cx + ro - 0.2)} ${y} L${evN(cx + di)} ${y} A${v.ar} ${v.ar} 0 0 0 ${evN(cx - di)} ${y} Z" fill="${p.trim}" opacity=".85"/>`;
+  };
+  const lowY = v.cladding ? 136 : 139;
+  const light = (d, color, glow) =>
+    `<path d="${d}" stroke="${color}" stroke-width="2.5" stroke-linecap="round" fill="none"/>${glow ? `<path d="${d}" stroke="${glow}" stroke-width="5" stroke-linecap="round" fill="none" opacity=".35" filter="url(#bl${uid})"/>` : ""}`;
+  return `
+    <defs>
+      <linearGradient id="bd${k}" x1="0" x2="0" y1="${v.top}" y2="147" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${p.hi}"/><stop offset=".38" stop-color="${p.base}"/><stop offset=".5" stop-color="${p.crease}"/><stop offset=".56" stop-color="${p.base}"/><stop offset=".82" stop-color="${p.base}"/><stop offset="1" stop-color="${p.low}"/></linearGradient>
+      <linearGradient id="gl${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${glass[0]}"/><stop offset=".55" stop-color="${glass[1]}"/><stop offset="1" stop-color="${glass[2]}"/></linearGradient>
+      <linearGradient id="rf${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity="${dark ? 0.12 : 0.28}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="sl${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity="${dark ? 0.22 : 0.9}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <radialGradient id="rim${k}" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="${dark ? "#c9ced5" : "#eef1f4"}"/><stop offset=".6" stop-color="${dark ? "#8a929c" : "#b8bfc8"}"/><stop offset="1" stop-color="${dark ? "#5b626b" : "#808892"}"/></radialGradient>
+      <radialGradient id="hub${k}"><stop offset="0" stop-color="#6b737d"/><stop offset="1" stop-color="#2a2f35"/></radialGradient>
+      <clipPath id="bc${k}"><path d="${body}"/></clipPath>
+    </defs>
+    <ellipse cx="${v.shadow[0]}" cy="158" rx="${v.shadow[1]}" ry="5.5" fill="url(#sh${uid})"/>
+    ${axles.map((x) => `<ellipse cx="${x}" cy="158.5" rx="${v.ar}" ry="2.5" fill="#000" opacity="${dark ? 0.6 : 0.35}"/>`).join("")}
+    ${axles.map(well).join("")}
+    <path d="${body}" fill="url(#bd${k})" stroke="${p.line}" stroke-width=".8"/>
+    <g clip-path="url(#bc${k})"><rect x="190" y="${lowY}" width="240" height="12" fill="${p.trim}" opacity="${v.cladding ? 0.85 : dark ? 0.55 : 0.12}"/></g>
+    ${v.sideskirt ? `<path d="${v.sideskirt}" stroke="${p.trim}" stroke-width="5" opacity=".72"/>` : ""}
+    ${v.cladding ? axles.map(cladding).join("") : ""}
+    ${v.rails ? `<path d="${v.rails}" stroke="${p.trim}" stroke-width="2" stroke-linecap="round" fill="none" opacity=".85"/>` : ""}
+    <path d="${v.glass}" fill="url(#gl${k})"/>
+    <path d="${v.refl}" stroke="url(#rf${k})" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="${v.pillars}" stroke="${p.trim}" stroke-width="3"/>
+    <path d="${v.shoulder}" stroke="url(#sl${k})" stroke-width="1.6" fill="none"/>
+    <path d="${v.crease}" stroke="${p.line}" stroke-width=".7" fill="none" opacity=".7"/>
+    <path d="${v.doors}" stroke="${p.line}" stroke-width=".8" fill="none"/>
+    ${v.handles.slice(0, 2).map((x) => `<rect x="${x}" y="${v.handles[2]}" width="12" height="2.2" rx="1.1" fill="${p.line}"/>`).join("")}
+    <path d="${v.mirror}" fill="${p.trim}"/>
+    ${light(v.head, dark ? "#ffe9b0" : "#fff3cf", "#ffd166")}${light(v.tail, "#e5484d")}
+    <rect x="207" y="112.5" width="12" height="9.5" rx="3" fill="#15181c"/>
+    <circle cx="213" cy="117.2" r="2.3" fill="${acc}"/><circle cx="213" cy="117.2" r="5.5" fill="${acc}" opacity=".4" filter="url(#bl${uid})"/>
+    ${axles.map((x) => evWheel(x, cy, v.r, k, dark)).join("")}`;
+};
+
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
-// charging) and the car with its charging port; a glass pill with the car's battery level, else the charging power.
-// No car when none is plugged in: the cable hangs from the wallbox.
-const evScene = ({ state, dark, uid, pct, pill, label, animate }) => {
+// charging) and the car (`vehicle`: sedan, suv or city) with its charging port; a glass pill with the car's battery
+// level, else the charging power. No car when none is plugged in: the cable hangs from the wallbox.
+const evScene = ({ state, dark, uid, pct, pill, label, animate, vehicle }) => {
   const acc = EV_ACCENTS[state];
   const car = state !== "idle" && state !== "offline";
   const W = dark ? ["#262a30", "#1d2025", "#17191d"] : ["#f7f9fc", "#e8ecf2", "#dfe4eb"];
   const paint = dark ? ["#4a515b", "#30353c", "#666e79"] : ["#fbfcfe", "#dfe4ea", "#b9c1cb"];
   const glass = dark ? ["#232a33", "#0d1116"] : ["#6d7a8b", "#28313d"];
-  const rim = dark ? ["#8f98a3", "#5c646e"] : ["#d9dee5", "#9aa3ae"];
   const txt = dark ? "#f0f0f0" : "#1f2329";
-  const cable = car ? "M78 133 C78 180, 162 184, 198 160 S 222 128 227 121" : "M78 133 C78 172, 118 174, 120 150 C121 138, 112 132, 104 132";
+  const cable = car ? EV_CABLE : EV_CABLE_HANGING;
   const flowing = animate && state === "charging";
   // Still (no animation): the particles stay along the cable, each frozen at a quarter of the way.
   const particles = state === "charging"
@@ -39,32 +171,7 @@ const evScene = ({ state, dark, uid, pct, pill, label, animate }) => {
         })
         .join("")
     : "";
-  const spokes = (cx) =>
-    [0, 1, 2, 3, 4]
-      .map((k) => {
-        const a = k * 1.2566 + 0.3;
-        return `<line x1="${cx}" y1="141" x2="${(cx + 9 * Math.cos(a)).toFixed(1)}" y2="${(141 + 9 * Math.sin(a)).toFixed(1)}" stroke="${rim[1]}" stroke-width="2.2" stroke-linecap="round"/>`;
-      })
-      .join("");
-  const wheel = (cx) =>
-    `<circle cx="${cx}" cy="141" r="18" fill="#1f2328"/><circle cx="${cx}" cy="141" r="11.5" fill="url(#rim${uid})"/>${spokes(cx)}<circle cx="${cx}" cy="141" r="2.6" fill="${rim[1]}"/>`;
-  const carSvg = car
-    ? `
-    <ellipse cx="310" cy="159" rx="122" ry="8" fill="url(#sh${uid})"/>
-    <path d="M196 136 C196 126 200 120 210 117 L232 112 C246 100 262 91 284 87 C302 83 320 81 338 82 C354 83 366 87 378 95 L398 108 C411 110 419 115 420 123 L420 134 C420 138 417 141 413 141 L398 141 A20 20 0 0 0 358 141 L276 141 A20 20 0 0 0 236 141 L204 141 C199 141 196 139 196 136 Z" fill="url(#p${uid})" stroke="${paint[2]}" stroke-width="1"/>
-    <path d="M262 105 C272 97 287 91 304 89 L338 88 C351 89 361 93 371 100 L380 106 Z" fill="url(#g${uid})"/>
-    <path d="M266 102 C286 92 310 90 330 90" stroke="#fff" stroke-opacity="${dark ? 0.12 : 0.35}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    <line x1="324" y1="88.5" x2="322" y2="106" stroke="${paint[0]}" stroke-width="3"/>
-    <path d="M214 121 C270 116 350 115 412 118" stroke="url(#hl${uid})" stroke-width="2" fill="none"/>
-    <path d="M320 109 L318 139 M276 110 L276 128" stroke="${paint[2]}" stroke-width="1" fill="none" opacity=".8"/>
-    <rect x="294" y="114" width="12" height="2.4" rx="1.2" fill="${paint[2]}"/><rect x="336" y="114" width="12" height="2.4" rx="1.2" fill="${paint[2]}"/>
-    <path d="M372 102 l8 -1 l1 5 l-7 1 z" fill="${glass[1]}"/>
-    <rect x="403" y="113" width="15" height="3.4" rx="1.7" fill="${dark ? "#ffe08a" : "#ffd166"}"/>
-    <rect x="197" y="117" width="9" height="3.4" rx="1.7" fill="#e5484d"/>
-    <rect x="222" y="115" width="10" height="8" rx="2.5" fill="${glass[1]}"/>
-    <circle cx="227" cy="119" r="2.2" fill="${acc}"/><circle cx="227" cy="119" r="5" fill="${acc}" opacity=".35" filter="url(#bl${uid})"/>
-    ${wheel(256)}${wheel(378)}`
-    : "";
+  const carSvg = car ? evCar(EV_VEHICLES[vehicle] || EV_VEHICLES.sedan, { uid, dark, acc }) : "";
   const bar = pct != null ? `<rect x="304" y="44" width="98" height="6" rx="3" fill="${dark ? "#2c3138" : "#e3e8ef"}"/><rect x="304" y="44" width="${((98 * Math.max(0, Math.min(100, pct))) / 100).toFixed(1)}" height="6" rx="3" fill="${acc}"/>` : "";
   const pillTop = pct != null ? 36 : 43;
   return `
@@ -73,9 +180,6 @@ const evScene = ({ state, dark, uid, pct, pill, label, animate }) => {
       <linearGradient id="w${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${W[0]}"/><stop offset="1" stop-color="${W[1]}"/></linearGradient>
       <linearGradient id="f${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${W[1]}"/><stop offset="1" stop-color="${W[2]}"/></linearGradient>
       <linearGradient id="p${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${paint[0]}"/><stop offset=".55" stop-color="${paint[0]}"/><stop offset="1" stop-color="${paint[1]}"/></linearGradient>
-      <linearGradient id="g${uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${glass[0]}"/><stop offset="1" stop-color="${glass[1]}"/></linearGradient>
-      <linearGradient id="hl${uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity="${dark ? 0.18 : 0.75}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-      <radialGradient id="rim${uid}"><stop offset="0" stop-color="${rim[0]}"/><stop offset="1" stop-color="${rim[1]}"/></radialGradient>
       <radialGradient id="sh${uid}"><stop offset="0" stop-color="#000" stop-opacity="${dark ? 0.55 : 0.28}"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
       <radialGradient id="halo${uid}"><stop offset="0" stop-color="${acc}" stop-opacity=".28"/><stop offset="1" stop-color="${acc}" stop-opacity="0"/></radialGradient>
       <filter id="bl${uid}" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="2.5"/></filter>
@@ -314,7 +418,7 @@ class EvChargerCard extends RcCard {
     const scene =
       c.show_scene === false
         ? ""
-        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: `${this._uid ||= Math.random().toString(36).slice(2, 8)}`, pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate() })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
+        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: `${this._uid ||= Math.random().toString(36).slice(2, 8)}`, pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
     this._paint(m.state, head + scene + error, tiles.map((t) => this._tile(t)).join(""));
   }
@@ -454,6 +558,10 @@ const evSchema = (booleans) => (lang) => [
   { name: "title", selector: { text: {} } },
   { name: "navigation_path", selector: { navigation: {} } },
   { name: "battery", selector: { entity: { domain: "sensor", device_class: "battery" } } },
+  {
+    name: "vehicle",
+    selector: { select: { mode: "dropdown", options: Object.keys(EV_VEHICLES).map((value) => ({ value, label: rcT(EV_I18N, lang, `ed_vehicle_${value}`) })) } },
+  },
   ...rcBooleans(...booleans),
   ...rcAdvanced(EV_I18N, lang, "entities", "language"),
 ];
