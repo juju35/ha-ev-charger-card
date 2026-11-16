@@ -112,7 +112,7 @@ Every option is in the visual editor. In YAML:
 type: custom:ev-charger-card
 device: 3f2a…            # the charger's device ID (the visual editor offers a device picker)
 battery: sensor.car_battery_level
-vehicle: suv             # sedan (default), suv or city
+vehicle: suv             # sedan (default), tesla, suv or city
 
 # Two lines on a phone dashboard
 type: custom:ev-charger-mini-card
@@ -135,7 +135,7 @@ entities:
 | `show_title` | boolean | `true` | Show the title |
 | `navigation_path` | string | | A tap on the header opens this dashboard path |
 | `battery` | string | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
-| `vehicle` | string | `sedan` | The car of the illustration: `sedan` (fastback saloon with a glass roof, Tesla style), `suv` or `city` (city car) |
+| `vehicle` | string | `sedan` | The car of the illustration: `sedan` (fastback saloon), `tesla` (Tesla Model 3 style), `suv` or `city` (city car) |
 | `show_scene` | boolean | `true` | The illustration |
 | `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
 | `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
@@ -156,10 +156,10 @@ entities:
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle.png" alt="No car" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error.png" alt="Error" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact.png" alt="Without the illustration" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle-dark.png" alt="No car, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error-dark.png" alt="Error, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact-dark.png" alt="Without the illustration, dark" width="400"> |
 
-| Saloon (`vehicle: sedan`, default) | SUV (`vehicle: suv`) | City car (`vehicle: city`) |
-|---|---|---|
-| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging.png" alt="Saloon" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-suv.png" alt="SUV" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-city.png" alt="City car" width="400"> |
-| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging-dark.png" alt="Saloon, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-suv-dark.png" alt="SUV, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-city-dark.png" alt="City car, dark" width="400"> |
+| Saloon (`vehicle: sedan`, default) | Tesla style (`vehicle: tesla`) | SUV (`vehicle: suv`) | City car (`vehicle: city`) |
+|---|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging.png" alt="Saloon" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-tesla.png" alt="Tesla style" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-suv.png" alt="SUV" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-city.png" alt="City car" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-charging-dark.png" alt="Saloon, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-tesla-dark.png" alt="Tesla style, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-suv-dark.png" alt="SUV, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-vehicle-city-dark.png" alt="City car, dark" width="400"> |
 
 **Charging animation**: energy flows from the wallbox to the car along the cable and the LED ring breathes (steady with `animations: false`, or when the system asks for reduced motion).
 

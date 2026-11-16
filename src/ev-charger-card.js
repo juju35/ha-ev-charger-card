@@ -20,7 +20,7 @@ const EV_ICONS = {
 // paint, glass, aero wheels and shadows. The charging port sits on the rear wing, at the same place on every car,
 // where the cable ends.
 const EV_VEHICLES = {
-  // A fastback saloon with a glass roof, Tesla Model 3 style.
+  // A fastback saloon: long bonnet, sloping roof, body-coloured roof above the windows.
   sedan: {
     R: 242, F: 378, r: 18, ar: 21.5, sill: 146, top: 87, shadow: [310, 124],
     body: "M204 146 C199 146 197 143 197 139 L197 126 C197 120 198 115 201 112 L214 108.5 C238 99 262 90 292 88 C306 87.2 318 87.6 328 89.5 C340 92 352 99 362 105.5 C384 107.5 404 110 413 114 C419 117 421 122 421 128 L421 138 C421 143 418 146 413 146",
@@ -35,6 +35,23 @@ const EV_VEHICLES = {
     head: "M403 115.4 C409 116.2 415 117.6 419.5 120",
     tail: "M197.6 116 C202 112.5 207 110.6 214 109.2",
     sideskirt: "M262 141.5 L356 141.5",
+  },
+  // Tesla Model 3 style: cab-forward, one arched roofline in black glass from the windscreen to the rear window,
+  // a short sloping bonnet with a round grille-less nose, a short boot with a lip, grey aero wheel covers.
+  tesla: {
+    R: 242, F: 378, r: 18, ar: 21.5, sill: 146, top: 89, shadow: [310, 124], aero: true,
+    body: "M204 146 C199.5 146 197.5 143 197.5 139 L197.5 125 C197.5 119 199 114.5 202.5 111.6 L208 109.4 C214 108.6 220 107.6 226 105.6 C246 96 270 90.4 300 89.6 C326 89.2 346 95 375 106.2 C392 108.4 406 111 413.6 114.6 C419 117.4 421.4 122.4 421.4 129 L421 138.6 C420.6 143.4 418 146 413 146",
+    glass: "M224.6 106.4 C245 96.8 270 91.2 300 90.4 C325 90 345 95.6 372.6 106.6 L371 107.6 C320 107.2 270 106.6 226 106.8 Z",
+    panes: "M318 106.6 L318 94.2 C334 94.4 349 99 362 105.8 L361 106.8 Z M311.6 106.6 L311.6 93.4 C292 93.2 272 95.4 254 101.4 L252 106.6 Z M247.6 103.2 C241 105 236 106 231 106.6 L247 106.6 Z",
+    refl: "M240 100 C262 93 284 91 306 90.8",
+    pillars: "M314.8 92.6 L314.8 107",
+    shoulder: "M208 110.4 C260 110.6 330 109.6 375 107.4 C392 109.6 405 112 413 115.4",
+    crease: "M206 124 C260 123 330 123.4 402 125",
+    doors: "M316 108.4 C315.6 120 316 132 317.4 140 M252 108.4 C250.8 114 250.4 119 251 124",
+    handles: [292, 336, 112.2],
+    mirror: "M362 104.6 C364 101.6 368.6 101.2 371.4 102.6 L371.4 107 L363 107 Z",
+    head: "M402 113 C409 113.4 415.4 115 419.2 118.2",
+    tail: "M198.6 117.6 C200 113.6 203.2 111.2 208 110.2 L215 109.2",
   },
   // A crossover SUV: taller, roof rails, black wheel-arch and sill cladding.
   suv: {
@@ -78,7 +95,7 @@ const evArch = (cx, cy, r, sill) => {
   return `L${evN(cx + dx)} ${sill} A${r} ${r} 0 1 0 ${evN(cx - dx)} ${sill}`;
 };
 // A tyre and its aero wheel: a disc with five openings and the hub.
-const evWheel = (cx, cy, r, k, dark) => {
+const evWheel = (cx, cy, r, k, dark, aero) => {
   const rr = r * 0.68;
   const at = (rad, a) => `${evN(cx + rad * Math.cos(a))} ${evN(cy + rad * Math.sin(a))}`;
   const ro = rr * 0.9;
@@ -89,7 +106,7 @@ const evWheel = (cx, cy, r, k, dark) => {
       return `M${at(ro, a - 0.38)} A${evN(ro)} ${evN(ro)} 0 0 1 ${at(ro, a + 0.38)} L${at(ri, a + 0.24)} A${evN(ri)} ${evN(ri)} 0 0 0 ${at(ri, a - 0.24)} Z`;
     })
     .join(" ");
-  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#16181b"/><circle cx="${cx}" cy="${cy}" r="${evN(r - 1.6)}" fill="none" stroke="#2b2f35"/><circle cx="${cx}" cy="${cy}" r="${evN(rr + 0.8)}" fill="#0c0d0f"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="url(#rim${k})"/><path d="${pockets}" fill="${dark ? "#0b0c0e" : "#22262c"}"/><circle cx="${cx}" cy="${cy}" r="${evN(rr * 0.32)}" fill="url(#hub${k})"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width=".6"/>`;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#16181b"/><circle cx="${cx}" cy="${cy}" r="${evN(r - 1.6)}" fill="none" stroke="#2b2f35"/><circle cx="${cx}" cy="${cy}" r="${evN(rr + 0.8)}" fill="#0c0d0f"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="url(#${aero ? "aw" : "rim"}${k})"/><path d="${pockets}" fill="${dark ? "#0b0c0e" : "#22262c"}"/><circle cx="${cx}" cy="${cy}" r="${evN(rr * 0.32)}" fill="url(#hub${k})"/><circle cx="${cx}" cy="${cy}" r="${evN(rr)}" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width=".6"/>`;
 };
 // A car of EV_VEHICLES: contact shadows, wheel wells, the body and its lower trim, the windows, the lines and details,
 // the lights, the charging port (in the colour of the state) and the wheels.
@@ -123,6 +140,7 @@ const evCar = (v, { uid, dark, acc }) => {
       <linearGradient id="rf${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity="${dark ? 0.12 : 0.28}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
       <linearGradient id="sl${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity="${dark ? 0.22 : 0.9}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
       <radialGradient id="rim${k}" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="${dark ? "#c9ced5" : "#eef1f4"}"/><stop offset=".6" stop-color="${dark ? "#8a929c" : "#b8bfc8"}"/><stop offset="1" stop-color="${dark ? "#5b626b" : "#808892"}"/></radialGradient>
+      <radialGradient id="aw${k}" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="${dark ? "#8d949d" : "#a9b0b8"}"/><stop offset=".7" stop-color="${dark ? "#5f666f" : "#7c848e"}"/><stop offset="1" stop-color="${dark ? "#40464d" : "#5c636c"}"/></radialGradient>
       <radialGradient id="hub${k}"><stop offset="0" stop-color="#6b737d"/><stop offset="1" stop-color="#2a2f35"/></radialGradient>
       <clipPath id="bc${k}"><path d="${body}"/></clipPath>
     </defs>
@@ -135,6 +153,7 @@ const evCar = (v, { uid, dark, acc }) => {
     ${v.cladding ? axles.map(cladding).join("") : ""}
     ${v.rails ? `<path d="${v.rails}" stroke="${p.trim}" stroke-width="2" stroke-linecap="round" fill="none" opacity=".85"/>` : ""}
     <path d="${v.glass}" fill="url(#gl${k})"/>
+    ${v.panes ? `<path d="${v.panes}" fill="#fff" opacity="${dark ? 0.05 : 0.09}"/>` : ""}
     <path d="${v.refl}" stroke="url(#rf${k})" stroke-width="3" fill="none" stroke-linecap="round"/>
     <path d="${v.pillars}" stroke="${p.trim}" stroke-width="3"/>
     <path d="${v.shoulder}" stroke="url(#sl${k})" stroke-width="1.6" fill="none"/>
@@ -145,11 +164,11 @@ const evCar = (v, { uid, dark, acc }) => {
     ${light(v.head, dark ? "#ffe9b0" : "#fff3cf", "#ffd166")}${light(v.tail, "#e5484d")}
     <rect x="207" y="112.5" width="12" height="9.5" rx="3" fill="#15181c"/>
     <circle cx="213" cy="117.2" r="2.3" fill="${acc}"/><circle cx="213" cy="117.2" r="5.5" fill="${acc}" opacity=".4" filter="url(#bl${uid})"/>
-    ${axles.map((x) => evWheel(x, cy, v.r, k, dark)).join("")}`;
+    ${axles.map((x) => evWheel(x, cy, v.r, k, dark, v.aero)).join("")}`;
 };
 
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
-// charging) and the car (`vehicle`: sedan, suv or city) with its charging port; a glass pill with the car's battery
+// charging) and the car (`vehicle`: sedan, tesla, suv or city) with its charging port; a glass pill with the car's battery
 // level, else the charging power. No car when none is plugged in: the cable hangs from the wallbox.
 const evScene = ({ state, dark, uid, pct, pill, label, animate, vehicle }) => {
   const acc = EV_ACCENTS[state];

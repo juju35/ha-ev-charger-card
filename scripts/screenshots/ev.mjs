@@ -8,7 +8,7 @@ import { setup } from "./mock.mjs";
 const still = (file, s) => pair(file, { ...s, config: { animations: false, ...s.config } });
 const scenes = ["charging", "waiting", "done", "idle", "error"].flatMap((scene) => still(scene, { scene }));
 // The other cars of the illustration (`vehicle`), the saloon being the default.
-const vehicles = ["suv", "city"].flatMap((vehicle) => still(`vehicle-${vehicle}`, { scene: "charging", config: { vehicle } }));
+const vehicles = ["tesla", "suv", "city"].flatMap((vehicle) => still(`vehicle-${vehicle}`, { scene: "charging", config: { vehicle } }));
 await shoot({ prefix: "ev", tag: "ev-charger-card", shots: [...scenes, ...vehicles, ...still("compact", { scene: "charging", config: { show_scene: false } })], setup });
 await shoot({
   prefix: "ev-mini",

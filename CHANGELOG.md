@@ -3,7 +3,7 @@
 ## 1.1.0 - 2026-11-16
 
 ### Features
-- **Three cars for the illustration** (`vehicle`): a fastback saloon with a glass roof, Tesla style (`sedan`, default), an SUV with roof rails and black wheel-arch cladding (`suv`) and a city car (`city`). In the visual editor.
+- **Four cars for the illustration** (`vehicle`): a fastback saloon (`sedan`, default), a Tesla Model 3 style saloon — cab-forward, black glass roof, round nose, grey aero wheel covers (`tesla`), an SUV with roof rails and black wheel-arch cladding (`suv`) and a city car (`city`). In the visual editor.
 - **A finer car**: real proportions, shaded paint with a shoulder highlight, tinted glass with a reflection, aero wheels, flush handles, LED light strips, dark wheel wells and contact shadows. The charging port moves to the rear wing, off the wheel arch.
 
 ## 1.0.0 - 2026-11-14
