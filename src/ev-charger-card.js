@@ -287,13 +287,38 @@ const evCar = (v, { uid, dark, acc, color }) => {
     ${axles.map((x) => `<ellipse cx="${x}" cy="158.6" rx="${evN(ar - 1)}" ry="2.2" fill="#000" opacity="${dark ? 0.65 : 0.4}"/>`).join("")}
     ${car}`;
 };
+// The backdrop, in the colours of the flight and train boards: the sky (sun and clouds by day, stars and the moon
+// by night), two hills, the garage the wallbox hangs on (its window lit at night) and the paved drive.
+const EV_STARS = [[150, 12], [178, 40], [206, 8], [232, 30], [282, 10], [300, 72], [330, 14], [348, 62], [374, 6], [396, 34], [420, 18], [160, 76]];
+const evDecor = (uid, night) => {
+  const n = (dayC, nightC) => (night ? nightC : dayC);
+  const cloud = (x, y, k) => `<path transform="translate(${x} ${y}) scale(${k})" d="M0 6a4 4 0 0 1 6-3.4 5 5 0 0 1 9.4 1.4 3 3 0 0 1 .6 6H2a3 3 0 0 1-2-4Z" fill="#fff" opacity=".9"/>`;
+  const sky = night
+    ? `${EV_STARS.map(([x, y], i) => `<circle class="${i % 3 ? "" : "tw"}" cx="${x}" cy="${y}" r="${i % 3 ? 0.7 : 1.1}" fill="#fff" opacity="${i % 2 ? 0.6 : 0.95}"/>`).join("")}<path transform="translate(250 14) scale(1.6)" d="M0 0a6.4 6.4 0 1 0 5.6 9.6 5.2 5.2 0 1 1-5.6-9.6Z" fill="#f4f1dc"/>`
+    : `<circle cx="262" cy="30" r="10" fill="#ffd65a"/>${cloud(200, 18, 1.4)}${cloud(150, 50, 1.1)}`;
+  const pavers = Array.from({ length: 22 }, (_, i) => `<rect x="${i * 20 + 4}" y="170" width="14" height="1.6" rx=".5"/>`).join("");
+  return `
+    <linearGradient id="sky${uid}" x1="0" x2="1"><stop stop-color="${n("#f3f9ff", "#2c4068")}"/><stop offset=".42" stop-color="${n("#e2f0fc", "#1b2b4e")}"/><stop offset="1" stop-color="${n("#c4e1f7", "#0f1a34")}"/></linearGradient>
+    <rect width="430" height="190" fill="url(#sky${uid})"/>
+    ${sky}
+    <path d="M0 120C60 92 120 84 190 102C250 84 330 72 430 92V152H0Z" fill="${n("#c9e3bf", "#23395a")}"/>
+    <path d="M0 128C50 112 110 108 170 120C240 104 300 102 360 114C390 108 412 108 430 110V152H0Z" fill="${n("#a4cf96", "#1d3045")}"/>
+    <path d="M20 46 L84 20 L148 46Z" fill="${n("#c46b4e", "#6e3f36")}"/>
+    <rect x="26" y="44" width="116" height="108" fill="${n("#f1e6d3", "#8d8577")}"/>
+    <rect x="22" y="43" width="124" height="3" rx="1" fill="${n("#d8c8ad", "#6f685d")}"/>
+    <rect x="112" y="58" width="20" height="14" rx="1.5" fill="${n("#8fb9dc", "#ffc45e")}" stroke="${n("#d2c0a2", "#b4935a")}"${night ? ' style="filter:drop-shadow(0 0 3px #ffb347)"' : ""}/>
+    <rect y="152" width="430" height="38" fill="${n("#c3bcb1", "#2b3341")}"/>
+    <rect y="152" width="430" height="2" fill="${n("#ddd7cc", "#3a4352")}"/>
+    <g fill="${n("#b2aa9d", "#38404d")}">${pavers}</g>`;
+};
+
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
 // charging) and the car (`vehicle`, painted `color`) with its charging port; a glass pill with the car's battery
 // level, else the charging power. No car when none is plugged in: the cable hangs from the wallbox.
-const evScene = ({ state, dark, uid, pct, pill, label, animate, vehicle, color }) => {
+const evScene = ({ state, dark, night, uid, pct, pill, label, animate, vehicle, color }) => {
   const acc = EV_ACCENTS[state];
   const car = state !== "idle" && state !== "offline";
-  const W = dark ? ["#262a30", "#1d2025", "#17191d"] : ["#f7f9fc", "#e8ecf2", "#dfe4eb"];
+
   const paint = dark ? ["#4a515b", "#30353c", "#666e79"] : ["#fbfcfe", "#dfe4ea", "#b9c1cb"];
   const glass = dark ? ["#232a33", "#0d1116"] : ["#6d7a8b", "#28313d"];
   const txt = dark ? "#f0f0f0" : "#1f2329";
@@ -316,20 +341,16 @@ const evScene = ({ state, dark, uid, pct, pill, label, animate, vehicle, color }
   return `
   <svg class="scene" viewBox="0 0 430 190" role="img" aria-label="${rcEsc([pill, label].filter(Boolean).join(" · "))}">
     <defs>
-      <linearGradient id="w${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${W[0]}"/><stop offset="1" stop-color="${W[1]}"/></linearGradient>
-      <linearGradient id="f${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${W[1]}"/><stop offset="1" stop-color="${W[2]}"/></linearGradient>
       <linearGradient id="p${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${paint[0]}"/><stop offset=".55" stop-color="${paint[0]}"/><stop offset="1" stop-color="${paint[1]}"/></linearGradient>
       <radialGradient id="sh${uid}"><stop offset="0" stop-color="#000" stop-opacity="${dark ? 0.55 : 0.28}"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
       <radialGradient id="halo${uid}"><stop offset="0" stop-color="${acc}" stop-opacity=".28"/><stop offset="1" stop-color="${acc}" stop-opacity="0"/></radialGradient>
       <filter id="bl${uid}" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="2.5"/></filter>
       <filter id="ds${uid}" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="${dark ? 0.4 : 0.12}"/></filter>
     </defs>
-    <rect width="430" height="190" fill="url(#w${uid})"/>
-    <rect y="152" width="430" height="38" fill="url(#f${uid})"/>
-    <rect y="152" width="430" height="1" fill="#fff" opacity="${dark ? 0.06 : 0.7}"/>
+    ${evDecor(uid, night)}
     ${state === "idle" || state === "offline" ? "" : `<circle cx="78" cy="74" r="46" fill="url(#halo${uid})"/>`}
     <ellipse cx="78" cy="156" rx="30" ry="4" fill="url(#sh${uid})"/>
-    <rect x="56" y="32" width="44" height="6" rx="3" fill="${W[2]}"/>
+    <rect x="56" y="32" width="44" height="6" rx="3" fill="#000" opacity=".12"/>
     <g filter="url(#ds${uid})">
       <rect x="52" y="30" width="52" height="102" rx="18" fill="url(#p${uid})" stroke="${paint[2]}" stroke-width="1"/>
       <rect x="59" y="40" width="38" height="66" rx="13" fill="${glass[1]}"/>
@@ -469,6 +490,16 @@ class EvChargerCard extends RcCard {
     return !!this._hass.themes?.darkMode;
   }
 
+  // Night backdrop: forced by illustration_theme, else the sun below the horizon, else Home Assistant's dark mode.
+  _night() {
+    const theme = this._config.illustration_theme;
+    if (theme === "night") return true;
+    if (theme === "day") return false;
+    const sun = this._hass.states["sun.sun"]?.state;
+    if (sun === "below_horizon" || sun === "above_horizon") return sun === "below_horizon";
+    return this._dark();
+  }
+
   // The pill of the illustration and of the header: the car's level when known, else the charging power.
   _power(m) {
     return m.watts != null ? `${this._fmt(m.watts / 1000, 1)} kW` : "";
@@ -541,7 +572,7 @@ class EvChargerCard extends RcCard {
     const tiles = this._tileList(m);
     // Redrawn only when something shown changes: a session energy moving by a few Wh, still 12.4 kWh on screen, must
     // not rebuild the card (and restart the energy flowing along the cable).
-    const parts = [m.none, m.state, m.raw, m.name, m.sub, status, pill, label, tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, dark];
+    const parts = [m.none, m.state, m.raw, m.name, m.sub, status, pill, label, tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, dark, this._night()];
     if (!this._changed(parts)) return;
     const head = `
       <div class="head${c.navigation_path ? " nav" : ""}"${c.navigation_path ? ' role="link" tabindex="0"' : ""}>
@@ -557,7 +588,7 @@ class EvChargerCard extends RcCard {
     const scene =
       c.show_scene === false
         ? ""
-        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, uid: (this._uid ||= `e${(++evCards).toString(36)}`), pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle, color: c.color })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
+        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, night: this._night(), uid: (this._uid ||= `e${(++evCards).toString(36)}`), pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle, color: c.color })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
     this._paint(m.state, head + scene + error, tiles.map((t) => this._tile(t)).join(""));
   }
@@ -651,6 +682,8 @@ class EvChargerCard extends RcCard {
     .scene { display: block; width: 100%; height: auto; }
     @keyframes ev-ring { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
     .ring { animation: ev-ring 1.8s ease-in-out infinite; }
+    @keyframes ev-twinkle { from { opacity: .35 } to { opacity: 1 } }
+    .scene .tw { animation: ev-twinkle 3.2s ease-in-out infinite alternate; }
     .ring.err { animation-duration: .9s; }
     .err { margin-top: 8px; padding: 8px 10px; border-radius: 10px; font-size: 13px; color: var(--rc-alert);
            background: color-mix(in srgb, var(--rc-alert) 12%, transparent); }
@@ -687,7 +720,7 @@ class EvChargerCard extends RcCard {
       /* Three tiles on two columns: the third spans the row rather than stand alone. */
       .grid > :nth-child(3):last-child { grid-column: 1 / -1; }
     }
-    @media (prefers-reduced-motion: reduce) { .ring { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .ring, .scene .tw { animation: none; } }
   `;
 }
 
@@ -706,6 +739,10 @@ const evSchema = (booleans) => (lang) => [
     selector: {
       select: { mode: "dropdown", options: ["", ...Object.keys(EV_COLORS)].map((value) => ({ value, label: rcT(EV_I18N, lang, `ed_color_${value || "auto"}`) })) },
     },
+  },
+  {
+    name: "illustration_theme",
+    selector: { select: { mode: "dropdown", options: ["auto", "day", "night"].map((value) => ({ value, label: rcT(EV_I18N, lang, `ed_theme_${value}`) })) } },
   },
   ...rcBooleans(...booleans),
   ...rcAdvanced(EV_I18N, lang, "entities", "language"),

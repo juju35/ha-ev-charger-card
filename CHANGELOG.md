@@ -5,6 +5,7 @@
 ### Features
 - **Nine cars for the illustration** (`vehicle`): a saloon (`sedan`, default), a five-door hatchback (`hatch`), an estate (`estate`), a fastback crossover with a black glass roof and aero wheel covers (`crossover`), a coupé SUV (`coupe_suv`), a small urban SUV (`small_suv`), an SUV with roof rails and black wheel-arch cladding (`suv`), a city car (`city`) and an MPV / van (`van`). In the visual editor.
 - **Paint** (`color`): white, silver, grey, black, blue, red or green; none keeps white in a light theme and graphite in a dark one. In the visual editor.
+- **Day and night backdrop**, in the colours of the flight and train boards: the sky (sun and clouds, or stars and the moon), hills, the garage the wallbox hangs on (its window lit at night) and a paved drive. `illustration_theme`: `auto` (follows `sun.sun`, else the dark theme), `day` or `night`. In the visual editor.
 - **A finer car**: real proportions, larger wheels in tight arches (five twin-spoke alloys with the brake disc behind, or flat aero covers), paint with curvature, a shoulder highlight and lit arch lips, tinted glass with a satin trim and sky reflections, lamps in dark housings, flush handles, wheel wells, contact shadows and a faint reflection on the floor. The charging port moves to the rear wing, off the wheel arch.
 
 ## 1.0.0 - 2026-11-14

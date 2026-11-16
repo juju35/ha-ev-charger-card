@@ -270,6 +270,24 @@ test("options: each car and paint draws its own illustration, an unknown one the
   assert.equal(scene({ color: "pink" }), scene({}), "unknown paint: the theme's");
 });
 
+test("illustration theme: forced, else the sun, else the dark theme", () => {
+  const sky = (config, hass) => /#0f1a34/.test(make("ev-charger-card", { device: "charger", ...config }, hass).shadowRoot.innerHTML) ? "night" : "day";
+  const sun = (state, dark = false) => {
+    const h = makeHass();
+    h.states["sun.sun"] = st("sun.sun", state);
+    h.themes = { darkMode: dark };
+    return h;
+  };
+  assert.equal(sky({ illustration_theme: "night" }, sun("above_horizon")), "night");
+  assert.equal(sky({ illustration_theme: "day" }, sun("below_horizon", true)), "day");
+  assert.equal(sky({}, sun("below_horizon")), "night", "the sun has set");
+  assert.equal(sky({}, sun("above_horizon", true)), "day", "the sun first, the dark theme after");
+  const noSun = makeHass();
+  delete noSun.states["sun.sun"];
+  noSun.themes = { darkMode: true };
+  assert.equal(sky({}, noSun), "night", "no sun: the dark theme");
+});
+
 test("mini card: the readings as pills, a ring badge", () => {
   const mini = make("ev-charger-mini-card", { device: "charger", battery: "sensor.car_battery" });
   const html = mini.shadowRoot.innerHTML;

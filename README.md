@@ -114,6 +114,7 @@ device: 3f2a…            # the charger's device ID (the visual editor offers a
 battery: sensor.car_battery_level
 vehicle: suv             # sedan (default), hatch, estate, crossover, coupe_suv, small_suv, suv, city, van
 color: blue              # the paint; none: the theme's
+illustration_theme: auto # auto (sun.sun), day or night
 
 # Two lines on a phone dashboard
 type: custom:ev-charger-mini-card
@@ -138,6 +139,7 @@ entities:
 | `battery` | string | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
 | `vehicle` | string | `sedan` | The car of the illustration: `sedan` (saloon), `hatch` (five-door hatchback), `estate`, `crossover` (fastback crossover), `coupe_suv`, `small_suv`, `suv`, `city` (city car) or `van` (MPV / van) |
 | `color` | string | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
+| `illustration_theme` | string | `auto` | The illustration's sky: `auto` (night while `sun.sun` is below the horizon; without `sun.sun`, Home Assistant's dark theme), `day` or `night` |
 | `show_scene` | boolean | `true` | The illustration |
 | `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
 | `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
@@ -157,6 +159,13 @@ entities:
 |---|---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle.png" alt="No car" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error.png" alt="Error" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact.png" alt="Without the illustration" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle-dark.png" alt="No car, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error-dark.png" alt="Error, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact-dark.png" alt="Without the illustration, dark" width="400"> |
+
+**Day and night**: the illustration has the backdrop of the flight and train boards — a sky with the sun and clouds by day, the stars and the moon by night (the garage window lit), hills, the garage and the paved drive. `illustration_theme: auto` follows `sun.sun`, or force `day` / `night`.
+
+| Day (`illustration_theme: day`) | Night (`illustration_theme: night`) |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-day.png" alt="Day" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-night.png" alt="Night" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-day-dark.png" alt="Day, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-night-dark.png" alt="Night, dark" width="400"> |
 
 | Saloon (`vehicle: sedan`, default) | Hatchback (`hatch`) | Estate (`estate`) |
 |---|---|---|

@@ -11,8 +11,9 @@ const scenes = ["charging", "waiting", "done", "idle", "error"].flatMap((scene) 
 const vehicles = ["hatch", "estate", "crossover", "coupe_suv", "small_suv", "suv", "city", "van"].flatMap((vehicle) =>
   still(`vehicle-${vehicle.replace("_", "-")}`, { scene: "charging", config: { vehicle } }),
 );
+const themes = ["day", "night"].flatMap((theme) => still(theme, { scene: "charging", config: { illustration_theme: theme } }));
 const colors = ["blue", "red", "black"].flatMap((color) => still(`color-${color}`, { scene: "charging", config: { color } }));
-await shoot({ prefix: "ev", tag: "ev-charger-card", shots: [...scenes, ...vehicles, ...colors, ...still("compact", { scene: "charging", config: { show_scene: false } })], setup });
+await shoot({ prefix: "ev", tag: "ev-charger-card", shots: [...scenes, ...vehicles, ...colors, ...themes, ...still("compact", { scene: "charging", config: { show_scene: false } })], setup });
 await shoot({
   prefix: "ev-mini",
   tag: "ev-charger-mini-card",
