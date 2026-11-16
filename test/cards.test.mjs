@@ -260,7 +260,7 @@ test("options: each car and paint draws its own illustration, an unknown one the
     const card = make("ev-charger-card", { device: "charger", animations: false, ...config });
     const html = card.shadowRoot.innerHTML;
     const start = html.indexOf('<svg class="scene"');
-    return html.slice(start, html.indexOf("</svg>", start)).replaceAll(card._uid, "");
+    return html.slice(start, html.indexOf("</svg>", start)).replace(new RegExp(`${card._uid}(?=[")])`, "g"), "");
   };
   const cars = ["sedan", "hatch", "estate", "crossover", "coupe_suv", "small_suv", "suv", "city", "van"].map((vehicle) => scene({ vehicle }));
   assert.equal(new Set(cars).size, cars.length, "nine different cars");
