@@ -1,7 +1,7 @@
 {
   "name": "ha-ev-charger-card",
   "version": "1.1.0",
-  "description": "An illustrated Lovelace card for Home Assistant's EV chargers: wallbox, cable and car, charging power, session, pause / start, current limit and cable lock.",
+  "description": "An illustrated Lovelace card for Home Assistant's EV chargers: wallbox, cable and car (nine body styles, seven paints) on a day / night backdrop, charging power, session, pause / start, current limit and cable lock.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/juju35/ha-ev-charger-card.git"
