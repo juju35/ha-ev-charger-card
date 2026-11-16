@@ -313,15 +313,14 @@ const evDecor = (uid, night) => {
 };
 
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
-// charging) and the car (`vehicle`, painted `color`) with its charging port; a glass pill with the car's battery
-// level, else the charging power. No car when none is plugged in: the cable hangs from the wallbox.
-const evScene = ({ state, dark, night, uid, pct, pill, label, animate, vehicle, color }) => {
+// charging) and the car (`vehicle`, painted `color`) with its charging port, on the backdrop. Drawn at the right of
+// the card's header, its left fading into the sky under the text. No car when none is plugged in: the cable hangs.
+const evScene = ({ state, dark, night, uid, label, animate, vehicle, color }) => {
   const acc = EV_ACCENTS[state];
   const car = state !== "idle" && state !== "offline";
 
   const paint = dark ? ["#4a515b", "#30353c", "#666e79"] : ["#fbfcfe", "#dfe4ea", "#b9c1cb"];
   const glass = dark ? ["#232a33", "#0d1116"] : ["#6d7a8b", "#28313d"];
-  const txt = dark ? "#f0f0f0" : "#1f2329";
   const cable = car ? EV_CABLE : EV_CABLE_HANGING;
   const flowing = animate && state === "charging";
   // Still (no animation): the particles stay along the cable, each frozen at a quarter of the way.
@@ -336,10 +335,8 @@ const evScene = ({ state, dark, night, uid, pct, pill, label, animate, vehicle, 
         .join("")
     : "";
   const carSvg = car ? evCar(EV_VEHICLES[vehicle] || EV_VEHICLES.sedan, { uid, dark, acc, color }) : "";
-  const bar = pct != null ? `<rect x="304" y="44" width="98" height="6" rx="3" fill="${dark ? "#2c3138" : "#e3e8ef"}"/><rect x="304" y="44" width="${((98 * Math.max(0, Math.min(100, pct))) / 100).toFixed(1)}" height="6" rx="3" fill="${acc}"/>` : "";
-  const pillTop = pct != null ? 36 : 43;
   return `
-  <svg class="scene" viewBox="0 0 430 190" role="img" aria-label="${rcEsc([pill, label].filter(Boolean).join(" · "))}">
+  <svg class="scene" viewBox="0 0 430 190" role="img" aria-label="${rcEsc(label)}" preserveAspectRatio="xMaxYMax meet">
     <defs>
       <linearGradient id="p${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${paint[0]}"/><stop offset=".55" stop-color="${paint[0]}"/><stop offset="1" stop-color="${paint[1]}"/></linearGradient>
       <radialGradient id="sh${uid}"><stop offset="0" stop-color="#000" stop-opacity="${dark ? 0.55 : 0.28}"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
@@ -363,15 +360,6 @@ const evScene = ({ state, dark, night, uid, pct, pill, label, animate, vehicle, 
     <path id="c${uid}" d="${cable}" fill="none" stroke="${dark ? "#0f1216" : "#2f3540"}" stroke-width="6.5" stroke-linecap="round"/>
     <path d="${cable}" fill="none" stroke="#fff" stroke-opacity="${dark ? 0.08 : 0.22}" stroke-width="1.6" stroke-linecap="round" transform="translate(-1 -1.5)"/>
     ${particles}${carSvg}
-    ${
-      pill
-        ? `    <g class="glass"><g filter="url(#ds${uid})"><rect x="290" y="16" width="126" height="44" rx="14" fill="${dark ? "rgba(20,22,26,.72)" : "rgba(255,255,255,.82)"}" stroke="${dark ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.06)"}"/></g>
-    <text x="304" y="${pillTop}" font-family="Roboto,sans-serif" font-size="17" font-weight="700" fill="${txt}">${rcEsc(pill)}</text>
-    <text x="402" y="${pillTop - 1}" text-anchor="end" font-family="Roboto,sans-serif" font-size="10.5" font-weight="500" fill="${dark ? acc : `color-mix(in srgb, ${acc} 60%, #1f2329)`}">${rcEsc(label)}</text>
-    ${bar}</g>
-`
-        : ""
-    }
   </svg>`;
 };
 
@@ -561,22 +549,58 @@ class EvChargerCard extends RcCard {
     }
   }
 
+  // The illustrated header, as on the flight and train boards: the scene at the right, its left fading into the sky;
+  // on the sky at the left the badge and `text`. The badge is the state's icon (full card) or the battery ring (mini).
+  _banner(m, badge, text) {
+    const c = this._config;
+    const nav = c.navigation_path;
+    const status = this._status(m);
+    const scene = evScene({
+      state: m.state,
+      dark: this._dark(),
+      night: this._night(),
+      uid: (this._uid ||= `evc${(++evCards).toString(36)}`),
+      label: status,
+      animate: this._animate(),
+      vehicle: c.vehicle,
+      color: c.color,
+    });
+    return `
+      <div class="banner${this._night() ? " night" : ""}">
+        <button class="sc" title="${rcEsc(m.raw || status)}">${scene}</button>
+        <div class="head bh${nav ? " nav" : ""}"${nav ? ' role="link" tabindex="0"' : ""}>
+          <div class="badge">${badge}</div>
+          <div class="tt">${text}</div>
+        </div>
+      </div>`;
+  }
+
+  // The car's battery level as a bar and a figure, when a car is plugged in and its level known.
+  _soc(m) {
+    if (m.soc == null || m.state === "idle" || m.state === "offline") return "";
+    const pct = Math.max(0, Math.min(100, m.soc));
+    return `<div class="soc"><span class="bar"><i style="width:${pct.toFixed(0)}%"></i></span><b>${Math.round(m.soc)} %</b></div>`;
+  }
+
   _draw(m) {
     const c = this._config;
-    const dark = this._dark();
     const status = this._status(m);
-    // The car's level when one is plugged in and known, else the charging power; with no car, the state alone.
-    const noCar = m.state === "idle" || m.state === "offline";
-    const pill = noCar ? "" : m.soc != null ? `${Math.round(m.soc)} %` : this._power(m) || this._t(`st_${m.state}`);
-    const label = !pill || pill === this._t(`st_${m.state}`) ? "" : this._t(`st_${m.state}`);
     const tiles = this._tileList(m);
+    const banner = c.show_scene !== false && !m.none;
     // Redrawn only when something shown changes: a session energy moving by a few Wh, still 12.4 kWh on screen, must
     // not rebuild the card (and restart the energy flowing along the cable).
-    const parts = [m.none, m.state, m.raw, m.name, m.sub, status, pill, label, tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, dark, this._night()];
+    const parts = [m.none, m.state, m.raw, m.name, m.sub, status, m.soc != null && Math.round(m.soc), tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, this._dark(), this._night()];
     if (!this._changed(parts)) return;
-    const head = `
+    const icon = `<ha-icon icon="${m.none ? "mdi:ev-station" : EV_ICONS[m.state]}"></ha-icon>`;
+    const head = banner
+      ? this._banner(
+          m,
+          icon,
+          `<div class="title">${rcEsc(m.name)}</div>${m.sub ? `<div class="subt">${rcEsc(m.sub)}</div>` : ""}<div class="bs"><span class="chip" title="${rcEsc(m.raw || status)}">${rcEsc(status)}</span></div>${this._soc(m)}`,
+        )
+      : `
       <div class="head${c.navigation_path ? " nav" : ""}"${c.navigation_path ? ' role="link" tabindex="0"' : ""}>
-        <div class="badge"><ha-icon icon="${m.none ? "mdi:ev-station" : EV_ICONS[m.state]}"></ha-icon></div>
+        <div class="badge">${icon}</div>
         <div class="tt"><div class="title">${rcEsc(m.name)}</div>${m.sub ? `<div class="subt">${rcEsc(m.sub)}</div>` : ""}</div>
         ${m.none ? "" : `<span class="pill" title="${rcEsc(m.raw || status)}"><span class="pt">${rcEsc(status)}</span></span>`}
       </div>`;
@@ -585,12 +609,8 @@ class EvChargerCard extends RcCard {
       this._paint("idle", `${head}<div class="none">${rcEsc(this._t("no_charger"))}</div>`, "");
       return;
     }
-    const scene =
-      c.show_scene === false
-        ? ""
-        : `<button class="sc" title="${rcEsc(m.raw || status)}">${evScene({ state: m.state, dark, night: this._night(), uid: (this._uid ||= `e${(++evCards).toString(36)}`), pct: m.soc != null && !noCar ? m.soc : null, pill, label, animate: this._animate(), vehicle: c.vehicle, color: c.color })}</button>${pill ? `<div class="sl">${rcEsc([pill, label].filter(Boolean).join(" · "))}</div>` : ""}`;
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
-    this._paint(m.state, head + scene + error, tiles.map((t) => this._tile(t)).join(""));
+    this._paint(m.state, head + error, tiles.map((t) => this._tile(t)).join(""));
   }
 
   _afterGrid() {
@@ -677,9 +697,36 @@ class EvChargerCard extends RcCard {
     .tt .title { flex: none; }
     .subt { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     :host([hide-title]) .head .tt { visibility: hidden; }
-    .sc { all: unset; display: block; box-sizing: border-box; width: 100%; cursor: pointer; margin-top: 10px; border-radius: 14px; overflow: hidden; }
-    .sc:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
-    .scene { display: block; width: 100%; height: auto; }
+    /* The illustrated header: the card's top, edge to edge, in the sky's colours (as the flight and train boards). */
+    .banner { --sw: min(290px, 64%); position: relative; isolation: isolate; display: flex; align-items: center; box-sizing: border-box;
+              padding-left: 12px; overflow: hidden; height: 128px; margin: -12px -12px 0; color: #10283f;
+              background: linear-gradient(90deg, #f3f9ff 0%, #e2f0fc 38%, #c4e1f7 100%); }
+    .banner.night { color: #fff; background: linear-gradient(90deg, #2c4068 0%, #1b2b4e 42%, #0f1a34 100%); }
+    .sc { all: unset; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--sw); cursor: pointer;
+          -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%); mask-image: linear-gradient(90deg, transparent, #000 22%); }
+    .sc:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+    .scene { display: block; width: 100%; height: 100%; }
+    .bh { flex: 0 1 auto; min-width: 0; max-width: calc(100% - var(--sw) * .8); }
+    .banner .badge { color: var(--c); background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent); }
+    .banner.night .badge { color: color-mix(in srgb, var(--c) 45%, #fff); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+    .banner .title { color: inherit; font-weight: 600; }
+    .banner .subt { color: #3d5670; }
+    .banner.night .subt { color: rgba(255,255,255,.82); }
+    .bs { display: flex; margin-top: 5px; min-width: 0; }
+    .chip { display: inline-block; max-width: 100%; box-sizing: border-box; padding: 1px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;
+            line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            background: color-mix(in srgb, var(--c) 16%, rgba(255,255,255,.5)); color: color-mix(in srgb, var(--c) 55%, #10283f); }
+    .banner.night .chip { background: rgba(10,20,40,.5); color: color-mix(in srgb, var(--c) 45%, #fff); }
+    .soc { display: flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; }
+    .soc b { white-space: nowrap; }
+    .soc .bar { flex: 0 1 90px; min-width: 30px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
+    .soc .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
+    .banner .zoom { position: absolute; top: 6px; right: 6px; margin: 0; width: 28px; height: 28px; color: #10283f; background: rgba(255,255,255,.55); }
+    .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
+    :host([hide-title]) .banner .tt { visibility: visible; }
+    :host([hide-title]) .banner .title, :host([hide-title]) .banner .subt { display: none; }
+    @container (max-width: 420px) { .banner { --sw: 52%; } }
+    @container (max-width: 320px) { .banner { --sw: 42%; } }
     @keyframes ev-ring { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
     .ring { animation: ev-ring 1.8s ease-in-out infinite; }
     @keyframes ev-twinkle { from { opacity: .35 } to { opacity: 1 } }
@@ -712,9 +759,6 @@ class EvChargerCard extends RcCard {
     .gb.armed { color: color-mix(in srgb, var(--rc-warn) 50%, var(--primary-text-color, #212121)); background: color-mix(in srgb, var(--rc-warn) 18%, transparent); }
     .none { margin-top: 10px; padding: 12px; border-radius: 12px; font-size: 13px; color: var(--secondary-text-color);
             background: var(--secondary-background-color, rgba(127,127,127,.08)); }
-    /* The glass pill's text, drawn in the scene, gets too small on a narrow card: a line under it instead. */
-    .sl { display: none; margin-top: 6px; font-size: 13px; font-weight: 500; color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); }
-    @container (max-width: 360px) { .glass { display: none; } .sl { display: block; } }
     @container (max-width: 300px) {
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       /* Three tiles on two columns: the third spans the row rather than stand alone. */
@@ -772,15 +816,63 @@ class EvChargerMiniCard extends rcMini(
   `
     .mini > .badge { background: none; }
     .ringb { width: 40px; height: 40px; }
+    ha-card.mb { padding: 0; }
+    .mb > .banner { height: 104px; margin: 0; --sw: min(236px, 52%); }
+    .banner .ringb { width: 40px; height: 40px; }
+    .banner .badge:has(.ringb) { background: rgba(255,255,255,.62); }
+    .banner.night .badge:has(.ringb) { background: rgba(255,255,255,.12); }
+    .big { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .big b { font-size: 22px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+    .big b.word { font-size: 18px; overflow: hidden; text-overflow: ellipsis; }
+    .big .chip { flex: 0 1 auto; min-width: 0; }
     .r { --t: var(--c); }
     .r.dim { --t: var(--rc-idle); }
   `,
 ) {
   getCardSize() {
-    return this._zoomed ? super.getCardSize() : 1;
+    if (this._zoomed) return super.getCardSize();
+    return this._config.show_scene === false ? 1 : 2;
+  }
+
+  // The battery ring of the badge: the car's level when known, else the charging power against `max_power` (kW).
+  _ring(m) {
+    const max = (Number(this._config.max_power) || 7.4) * 1000;
+    const pct = m.soc != null ? m.soc : m.watts != null ? Math.min(100, (100 * m.watts) / max) : 0;
+    const L = 2 * Math.PI * 17;
+    return `<svg class="ringb" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="color-mix(in srgb, var(--c) 18%, transparent)" stroke-width="4"/><circle cx="20" cy="20" r="17" fill="none" stroke="var(--c)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${((L * pct) / 100).toFixed(1)} 999" transform="rotate(-90 20 20)"/><path d="M21 12l-5 9h4l-1 7 6-10h-4z" fill="var(--c)"/></svg>`;
+  }
+
+  // The illustrated mini card: the ring, the car's level (or the charging power) in large with the state as a chip,
+  // then the name and the key readings; the scene at the right.
+  _drawBanner(m) {
+    const c = this._config;
+    const car = m.state !== "idle" && m.state !== "offline";
+    const kwh = m.session != null ? `${this._fmt(m.session, 1)} kWh` : null;
+    const big = car && m.soc != null ? `${Math.round(m.soc)} %` : m.state === "charging" ? this._power(m) : "";
+    const state = m.state === "error" ? m.error || this._t("st_error") : this._t(`st_${m.state}`);
+    const readings = {
+      charging: [big === this._power(m) ? kwh : this._power(m), m.duration],
+      waiting: [m.limit?.value != null ? `${Math.round(m.limit.value)} A` : null],
+      done: [kwh, m.duration],
+    }[m.state] || [m.session != null ? `${this._t("t_last")} ${kwh}` : null];
+    const line = [c.show_title === false ? null : m.name, ...readings].filter(Boolean).join(" · ");
+    const lead = big
+      ? `<div class="big"><b>${rcEsc(big)}</b><span class="chip" title="${rcEsc(m.raw || state)}">${rcEsc(state)}</span></div>`
+      : `<div class="big"><b class="word">${rcEsc(state)}</b></div>`;
+    this.shadowRoot.innerHTML = `
+      <style>${RC_BASE_STYLES}${this.constructor.styles}</style>
+      <ha-card class="lvl-${m.state} mb">${this._banner(m, this._ring(m), `${lead}${line ? `<div class="subt">${rcEsc(line)}</div>` : ""}`)}</ha-card>`;
+    const root = this.shadowRoot;
+    if (c.navigation_path) rcBindNav(root.querySelector(".head"), c.navigation_path);
+    root.querySelector(".sc")?.addEventListener("click", () => rcMoreInfo(this, m.ids.status || m.ids.power || m.ids.limit));
   }
 
   _drawMini(m) {
+    if (this._config.show_scene !== false) {
+      const sig = ["banner", m.state, m.raw, m.watts && Math.round(m.watts / 100), m.session, m.duration, m.soc, m.error, m.limit?.value, m.name, this._dark(), this._night()];
+      if (this._changed(sig)) this._drawBanner(m);
+      return;
+    }
     if (!this._changed(["mini", m.state, m.watts && Math.round(m.watts / 100), m.session, m.duration, m.soc, m.error, m.limit?.value, m.name])) return;
     const id = m.ids.status || m.ids.power || "";
     const chip = (text, dim) => `<button class="r pill${dim ? " dim" : ""}" data-id="${rcEsc(id)}" title="${rcEsc(text)}"><span>${rcEsc(text)}</span></button>`;
@@ -799,14 +891,9 @@ class EvChargerMiniCard extends rcMini(
     // The charger's name (or the title), as on the full card.
     const title = this.shadowRoot.querySelector(".mini .title");
     if (title) title.textContent = m.name;
-    // The badge is a ring: the car's level when known, else the charging power against `max_power` (kW).
-    const max = (Number(this._config.max_power) || 7.4) * 1000;
-    const pct = m.soc != null ? m.soc : m.watts != null ? Math.min(100, (100 * m.watts) / max) : 0;
-    const L = 2 * Math.PI * 17;
+    // The badge is the battery ring.
     const badge = this.shadowRoot.querySelector(".mini > .badge");
-    if (badge) {
-      badge.innerHTML = `<svg class="ringb" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="color-mix(in srgb, var(--c) 18%, transparent)" stroke-width="4"/><circle cx="20" cy="20" r="17" fill="none" stroke="var(--c)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${((L * pct) / 100).toFixed(1)} 999" transform="rotate(-90 20 20)"/><path d="M21 12l-5 9h4l-1 7 6-10h-4z" fill="var(--c)"/></svg>`;
-    }
+    if (badge) badge.innerHTML = this._ring(m);
   }
 }
 

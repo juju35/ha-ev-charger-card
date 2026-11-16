@@ -271,7 +271,10 @@ test("options: each car and paint draws its own illustration, an unknown one the
 });
 
 test("illustration theme: forced, else the sun, else the dark theme", () => {
-  const sky = (config, hass) => /#0f1a34/.test(make("ev-charger-card", { device: "charger", ...config }, hass).shadowRoot.innerHTML) ? "night" : "day";
+  const sky = (config, hass) => {
+    const html = make("ev-charger-card", { device: "charger", ...config }, hass).shadowRoot.innerHTML;
+    return /class="banner night"/.test(html) && /#0f1a34/.test(html.slice(html.indexOf('<svg class="scene"'))) ? "night" : "day";
+  };
   const sun = (state, dark = false) => {
     const h = makeHass();
     h.states["sun.sun"] = st("sun.sun", state);
@@ -288,12 +291,36 @@ test("illustration theme: forced, else the sun, else the dark theme", () => {
   assert.equal(sky({}, noSun), "night", "no sun: the dark theme");
 });
 
-test("mini card: the readings as pills, a ring badge", () => {
+test("mini card: the illustrated banner — the ring, the level in large, the state and the readings", () => {
   const mini = make("ev-charger-mini-card", { device: "charger", battery: "sensor.car_battery" });
   const html = mini.shadowRoot.innerHTML;
+  assert.match(html, /class="lvl-charging mb"/);
+  assert.match(html, /<svg class="scene"/);
+  assert.match(html, /class="ringb"/);
+  assert.match(html, /<b>68 %<\/b><span class="chip"[^>]*>Charging<\/span>/);
+  assert.match(html, /7.2 kW · 1 h 42/);
+  assert.equal(mini._config.zoom, true);
+  assert.equal(mini.getCardSize(), 2);
+});
+
+test("mini card without the illustration: the readings as pills, a ring badge", () => {
+  const mini = make("ev-charger-mini-card", { device: "charger", battery: "sensor.car_battery", show_scene: false });
+  const html = mini.shadowRoot.innerHTML;
+  assert.doesNotMatch(html, /<svg class="scene"/);
+  assert.match(html, /class="r pill/);
   assert.match(html, /7.2 kW/);
   assert.match(html, /68 %/);
-  assert.equal(mini._config.zoom, true);
+  assert.equal(mini.getCardSize(), 1);
+});
+
+test("full card: the illustrated header, or the classic one without the illustration", () => {
+  const card = make("ev-charger-card", { device: "charger", battery: "sensor.car_battery" }).shadowRoot.innerHTML;
+  assert.match(card, /class="banner/);
+  assert.match(card, /class="chip"[^>]*>Charging · 7.2 kW</);
+  assert.match(card, /<b>68 %<\/b>/);
+  const plain = make("ev-charger-card", { device: "charger", show_scene: false }).shadowRoot.innerHTML;
+  assert.doesNotMatch(plain, /class="banner/);
+  assert.match(plain, /class="pill"/);
 });
 
 test("editors: defaults stay out of the YAML, every field has a label", () => {
