@@ -114,6 +114,7 @@ battery: sensor.car_battery_level
 vehicle: suv             # sedan (default), hatch, estate, crossover, coupe_suv, small_suv, suv, city, van
 color: blue              # the paint; none: the theme's
 illustration_theme: auto # auto (sun.sun), day or night
+show_background: true    # false: the wallbox and the car without the backdrop
 
 # Two lines on a phone dashboard
 type: custom:ev-charger-mini-card
@@ -140,6 +141,7 @@ entities:
 | `color` | string | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
 | `illustration_theme` | string | `auto` | The illustration's sky: `auto` (night while `sun.sun` is below the horizon; without `sun.sun`, Home Assistant's dark theme), `day` or `night` |
 | `show_scene` | boolean | `true` | The illustrated header (`false`: a classic header, and the mini card on two lines) |
+| `show_background` | boolean | `true` | The illustration's backdrop (sky, hills, garage, drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
 | `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
 | `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
 | `max_power` | number | `7.4` | Mini card: the power (kW) of a full ring when the car's battery level is unknown |
@@ -165,6 +167,13 @@ entities:
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-day.png" alt="Day" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-night.png" alt="Night" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-day-dark.png" alt="Day, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-night-dark.png" alt="Night, dark" width="400"> |
+
+**Without the backdrop** (`show_background: false`): the wallbox, the cable and the car stay, on the card itself; the header takes the theme's colours.
+
+| Full card | Mini card |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-no-background.png" alt="Without the backdrop" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-no-background.png" alt="Mini card without the backdrop" width="320"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-no-background-dark.png" alt="Without the backdrop, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mini-no-background-dark.png" alt="Mini card without the backdrop, dark" width="320"> |
 
 | Saloon (`vehicle: sedan`, default) | Hatchback (`hatch`) | Estate (`estate`) |
 |---|---|---|

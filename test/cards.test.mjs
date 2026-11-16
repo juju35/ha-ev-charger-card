@@ -291,6 +291,17 @@ test("illustration theme: forced, else the sun, else the dark theme", () => {
   assert.equal(sky({}, noSun), "night", "no sun: the dark theme");
 });
 
+test("show_background: false keeps the wallbox and the car, not the backdrop", () => {
+  const html = make("ev-charger-card", { device: "charger", show_background: false }).shadowRoot.innerHTML;
+  const svg = html.slice(html.indexOf('<svg class="scene"'));
+  assert.match(html, /class="banner bare"/);
+  assert.doesNotMatch(svg, /#a4cf96|#1d3045/, "no hills");
+  assert.match(svg, /animateMotion|<circle/, "the wallbox and its cable");
+  assert.match(svg, /id="bdv/, "the car");
+  const mini = make("ev-charger-mini-card", { device: "charger", show_background: false }).shadowRoot.innerHTML;
+  assert.match(mini, /class="banner bare"/);
+});
+
 test("mini card: the illustrated banner — the ring, the level in large, the state and the readings", () => {
   const mini = make("ev-charger-mini-card", { device: "charger", battery: "sensor.car_battery" });
   const html = mini.shadowRoot.innerHTML;

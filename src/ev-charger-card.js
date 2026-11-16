@@ -315,7 +315,7 @@ const evDecor = (uid, night) => {
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
 // charging) and the car (`vehicle`, painted `color`) with its charging port, on the backdrop. Drawn at the right of
 // the card's header, its left fading into the sky under the text. No car when none is plugged in: the cable hangs.
-const evScene = ({ state, dark, night, uid, label, animate, vehicle, color }) => {
+const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, vehicle, color }) => {
   const acc = EV_ACCENTS[state];
   const car = state !== "idle" && state !== "offline";
 
@@ -344,7 +344,7 @@ const evScene = ({ state, dark, night, uid, label, animate, vehicle, color }) =>
       <filter id="bl${uid}" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="2.5"/></filter>
       <filter id="ds${uid}" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="${dark ? 0.4 : 0.12}"/></filter>
     </defs>
-    ${evDecor(uid, night)}
+    ${backdrop ? evDecor(uid, night) : `<rect x="150" y="152" width="280" height="1" fill="${dark ? "#fff" : "#000"}" opacity="${dark ? 0.1 : 0.08}"/>`}
     ${state === "idle" || state === "offline" ? "" : `<circle cx="78" cy="74" r="46" fill="url(#halo${uid})"/>`}
     <ellipse cx="78" cy="156" rx="30" ry="4" fill="url(#sh${uid})"/>
     <rect x="56" y="32" width="44" height="6" rx="3" fill="#000" opacity=".12"/>
@@ -560,13 +560,14 @@ class EvChargerCard extends RcCard {
       dark: this._dark(),
       night: this._night(),
       uid: (this._uid ||= `evc${(++evCards).toString(36)}`),
+      backdrop: c.show_background !== false,
       label: status,
       animate: this._animate(),
       vehicle: c.vehicle,
       color: c.color,
     });
     return `
-      <div class="banner${this._night() ? " night" : ""}">
+      <div class="banner${c.show_background === false ? " bare" : this._night() ? " night" : ""}">
         <button class="sc" title="${rcEsc(m.raw || status)}">${scene}</button>
         <div class="head bh${nav ? " nav" : ""}"${nav ? ' role="link" tabindex="0"' : ""}>
           <div class="badge">${badge}</div>
@@ -723,6 +724,12 @@ class EvChargerCard extends RcCard {
     .soc .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
     .banner .zoom { position: absolute; top: 6px; right: 6px; margin: 0; width: 28px; height: 28px; color: #10283f; background: rgba(255,255,255,.55); }
     .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
+    /* show_background: false — the wallbox, the cable and the car on the card itself, in the theme's colours. */
+    .banner.bare { color: var(--primary-text-color); background: none; }
+    .banner.bare .subt { color: var(--secondary-text-color); }
+    .banner.bare .badge { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: none; }
+    .banner.bare .chip { background: color-mix(in srgb, var(--c) 16%, transparent); color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); }
+    .banner.bare .zoom { color: var(--secondary-text-color); background: none; }
     :host([hide-title]) .banner .tt { visibility: visible; }
     :host([hide-title]) .banner .title, :host([hide-title]) .banner .subt { display: none; }
     @container (max-width: 420px) { .banner { --sw: 52%; } }
@@ -792,12 +799,12 @@ const evSchema = (booleans) => (lang) => [
   ...rcAdvanced(EV_I18N, lang, "entities", "language"),
 ];
 
-const EV_HELPERS = ["title", "battery", "zoom", "entities", "language"];
+const EV_HELPERS = ["title", "battery", "show_background", "zoom", "entities", "language"];
 
 const EvChargerCardEditor = rcEditor({
   card: EvChargerCard,
   helpers: EV_HELPERS,
-  schema: evSchema(["show_title", "show_scene", "animations", "show_controls"]),
+  schema: evSchema(["show_title", "show_scene", "show_background", "animations", "show_controls"]),
 });
 
 rcRegister(
@@ -821,6 +828,7 @@ class EvChargerMiniCard extends rcMini(
     .banner .ringb { width: 40px; height: 40px; }
     .banner .badge:has(.ringb) { background: rgba(255,255,255,.62); }
     .banner.night .badge:has(.ringb) { background: rgba(255,255,255,.12); }
+    .banner.bare .badge:has(.ringb) { background: none; }
     .big { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .big b { font-size: 22px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
     .big b.word { font-size: 18px; overflow: hidden; text-overflow: ellipsis; }
@@ -901,7 +909,7 @@ const EvChargerMiniCardEditor = rcEditor({
   card: EvChargerMiniCard,
   helpers: [...EV_HELPERS, "max_power"],
   schema: (lang) => [
-    ...evSchema(["show_title", "show_scene", "animations", "show_controls", "zoom"])(lang).slice(0, -1),
+    ...evSchema(["show_title", "show_scene", "show_background", "animations", "show_controls", "zoom"])(lang).slice(0, -1),
     { name: "max_power", selector: { number: { min: 1, max: 50, step: 0.1, mode: "box", unit_of_measurement: "kW" } } },
     ...rcAdvanced(EV_I18N, lang, "entities", "language"),
   ],
