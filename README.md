@@ -135,7 +135,7 @@ entities:
 | `show_title` | boolean | `true` | Show the title |
 | `navigation_path` | string | | A tap on the header opens this dashboard path |
 | `battery` | string | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
-| `vehicle` | string | `sedan` | The car of the illustration: `sedan` (fastback saloon), `tesla` (Tesla Model 3 style), `suv` or `city` (city car) |
+| `vehicle` | string | `sedan` | The car of the illustration: `sedan` (fastback saloon), `tesla` (Tesla Model Y style), `suv` or `city` (city car) |
 | `show_scene` | boolean | `true` | The illustration |
 | `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
 | `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
