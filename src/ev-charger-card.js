@@ -383,6 +383,17 @@ const EV_SVG = {
 };
 
 // ── Card ─────────────────────────────────────────────────────────────────────
+// The width of an element's whole text in its own font, in fractional pixels (scrollWidth is rounded).
+let evTextCtx;
+const evTextWidth = (el) => {
+  const cs = getComputedStyle(el);
+  evTextCtx ??= document.createElement("canvas").getContext?.("2d");
+  if (!evTextCtx) return el.scrollWidth;
+  evTextCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  return Math.max(el.scrollWidth, evTextCtx.measureText(el.textContent.trim()).width + pad);
+};
+
 class EvChargerCard extends RcCard {
   static tag = "ev-charger-card";
   static i18n = EV_I18N;
@@ -561,11 +572,48 @@ class EvChargerCard extends RcCard {
   }
 
   // The banner's text: the title line (the title, then the status pill), the subtitle, then a line with the car's level.
-  // When the text is narrow the pill leaves the title line for that last line (its copy there), under the subtitle; on a
-  // very narrow card only its dot stays (its text stays in its title and aria-label).
+  // Where the pill goes is measured (_fitPill): beside the whole title, else on that last line (its copy there) under
+  // the subtitle, else only its dot (its text stays in its title and aria-label).
   _subLine(parts) {
     const text = parts.filter(Boolean).join(" · ");
-    return text ? `<div class="subt">${rcEsc(text)}</div>` : "";
+    return text ? `<div class="subt" title="${rcEsc(text)}">${rcEsc(text)}</div>` : "";
+  }
+
+  // The status pill, measured after each render and on a new width (in every language): it sits on the title's row,
+  // right after the title, only when the whole title and the pill's whole label fit there; otherwise it takes the line
+  // under the subtitle (.below), the title whole on its row (cut only when it does not fit alone). When the lines do
+  // not fit in the banner above the drive, or the label does not fit its line, the pill shows its dot alone
+  // (.dot-only): beside the title when the whole title leaves it room, else under the subtitle.
+  _fitPill() {
+    for (const t of this.shadowRoot?.querySelectorAll?.(".banner .tt") || []) {
+      const row = t.querySelector(".trow");
+      const pill = row?.querySelector(":scope > .chip");
+      if (!pill?.getBoundingClientRect) continue;
+      t.classList.remove("below", "dot-only");
+      const name = row.firstElementChild;
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const room = row.getBoundingClientRect().width;
+      const title = evTextWidth(name) + gap;
+      if (title + pill.getBoundingClientRect().width <= room) continue;
+      t.classList.add("below");
+      const line = t.querySelector(".pl > .chip");
+      const banner = t.closest(".banner");
+      const ground = banner.querySelector(".ground");
+      const floor = ground ? ground.getBoundingClientRect().top : banner.getBoundingClientRect().bottom - 10;
+      const box = t.getBoundingClientRect();
+      const tx = line?.querySelector(".ct");
+      const whole = !tx || (tx.scrollWidth <= tx.clientWidth + 0.5 && line.getBoundingClientRect().right <= box.right + 0.5);
+      if (whole && box.bottom <= floor + 0.5 && box.top >= banner.getBoundingClientRect().top - 0.5) continue;
+      t.classList.add("dot-only");
+      if (title + (line || pill).getBoundingClientRect().width <= room) t.classList.remove("below");
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback?.();
+    if (!this._fitObserver && typeof ResizeObserver === "function") this._fitObserver = new ResizeObserver(() => this._fitPill());
+    this._fitObserver?.observe(this);
+    document.fonts?.ready?.then(() => this._fitPill());
   }
 
   _titleRow(title, pill, sub, extra = "") {
@@ -640,6 +688,7 @@ class EvChargerCard extends RcCard {
     }
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
     this._paint(m.state, head + error, tiles.map((t) => this._tile(t)).join(""));
+    this._fitPill();
   }
 
   _afterGrid() {
@@ -663,6 +712,7 @@ class EvChargerCard extends RcCard {
 
   disconnectedCallback() {
     super.disconnectedCallback?.();
+    this._fitObserver?.disconnect();
     clearTimeout(this._armTimer);
     this._armLock = false;
   }
@@ -744,12 +794,18 @@ class EvChargerCard extends RcCard {
     .banner .title { color: inherit; font-weight: 600; }
     .banner .subt { color: #3b5b78; }
     .banner.night .subt { color: rgba(255,255,255,.82); }
-    /* The title line: the title, then the status pill, which keeps its whole label (the title gives way first). */
-    .banner .tt { container: ev-tt / inline-size; }
+    /* The title line: the title, then the status pill when the whole title and the pill's whole label fit there
+       (measured, see _fitPill); otherwise the pill goes under the subtitle (its copy on the level's line), the subtitle
+       on one line; when that does not fit above the drive, or on a card of 200 px or less, only its dot stays. */
     .bh { flex: 1 1 auto; }
     .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .trow > :first-child { flex: 0 1 auto; min-width: 4ch; }
-    .trow > .chip { flex: none; max-width: 51%; }
+    .trow > :first-child { flex: 0 1 auto; min-width: 0; }
+    .trow > .chip { flex: none; }
+    .tt.below .trow > .chip { display: none; }
+    .tt.below .pl { display: flex; }
+    .tt.below .bs { margin-top: 3px; }
+    .pl .chip { max-width: 100%; }
+    .tt.dot-only .chip { padding: 4px; } .tt.dot-only .chip .ct { display: none; }
     .bs { display: flex; align-items: center; gap: 8px; margin-top: 4px; min-width: 0; }
     .pl { display: none; flex: none; max-width: 100%; }
     /* On that line the pill keeps its label; the car's level goes to the next line when both do not fit. */
@@ -761,13 +817,6 @@ class EvChargerCard extends RcCard {
     .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c); flex: none; }
     .chip .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
-    /* A narrow text: the pill goes under the subtitle, on the level's line. */
-    @container ev-tt (max-width: 190px) {
-      .trow > .chip { display: none; }
-      .pl { display: flex; }
-      .bs { margin-top: 3px; }
-      .pl .chip { max-width: 100%; }
-    }
     .soc { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 12px; }
     .soc b { white-space: nowrap; }
     .soc .bar { flex: 0 1 56px; min-width: 24px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
@@ -786,17 +835,11 @@ class EvChargerCard extends RcCard {
     :host([hide-title]) .banner .tt { visibility: visible; }
     :host([hide-title]) .banner .title, :host([hide-title]) .banner .subt { display: none; }
     @container (max-width: 320px) { .banner { --sw: 46%; } }
-    /* A card this narrow: the pill under the subtitle; very narrow, only its dot, on the title line. */
+    /* A card of 200 px or less: only the pill's dot (where it goes is measured all the same). */
     ha-card { container: ev-card / inline-size; }
-    @container ev-card (max-width: 260px) {
-      .trow > .chip { display: none; }
-      .pl { display: flex; }
-      .bs { margin-top: 3px; }
-      .pl .chip { max-width: 100%; }
-    }
     @container ev-card (max-width: 200px) {
-      .trow > .chip { display: inline-flex; padding: 4px; }
-      .chip .ct, .pl { display: none; }
+      .chip { padding: 4px; }
+      .chip .ct { display: none; }
     }
     @keyframes ev-ring { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
     .ring { animation: ev-ring 1.8s ease-in-out infinite; }
@@ -931,7 +974,7 @@ class EvChargerMiniCard extends rcMini(
     const lead = this._titleRow(
       big ? `<b class="big">${rcEsc(big)}</b>` : `<b class="big word">${rcEsc(named ? m.name : state)}</b>`,
       this._chip(state, m.raw),
-      line ? `<div class="subt">${rcEsc(line)}</div>` : "",
+      line ? `<div class="subt" title="${rcEsc(line)}">${rcEsc(line)}</div>` : "",
     );
     this.shadowRoot.innerHTML = `
       <style>${RC_BASE_STYLES}${this.constructor.styles}</style>
@@ -939,6 +982,7 @@ class EvChargerMiniCard extends rcMini(
     const root = this.shadowRoot;
     if (c.navigation_path) rcBindNav(root.querySelector(".head"), c.navigation_path);
     root.querySelector(".sc")?.addEventListener("click", () => rcMoreInfo(this, m.ids.status || m.ids.power || m.ids.limit));
+    this._fitPill();
   }
 
   _drawMini(m) {

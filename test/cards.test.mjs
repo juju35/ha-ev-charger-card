@@ -346,7 +346,7 @@ test("full card: the illustrated header, or the classic one without the illustra
   const card = make("ev-charger-card", { device: "charger", battery: "sensor.car_battery" }).shadowRoot.innerHTML;
   assert.match(card, /class="banner/);
   assert.match(card, /class="trow"><div class="title">[^<]*<\/div><span class="chip"[^>]*><span class="dot"><\/span><span class="ct">Charging</);
-  assert.match(card, /class="subt">7.2 kW · /);
+  assert.match(card, /class="subt" title="[^"]*">7.2 kW · /);
   assert.match(card, /<b>68 %<\/b>/);
   const plain = make("ev-charger-card", { device: "charger", show_scene: false }).shadowRoot.innerHTML;
   assert.doesNotMatch(plain, /class="banner/);
