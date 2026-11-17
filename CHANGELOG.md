@@ -6,6 +6,8 @@
 - **Illustrated header, harmonised with the other cards**: 90 px high on the full card and the mini card, title and readings on the sky at the left, the scene at the right and a **concrete strip** edge to edge at the bottom (day and night variants).
 - **House wall instead of the garage**: the wallbox (bigger, as the car) is mounted against a rendered façade with its plinth and wall lamp (lit at night), its left edge fading softly into the sky; the sun, or the moon and stars, over a low hill.
 - **The header's icon is a car in the state's colour**: blue charging, amber plugged in, green charged, grey no car or offline, red error — by day and by night.
+- **Status pill after the title on every card**: a dot and the state in the icon's colour, right after the title (the mini card's level in large, or the charger's name), the charging power moved to the subtitle; it takes the level's line under the subtitle when the text is narrow, and only its dot stays below 200 px. The mini card without the illustration shows it too.
+- **Detail button in the corner**: the mini card's expand / collapse button is the 24 px round glass button at the top right of the header (it was 28 px), and in the top right corner without the illustration.
 
 ## 1.1.0 - 2026-11-16
 

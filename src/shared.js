@@ -3926,9 +3926,11 @@ const RC_BASE_STYLES = `
 // Mini cards: layout, chips and zoom button. A chip is plain (icon and text) until it needs a look: then a tinted pill.
 // The zoom / detail button of the mini cards and the overviews.
 const RC_ZOOM_STYLES = `
-  /* 40 px to tap, laid out as the 24 px it looks (the negative margins). */
-  .zoom { all: unset; flex: none; cursor: pointer; width: 40px; height: 40px; margin: -12px -12px -12px -8px; border-radius: 50%;
-          display: grid; place-items: center; color: var(--secondary-text-color); }
+  /* A 24 px round button in the card's top right corner, out of the title line. */
+  ha-card { position: relative; }
+  .head:has(> .zoom) { padding-right: 22px; }
+  .zoom { all: unset; position: absolute; z-index: 2; top: 5px; right: 5px; cursor: pointer; width: 24px; height: 24px; border-radius: 50%;
+          display: grid; place-items: center; color: var(--secondary-text-color); box-shadow: inset 0 0 0 1px var(--divider-color, rgba(127,127,127,.3)); }
   .zoom ha-icon { --mdc-icon-size: 16px; }
   .zoom:hover { background: color-mix(in srgb, var(--rc-idle) 16%, transparent); color: var(--primary-text-color); }
   .zoom:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 1px; }
@@ -4005,8 +4007,13 @@ const RC_MINI_STYLES = `${RC_ZOOM_STYLES}
   .body { flex: 1; min-width: 0; min-height: 40px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
   .mini .head { gap: 8px; }
   .mini .title { line-height: 1.25; }
-  .st { flex: 0 1 auto; min-width: 0; position: relative; display: inline-flex; align-items: center;
-        margin-left: auto; font-size: 11px; font-weight: 500; color: var(--c); }
+  /* The status pill right after the title (the title gives way first, down to a few letters). */
+  .mini .head > .title { flex: 0 1 auto; min-width: 4ch; }
+  .st { flex: none; max-width: 51%; box-sizing: border-box; overflow: hidden; position: relative; display: inline-flex; align-items: center; gap: 4px;
+        padding: 1px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; line-height: 16px;
+        color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); background: color-mix(in srgb, var(--c) 15%, transparent); }
+  .st:not(.action)::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); flex: none; }
+  .st:empty, .st:has(.pt:empty) { display: none; }
   .rs { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-left: -4px; }
   .rs:empty { display: none; }
   /* A chip never runs past the card: a long name ends with an ellipsis. */

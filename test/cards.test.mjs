@@ -321,7 +321,9 @@ test("mini card: the illustrated banner — the ring, the level in large, the st
   assert.match(html, /class="lvl-charging mb"/);
   assert.match(html, /<svg class="scene"/);
   assert.match(html, /class="ringb"/);
-  assert.match(html, /<b>68 %<\/b><span class="chip"[^>]*>Charging<\/span>/);
+  // The level in large as the title, the state as the pill right after it (its copy under the subtitle when narrow).
+  assert.match(html, /class="trow"><b class="big">68 %<\/b><span class="chip"[^>]*><span class="dot"><\/span><span class="ct">Charging<\/span>/);
+  assert.match(html, /class="pl"><span class="chip"/);
   assert.match(html, /7.2 kW · 1 h 42/);
   assert.equal(mini._config.zoom, true);
   assert.equal(mini.getCardSize(), 2);
@@ -332,6 +334,7 @@ test("mini card without the illustration: the readings as pills, a ring badge", 
   const html = mini.shadowRoot.innerHTML;
   assert.doesNotMatch(html, /<svg class="scene"/);
   assert.match(html, /class="r pill/);
+  assert.match(html, /class="st"[^>]*><span class="pt">Charging</, "the state as the status pill after the title");
   assert.match(html, /7.2 kW/);
   assert.match(html, /68 %/);
   assert.equal(mini.getCardSize(), 1);
@@ -340,7 +343,8 @@ test("mini card without the illustration: the readings as pills, a ring badge", 
 test("full card: the illustrated header, or the classic one without the illustration", () => {
   const card = make("ev-charger-card", { device: "charger", battery: "sensor.car_battery" }).shadowRoot.innerHTML;
   assert.match(card, /class="banner/);
-  assert.match(card, /class="chip"[^>]*>Charging · 7.2 kW</);
+  assert.match(card, /class="trow"><div class="title">[^<]*<\/div><span class="chip"[^>]*><span class="dot"><\/span><span class="ct">Charging</);
+  assert.match(card, /class="subt">7.2 kW · /);
   assert.match(card, /<b>68 %<\/b>/);
   const plain = make("ev-charger-card", { device: "charger", show_scene: false }).shadowRoot.innerHTML;
   assert.doesNotMatch(plain, /class="banner/);
