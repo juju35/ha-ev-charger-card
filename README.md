@@ -113,7 +113,7 @@ device: 3f2a…            # the charger's device ID (the visual editor offers a
 battery: sensor.car_battery_level
 vehicle: suv             # sedan (default), hatch, estate, crossover, coupe_suv, small_suv, suv, city, van
 color: blue              # the paint; none: the theme's
-illustration_theme: auto # auto (sun.sun), day or night
+illustration_theme: auto # auto (sun.sun or dark theme), day or night
 show_background: true    # false: the wallbox and the car without the backdrop
 
 # Two lines on a phone dashboard
@@ -139,7 +139,7 @@ entities:
 | `battery` | string | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
 | `vehicle` | string | `sedan` | The car of the illustration: `sedan` (saloon), `hatch` (five-door hatchback), `estate`, `crossover` (fastback crossover), `coupe_suv`, `small_suv`, `suv`, `city` (city car) or `van` (MPV / van) |
 | `color` | string | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
-| `illustration_theme` | string | `auto` | The illustration's sky: `auto` (night while `sun.sun` is below the horizon; without `sun.sun`, Home Assistant's dark theme), `day` or `night` |
+| `illustration_theme` | string | `auto` | The illustration's sky: `auto` (night while `sun.sun` is below the horizon or Home Assistant's theme is dark), `day` or `night` |
 | `show_scene` | boolean | `true` | The illustrated header (`false`: a classic header, and the mini card on two lines) |
 | `show_background` | boolean | `true` | The illustration's backdrop (sky, house wall, concrete drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
 | `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
@@ -161,7 +161,7 @@ entities:
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle.png" alt="No car" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error.png" alt="Error" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact.png" alt="Without the illustration" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle-dark.png" alt="No car, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error-dark.png" alt="Error, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact-dark.png" alt="Without the illustration, dark" width="400"> |
 
-**Day and night**: the illustration has the backdrop of the flight and train boards — a sky with the sun by day, the stars and the moon by night (the wall lamp lit), a low hill, the house wall and the concrete drive. `illustration_theme: auto` follows `sun.sun`, or force `day` / `night`.
+**Day and night**: the illustration has the backdrop of the flight and train boards — a sky with the sun by day, the stars and the moon by night (the wall lamp lit), a low hill, the house wall and the concrete drive. `illustration_theme: auto` shows the night after sunset or with the dark theme, or force `day` / `night`.
 
 | Day (`illustration_theme: day`) | Night (`illustration_theme: night`) |
 |---|---|

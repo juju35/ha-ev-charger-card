@@ -270,7 +270,7 @@ test("options: each car and paint draws its own illustration, an unknown one the
   assert.equal(scene({ color: "pink" }), scene({}), "unknown paint: the theme's");
 });
 
-test("illustration theme: forced, else the sun, else the dark theme", () => {
+test("illustration theme: forced, else the sun below the horizon or the dark theme", () => {
   const sky = (config, hass) => {
     const html = make("ev-charger-card", { device: "charger", ...config }, hass).shadowRoot.innerHTML;
     return /class="banner night"/.test(html) && /#3a3530/.test(html.slice(html.indexOf('<svg class="scene"'))) ? "night" : "day";
@@ -284,7 +284,9 @@ test("illustration theme: forced, else the sun, else the dark theme", () => {
   assert.equal(sky({ illustration_theme: "night" }, sun("above_horizon")), "night");
   assert.equal(sky({ illustration_theme: "day" }, sun("below_horizon", true)), "day");
   assert.equal(sky({}, sun("below_horizon")), "night", "the sun has set");
-  assert.equal(sky({}, sun("above_horizon", true)), "day", "the sun first, the dark theme after");
+  assert.equal(sky({}, sun("above_horizon", true)), "night", "dark theme while the sun is up: night");
+  assert.equal(sky({}, sun("above_horizon")), "day", "light theme while the sun is up: day");
+  assert.equal(sky({ illustration_theme: "day" }, sun("above_horizon", true)), "day");
   const noSun = makeHass();
   delete noSun.states["sun.sun"];
   noSun.themes = { darkMode: true };

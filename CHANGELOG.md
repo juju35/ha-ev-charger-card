@@ -8,6 +8,7 @@
 - **The header's icon is a car in the state's colour**: blue charging, amber plugged in, green charged, grey no car or offline, red error — by day and by night.
 - **Status pill after the title on every card**: a dot and the state in the icon's colour, right after the title (the mini card's level in large, or the charger's name), the charging power moved to the subtitle; it takes the level's line under the subtitle when the text is narrow, and only its dot stays below 200 px. The mini card without the illustration shows it too.
 - **Detail button in the corner**: the mini card's expand / collapse button is the 24 px round glass button at the top right of the header (it was 28 px), and in the top right corner without the illustration.
+- Night picture with the dark theme even while the sun is up
 
 ## 1.1.0 - 2026-11-16
 

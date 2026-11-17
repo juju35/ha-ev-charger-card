@@ -483,14 +483,12 @@ class EvChargerCard extends RcCard {
     return !!this._hass.themes?.darkMode;
   }
 
-  // Night backdrop: forced by illustration_theme, else the sun below the horizon, else Home Assistant's dark mode.
+  // Night backdrop: forced by illustration_theme, else the sun below the horizon or Home Assistant's dark theme.
   _night() {
     const theme = this._config.illustration_theme;
     if (theme === "night") return true;
     if (theme === "day") return false;
-    const sun = this._hass.states["sun.sun"]?.state;
-    if (sun === "below_horizon" || sun === "above_horizon") return sun === "below_horizon";
-    return this._dark();
+    return this._hass.states["sun.sun"]?.state === "below_horizon" || this._dark();
   }
 
   // The pill of the illustration and of the header: the car's level when known, else the charging power.
