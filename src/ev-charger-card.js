@@ -579,31 +579,35 @@ class EvChargerCard extends RcCard {
     return text ? `<div class="subt" title="${rcEsc(text)}">${rcEsc(text)}</div>` : "";
   }
 
-  // The status pill, measured after each render and on a new width (in every language): it sits on the title's row,
-  // right after the title, only when the whole title and the pill's whole label fit there; otherwise it takes the line
-  // under the subtitle (.below), the title whole on its row (cut only when it does not fit alone). When the lines do
-  // not fit in the banner above the drive, or the label does not fit its line, the pill shows its dot alone
-  // (.dot-only): beside the title when the whole title leaves it room, else under the subtitle.
+  // The status pill, measured after each render and on a new width (in every language), on the banner, the classic
+  // header and the classic mini card: it sits on the title's row, right after the title, only when the whole title and
+  // the pill's whole label fit there; otherwise it takes the line under the subtitle (.below), the title whole on its
+  // row (cut only when it does not fit alone). When the lines do not fit in the banner above the drive, or the label
+  // does not fit its line, the pill shows its dot alone (.dot-only): beside the title when the whole title leaves it
+  // room, else under the subtitle.
   _fitPill() {
-    for (const t of this.shadowRoot?.querySelectorAll?.(".banner .tt") || []) {
-      const row = t.querySelector(".trow");
-      const pill = row?.querySelector(":scope > .chip");
+    for (const t of this.shadowRoot?.querySelectorAll?.(".tt, .mini .body") || []) {
+      const mini = t.matches(".body");
+      const row = mini ? t.querySelector(".head") : t.querySelector(".trow");
+      const pill = row?.querySelector(":scope > .chip, :scope > .st");
       if (!pill?.getBoundingClientRect) continue;
       t.classList.remove("below", "dot-only");
-      const name = row.firstElementChild;
+      const name = row.querySelector(".title, .big") || row.firstElementChild;
       const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
-      const room = row.getBoundingClientRect().width;
+      const outer = (c) => c.getBoundingClientRect().width + (parseFloat(getComputedStyle(c).marginLeft) || 0) + (parseFloat(getComputedStyle(c).marginRight) || 0);
+      const others = [...row.children].filter((c) => c !== name && c !== pill && c.getClientRects().length);
+      const room = row.getBoundingClientRect().width - others.reduce((w, c) => w + outer(c) + gap, 0);
       const title = evTextWidth(name) + gap;
       if (title + pill.getBoundingClientRect().width <= room) continue;
       t.classList.add("below");
-      const line = t.querySelector(".pl > .chip");
+      const line = mini ? pill : t.querySelector(".pl > .chip");
       const banner = t.closest(".banner");
-      const ground = banner.querySelector(".ground");
-      const floor = ground ? ground.getBoundingClientRect().top : banner.getBoundingClientRect().bottom - 10;
+      const ground = banner?.querySelector(".ground");
+      const floor = banner ? (ground ? ground.getBoundingClientRect().top : banner.getBoundingClientRect().bottom - 10) : Infinity;
       const box = t.getBoundingClientRect();
-      const tx = line?.querySelector(".ct");
+      const tx = line?.querySelector(".ct, .pt");
       const whole = !tx || (tx.scrollWidth <= tx.clientWidth + 0.5 && line.getBoundingClientRect().right <= box.right + 0.5);
-      if (whole && box.bottom <= floor + 0.5 && box.top >= banner.getBoundingClientRect().top - 0.5) continue;
+      if (whole && box.bottom <= floor + 0.5 && (!banner || box.top >= banner.getBoundingClientRect().top - 0.5)) continue;
       t.classList.add("dot-only");
       if (title + (line || pill).getBoundingClientRect().width <= room) t.classList.remove("below");
     }
@@ -678,8 +682,11 @@ class EvChargerCard extends RcCard {
       : `
       <div class="head${c.navigation_path ? " nav" : ""}"${c.navigation_path ? ' role="link" tabindex="0"' : ""}>
         <div class="badge">${icon}</div>
-        <div class="tt"><div class="title">${rcEsc(m.name)}</div>${m.sub ? `<div class="subt">${rcEsc(m.sub)}</div>` : ""}</div>
-        ${m.none ? "" : `<span class="pill" title="${rcEsc(m.raw || status)}"><span class="pt">${rcEsc(status)}</span></span>`}
+        <div class="tt">${
+          m.none
+            ? `<div class="title">${rcEsc(m.name)}</div>`
+            : this._titleRow(`<div class="title">${rcEsc(m.name)}</div>`, this._chip(status, m.raw || status), this._subLine([m.sub]))
+        }</div>
       </div>`;
     // No charger: say so, rather than draw one with no car.
     if (m.none) {
@@ -830,6 +837,8 @@ class EvChargerCard extends RcCard {
     .banner.bare { color: var(--primary-text-color); background: none; }
     .banner.bare .subt { color: var(--secondary-text-color); }
     .banner.bare .badge { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: none; }
+    /* The classic header (show_scene: false): the pill in the theme's colours. */
+    .head:not(.bh) .chip { background: color-mix(in srgb, var(--c) 16%, transparent); color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); }
     .banner.bare .chip { background: color-mix(in srgb, var(--c) 16%, transparent); color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); }
     .banner.bare .zoom { color: var(--secondary-text-color); background: none; box-shadow: inset 0 0 0 1px var(--divider-color, rgba(127,127,127,.3)); }
     :host([hide-title]) .banner .tt { visibility: visible; }
@@ -929,6 +938,15 @@ class EvChargerMiniCard extends rcMini(
   "ev-charger-mini-card",
   `
     .mini > .badge { background: none; }
+    /* The classic mini card: the status pill after the whole title (measured, see _fitPill), else under it, else its dot. */
+    .mini .body.below .head { flex-wrap: wrap; row-gap: 4px; }
+    .mini .body.below .head::after { content: none; }
+    .mini .body.below .head > .title { flex: 1 1 calc(100% - 32px); }
+    .mini .body.below .head:not(:has(> .zoom)) > .title { flex-basis: 100%; }
+    .mini .body.below .head > .st { order: 3; margin-left: 0; }
+    .mini .body.dot-only .head > .st { flex: none; padding: 0; width: 18px; height: 18px; justify-content: center; background: none; }
+    .mini .body.dot-only .head > .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+    .mini .body.dot-only .head > .st .pt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     .ringb { width: 40px; height: 40px; }
     ha-card.mb { padding: 0; }
     .mb > .banner { height: 90px; margin: 0; }

@@ -350,7 +350,8 @@ test("full card: the illustrated header, or the classic one without the illustra
   assert.match(card, /<b>68 %<\/b>/);
   const plain = make("ev-charger-card", { device: "charger", show_scene: false }).shadowRoot.innerHTML;
   assert.doesNotMatch(plain, /class="banner/);
-  assert.match(plain, /class="pill"/);
+  // The classic header: the status pill right after the title too (where it goes is measured in the browser).
+  assert.match(plain, /class="trow"><div class="title">[^<]*<\/div><span class="chip"[^>]*><span class="dot"><\/span><span class="ct">Charging[^<]*</);
 });
 
 test("editors: defaults stay out of the YAML, every field has a label", () => {

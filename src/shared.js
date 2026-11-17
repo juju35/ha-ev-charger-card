@@ -3485,6 +3485,8 @@ const rcMini = (Base, tag, styles, { alertsOnly = false } = {}) =>
         this._config = config;
       }
       this._addZoom();
+      // The header is complete (detail button included): the card's status pill, if it places one, is fitted now.
+      this._fitPill?.();
     }
 
     _paintMini({ level, icon, status, chips, cls = "", allOff = false }) {

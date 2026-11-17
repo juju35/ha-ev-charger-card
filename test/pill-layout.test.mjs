@@ -1,4 +1,4 @@
-// Browser test (Chromium through Playwright) of the illustrated header's status pill, on the full card and the mini
+// Browser test (Chromium through Playwright) of the status pill of the illustrated and the classic header, on the full card and the mini
 // card (compact and zoomed), light and dark, in en, fr, de, hu, el and ru, from 245 to 500 px: the pill sits on the
 // title's row only beside the whole title (no ellipsis); otherwise on a line of its own under the subtitle. Its label
 // is whole, or its dot alone (always at 190 px). Nothing runs into the ground strip or out of the banner.
@@ -34,7 +34,7 @@ test("the banner's status pill: beside the whole title or under the subtitle, wh
   for (const [type, zoom] of [["ev-charger-card", false], ["ev-charger-mini-card", false], ["ev-charger-mini-card", true]])
     for (const language of ["en", "fr", "de", "hu", "el", "ru"])
       for (const dark of [false, true])
-        for (const variant of ["charging", "waiting", "error", "bare"]) for (const width of [190, 245, 300, 400, 460, 500]) cases.push({ type, zoom, language, dark, variant, width });
+        for (const variant of ["charging", "waiting", "error", "bare", "classic"]) for (const width of [190, 245, 300, 400, 460, 500]) cases.push({ type, zoom, language, dark, variant, width });
   const results = await page.evaluate(
     async ({ cases, data }) => {
       const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -53,21 +53,24 @@ test("the banner's status pill: beside the whole title or under the subtitle, wh
           el.shadowRoot.querySelector(".zoom").dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, detail: 1 }));
           await frame();
         }
-        for (const t of el.shadowRoot.querySelectorAll(".banner .tt")) {
-          const banner = t.closest(".banner").getBoundingClientRect();
-          const ground = t.closest(".banner").querySelector(".ground");
-          const floor = ground ? ground.getBoundingClientRect().top : banner.bottom - 10;
-          const pill = [...t.querySelectorAll(".chip")].find((p) => p.getClientRects().length);
-          const tx = pill?.querySelector(".ct");
-          const nameEl = t.querySelector(".trow > :first-child");
+        // The banner's text, or the classic header's (show_scene: false): the full card's and the mini card's.
+        for (const t of el.shadowRoot.querySelectorAll(".tt, .mini .body")) {
+          const inBanner = t.closest(".banner");
+          const banner = (inBanner || t.closest("ha-card")).getBoundingClientRect();
+          const ground = inBanner?.querySelector(".ground");
+          const floor = inBanner ? (ground ? ground.getBoundingClientRect().top : banner.bottom - 10) : Infinity;
+          const pill = [...t.querySelectorAll(".chip, .head > .st")].find((p) => p.getClientRects().length);
+          const tx = pill?.querySelector(".ct, .pt");
+          const nameEl = t.querySelector(".trow > :first-child, .head > .title");
           const name = nameEl.getBoundingClientRect();
           const p = pill?.getBoundingClientRect();
-          const parts = [...t.querySelectorAll(":scope > *, .trow > *")].map((e) => e.getBoundingClientRect()).filter((r) => r.width);
+          const parts = [...t.querySelectorAll(":scope > *, .trow > *, .head > .title, .head > .st")].map((e) => e.getBoundingClientRect()).filter((r) => r.width);
           const tb = t.getBoundingClientRect();
           out.push({
             ...c,
             label: pill?.getAttribute("title") || pill?.textContent,
-            dot: tx ? getComputedStyle(tx).display === "none" : null,
+            // Its dot alone: the label hidden, or kept for screen readers only (clipped to 1 px).
+            dot: tx ? getComputedStyle(tx).display === "none" || tx.getBoundingClientRect().width <= 1 : null,
             cut: tx ? tx.scrollWidth - tx.clientWidth : null,
             beside: p ? p.top < name.bottom - 2 : false,
             titleCut: nameEl.scrollWidth - nameEl.clientWidth,
@@ -82,8 +85,9 @@ test("the banner's status pill: beside the whole title or under the subtitle, wh
       }
       return out;
     },
-    { cases, data: Object.fromEntries(["charging", "waiting", "error", "bare"].map((v) => {
-      const s = setup({ scene: v === "bare" ? "charging" : v, theme: "light", config: { animations: false, ...(v === "bare" ? { show_background: false } : {}) } });
+    { cases, data: Object.fromEntries(["charging", "waiting", "error", "bare", "classic"].map((v) => {
+      const extra = { bare: { show_background: false }, classic: { show_scene: false } }[v] || {};
+      const s = setup({ scene: ["bare", "classic"].includes(v) ? "charging" : v, theme: "light", config: { animations: false, ...extra } });
       return [v, { hass: s.hass, config: s.config }];
     })) },
   );
