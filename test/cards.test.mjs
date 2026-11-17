@@ -270,10 +270,10 @@ test("options: each car and paint draws its own illustration, an unknown one the
   assert.equal(scene({ color: "pink" }), scene({}), "unknown paint: the theme's");
 });
 
-test("illustration theme: forced, else the sun, else the dark theme", () => {
+test("illustration theme: forced, else the sun below the horizon or the dark theme", () => {
   const sky = (config, hass) => {
     const html = make("ev-charger-card", { device: "charger", ...config }, hass).shadowRoot.innerHTML;
-    return /class="banner night"/.test(html) && /#0f1a34/.test(html.slice(html.indexOf('<svg class="scene"'))) ? "night" : "day";
+    return /class="banner night"/.test(html) && /#3a3530/.test(html.slice(html.indexOf('<svg class="scene"'))) ? "night" : "day";
   };
   const sun = (state, dark = false) => {
     const h = makeHass();
@@ -284,18 +284,33 @@ test("illustration theme: forced, else the sun, else the dark theme", () => {
   assert.equal(sky({ illustration_theme: "night" }, sun("above_horizon")), "night");
   assert.equal(sky({ illustration_theme: "day" }, sun("below_horizon", true)), "day");
   assert.equal(sky({}, sun("below_horizon")), "night", "the sun has set");
-  assert.equal(sky({}, sun("above_horizon", true)), "day", "the sun first, the dark theme after");
+  assert.equal(sky({}, sun("above_horizon", true)), "night", "dark theme while the sun is up: night");
+  assert.equal(sky({}, sun("above_horizon")), "day", "light theme while the sun is up: day");
+  assert.equal(sky({ illustration_theme: "day" }, sun("above_horizon", true)), "day");
   const noSun = makeHass();
   delete noSun.states["sun.sun"];
   noSun.themes = { darkMode: true };
   assert.equal(sky({}, noSun), "night", "no sun: the dark theme");
 });
 
+test("banner: the house wall, the concrete strip, a car icon in the state's colour, unique ids", () => {
+  const card = make("ev-charger-card", { device: "charger" });
+  const html = card.shadowRoot.innerHTML;
+  assert.match(html, /class="ground"/, "the concrete strip");
+  assert.match(html, /#efe3cf/, "the house wall");
+  assert.match(html, /<ha-icon icon="mdi:car">/, "the car icon");
+  assert.match(html, /\.banner \{[^}]*height: 90px/, "90 px high");
+  const other = make("ev-charger-card", { device: "charger" }).shadowRoot.innerHTML;
+  const ids = (h) => [...h.matchAll(/id="(wm[^"]+)"/g)].map((m) => m[1]);
+  assert.ok(ids(html).length && ids(html)[0] !== ids(other)[0], "each card its own ids");
+});
+
 test("show_background: false keeps the wallbox and the car, not the backdrop", () => {
   const html = make("ev-charger-card", { device: "charger", show_background: false }).shadowRoot.innerHTML;
   const svg = html.slice(html.indexOf('<svg class="scene"'));
   assert.match(html, /class="banner bare"/);
-  assert.doesNotMatch(svg, /#a4cf96|#1d3045/, "no hills");
+  assert.doesNotMatch(svg, /#a7d39f|#1d3a4a|#efe3cf/, "no hill, no house wall");
+  assert.doesNotMatch(html, /class="ground"/, "no concrete strip");
   assert.match(svg, /animateMotion|<circle/, "the wallbox and its cable");
   assert.match(svg, /id="bdv/, "the car");
   const mini = make("ev-charger-mini-card", { device: "charger", show_background: false }).shadowRoot.innerHTML;
@@ -308,7 +323,9 @@ test("mini card: the illustrated banner — the ring, the level in large, the st
   assert.match(html, /class="lvl-charging mb"/);
   assert.match(html, /<svg class="scene"/);
   assert.match(html, /class="ringb"/);
-  assert.match(html, /<b>68 %<\/b><span class="chip"[^>]*>Charging<\/span>/);
+  // The level in large as the title, the state as the pill right after it (its copy under the subtitle when narrow).
+  assert.match(html, /class="trow"><b class="big">68 %<\/b><span class="chip"[^>]*><span class="dot"><\/span><span class="ct">Charging<\/span>/);
+  assert.match(html, /class="pl"><span class="chip"/);
   assert.match(html, /7.2 kW · 1 h 42/);
   assert.equal(mini._config.zoom, true);
   assert.equal(mini.getCardSize(), 2);
@@ -319,6 +336,7 @@ test("mini card without the illustration: the readings as pills, a ring badge", 
   const html = mini.shadowRoot.innerHTML;
   assert.doesNotMatch(html, /<svg class="scene"/);
   assert.match(html, /class="r pill/);
+  assert.match(html, /class="st"[^>]*><span class="pt">Charging</, "the state as the status pill after the title");
   assert.match(html, /7.2 kW/);
   assert.match(html, /68 %/);
   assert.equal(mini.getCardSize(), 1);
@@ -327,11 +345,13 @@ test("mini card without the illustration: the readings as pills, a ring badge", 
 test("full card: the illustrated header, or the classic one without the illustration", () => {
   const card = make("ev-charger-card", { device: "charger", battery: "sensor.car_battery" }).shadowRoot.innerHTML;
   assert.match(card, /class="banner/);
-  assert.match(card, /class="chip"[^>]*>Charging · 7.2 kW</);
+  assert.match(card, /class="trow"><div class="title">[^<]*<\/div><span class="chip"[^>]*><span class="dot"><\/span><span class="ct">Charging</);
+  assert.match(card, /class="subt" title="[^"]*">7.2 kW · /);
   assert.match(card, /<b>68 %<\/b>/);
   const plain = make("ev-charger-card", { device: "charger", show_scene: false }).shadowRoot.innerHTML;
   assert.doesNotMatch(plain, /class="banner/);
-  assert.match(plain, /class="pill"/);
+  // The classic header: the status pill right after the title too (where it goes is measured in the browser).
+  assert.match(plain, /class="trow"><div class="title">[^<]*<\/div><span class="chip"[^>]*><span class="dot"><\/span><span class="ct">Charging[^<]*</);
 });
 
 test("editors: defaults stay out of the YAML, every field has a label", () => {

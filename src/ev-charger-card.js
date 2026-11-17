@@ -287,34 +287,36 @@ const evCar = (v, { uid, dark, acc, color }) => {
     ${axles.map((x) => `<ellipse cx="${x}" cy="158.6" rx="${evN(ar - 1)}" ry="2.2" fill="#000" opacity="${dark ? 0.65 : 0.4}"/>`).join("")}
     ${car}`;
 };
-// The backdrop, in the colours of the flight and train boards: the sky (sun and clouds by day, stars and the moon
-// by night), two hills, the garage the wallbox hangs on (its window lit at night) and the paved drive.
-const EV_STARS = [[150, 12], [178, 40], [206, 8], [232, 30], [282, 10], [300, 72], [330, 14], [348, 62], [374, 6], [396, 34], [420, 18], [160, 76]];
-const evDecor = (uid, night) => {
+// The backdrop, in the 200 × 80 frame of the header (the flight and train boards' sky behind it): the sun or the moon
+// and stars, a low hill, and the rendered façade of the house the wallbox hangs on — its plinth and its wall lamp (lit
+// at night), its left edge fading softly into the sky under the text. The concrete strip under it is the banner's.
+const EV_STARS = [[96, 8], [130, 14], [170, 6], [186, 22], [150, 4]];
+const evWall = (uid, night) => {
   const n = (dayC, nightC) => (night ? nightC : dayC);
-  const cloud = (x, y, k) => `<path transform="translate(${x} ${y}) scale(${k})" d="M0 6a4 4 0 0 1 6-3.4 5 5 0 0 1 9.4 1.4 3 3 0 0 1 .6 6H2a3 3 0 0 1-2-4Z" fill="#fff" opacity=".9"/>`;
   const sky = night
-    ? `${EV_STARS.map(([x, y], i) => `<circle class="${i % 3 ? "" : "tw"}" cx="${x}" cy="${y}" r="${i % 3 ? 0.7 : 1.1}" fill="#fff" opacity="${i % 2 ? 0.6 : 0.95}"/>`).join("")}<path transform="translate(250 14) scale(1.6)" d="M0 0a6.4 6.4 0 1 0 5.6 9.6 5.2 5.2 0 1 1-5.6-9.6Z" fill="#f4f1dc"/>`
-    : `<circle cx="262" cy="30" r="10" fill="#ffd65a"/>${cloud(200, 18, 1.4)}${cloud(150, 50, 1.1)}`;
-  const pavers = Array.from({ length: 22 }, (_, i) => `<rect x="${i * 20 + 4}" y="170" width="14" height="1.6" rx=".5"/>`).join("");
+    ? `<g fill="#fff">${EV_STARS.map(([x, y], i) => `<circle class="${i % 2 ? "" : "tw"}" cx="${x}" cy="${y}" r=".6" opacity=".8"/>`).join("")}</g><circle cx="112" cy="12" r="4.5" fill="#f3eed2"/>`
+    : '<circle cx="112" cy="12" r="6" fill="#ffd65a"/>';
+  const grain = Array.from({ length: 30 }, (_, i) => `<circle cx="${((i * 17) % 78) - 8}" cy="${((i * 29) % 66) + 3}" r=".7"/>`).join("");
   return `
-    <linearGradient id="sky${uid}" x1="0" x2="1"><stop stop-color="${n("#f3f9ff", "#2c4068")}"/><stop offset=".42" stop-color="${n("#e2f0fc", "#1b2b4e")}"/><stop offset="1" stop-color="${n("#c4e1f7", "#0f1a34")}"/></linearGradient>
-    <rect width="430" height="190" fill="url(#sky${uid})"/>
     ${sky}
-    <path d="M0 120C60 92 120 84 190 102C250 84 330 72 430 92V152H0Z" fill="${n("#c9e3bf", "#23395a")}"/>
-    <path d="M0 128C50 112 110 108 170 120C240 104 300 102 360 114C390 108 412 108 430 110V152H0Z" fill="${n("#a4cf96", "#1d3045")}"/>
-    <path d="M20 46 L84 20 L148 46Z" fill="${n("#c46b4e", "#6e3f36")}"/>
-    <rect x="26" y="44" width="116" height="108" fill="${n("#f1e6d3", "#8d8577")}"/>
-    <rect x="22" y="43" width="124" height="3" rx="1" fill="${n("#d8c8ad", "#6f685d")}"/>
-    <rect x="112" y="58" width="20" height="14" rx="1.5" fill="${n("#8fb9dc", "#ffc45e")}" stroke="${n("#d2c0a2", "#b4935a")}"${night ? ' style="filter:drop-shadow(0 0 3px #ffb347)"' : ""}/>
-    <rect y="152" width="430" height="38" fill="${n("#c3bcb1", "#2b3341")}"/>
-    <rect y="152" width="430" height="2" fill="${n("#ddd7cc", "#3a4352")}"/>
-    <g fill="${n("#b2aa9d", "#38404d")}">${pavers}</g>`;
+    <path d="M0 80C40 70 80 66 120 68L200 66V80Z" fill="${n("#a7d39f", "#1d3a4a")}"/>
+    <defs>
+      <linearGradient id="wf${uid}" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".22" stop-color="#fff"/></linearGradient>
+      <mask id="wm${uid}" maskUnits="userSpaceOnUse" x="-10" y="0" width="80" height="80"><rect x="0" y="0" width="70" height="80" fill="url(#wf${uid})"/></mask>
+    </defs>
+    <g mask="url(#wm${uid})">
+      <rect x="-10" y="0" width="80" height="80" fill="${n("#efe3cf", "#3a3530")}"/>
+      <g fill="${n("#e3d3b9", "#443e38")}">${grain}</g>
+      <rect x="-10" y="70" width="80" height="10" fill="${n("#b9ab96", "#2a2724")}"/>
+      <rect x="-10" y="69" width="80" height="1.4" fill="${n("#d4c6ae", "#4a443c")}"/>
+    </g>
+    <rect x="66" y="0" width="4" height="80" fill="${n("#dccab0", "#2e2a26")}"/>
+    <g transform="translate(56 22)"><rect x="-2" y="-3" width="4" height="6" rx="1" fill="${n("#5f6b7a", "#6b6258")}"/><circle r="1.4" fill="${n("#fff", "#ffd27a")}"/>${night ? '<circle r="10" fill="#ffd27a" opacity=".18"/>' : ""}</g>`;
 };
 
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
-// charging) and the car (`vehicle`, painted `color`) with its charging port, on the backdrop. Drawn at the right of
-// the card's header, its left fading into the sky under the text. No car when none is plugged in: the cable hangs.
+// charging) and the car (`vehicle`, painted `color`) with its charging port, on the house wall. Drawn at the right of
+// the card's header in a 200 × 80 frame (the card's 430 × 190 drawing cropped into it). No car when none is plugged in: the cable hangs.
 const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, vehicle, color }) => {
   const acc = EV_ACCENTS[state];
   const car = state !== "idle" && state !== "offline";
@@ -336,7 +338,9 @@ const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, veh
     : "";
   const carSvg = car ? evCar(EV_VEHICLES[vehicle] || EV_VEHICLES.sedan, { uid, dark, acc, color }) : "";
   return `
-  <svg class="scene" viewBox="0 0 430 190" role="img" aria-label="${rcEsc(label)}" preserveAspectRatio="xMaxYMax meet">
+  <svg class="scene" viewBox="0 0 200 80" role="img" aria-label="${rcEsc(label)}" preserveAspectRatio="xMaxYMax meet">
+    ${backdrop ? evWall(uid, night) : ""}
+    <svg x="0" y="2" width="200" height="78" viewBox="40 26 392 152" preserveAspectRatio="xMidYMax meet" overflow="visible">
     <defs>
       <linearGradient id="p${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${paint[0]}"/><stop offset=".55" stop-color="${paint[0]}"/><stop offset="1" stop-color="${paint[1]}"/></linearGradient>
       <radialGradient id="sh${uid}"><stop offset="0" stop-color="#000" stop-opacity="${dark ? 0.55 : 0.28}"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
@@ -344,7 +348,6 @@ const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, veh
       <filter id="bl${uid}" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="2.5"/></filter>
       <filter id="ds${uid}" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="${dark ? 0.4 : 0.12}"/></filter>
     </defs>
-    ${backdrop ? evDecor(uid, night) : `<rect x="150" y="152" width="280" height="1" fill="${dark ? "#fff" : "#000"}" opacity="${dark ? 0.1 : 0.08}"/>`}
     ${state === "idle" || state === "offline" ? "" : `<circle cx="78" cy="74" r="46" fill="url(#halo${uid})"/>`}
     <ellipse cx="78" cy="156" rx="30" ry="4" fill="url(#sh${uid})"/>
     <rect x="56" y="32" width="44" height="6" rx="3" fill="#000" opacity=".12"/>
@@ -359,7 +362,9 @@ const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, veh
     </g>
     <path id="c${uid}" d="${cable}" fill="none" stroke="${dark ? "#0f1216" : "#2f3540"}" stroke-width="6.5" stroke-linecap="round"/>
     <path d="${cable}" fill="none" stroke="#fff" stroke-opacity="${dark ? 0.08 : 0.22}" stroke-width="1.6" stroke-linecap="round" transform="translate(-1 -1.5)"/>
+    ${backdrop ? "" : `<rect x="150" y="158.5" width="280" height="1" fill="${dark ? "#fff" : "#000"}" opacity="${dark ? 0.1 : 0.08}"/>`}
     ${particles}${carSvg}
+    </svg>
   </svg>`;
 };
 
@@ -378,6 +383,17 @@ const EV_SVG = {
 };
 
 // ── Card ─────────────────────────────────────────────────────────────────────
+// The width of an element's whole text in its own font, in fractional pixels (scrollWidth is rounded).
+let evTextCtx;
+const evTextWidth = (el) => {
+  const cs = getComputedStyle(el);
+  evTextCtx ??= document.createElement("canvas").getContext?.("2d");
+  if (!evTextCtx) return el.scrollWidth;
+  evTextCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  return Math.max(el.scrollWidth, evTextCtx.measureText(el.textContent.trim()).width + pad);
+};
+
 class EvChargerCard extends RcCard {
   static tag = "ev-charger-card";
   static i18n = EV_I18N;
@@ -478,14 +494,12 @@ class EvChargerCard extends RcCard {
     return !!this._hass.themes?.darkMode;
   }
 
-  // Night backdrop: forced by illustration_theme, else the sun below the horizon, else Home Assistant's dark mode.
+  // Night backdrop: forced by illustration_theme, else the sun below the horizon or Home Assistant's dark theme.
   _night() {
     const theme = this._config.illustration_theme;
     if (theme === "night") return true;
     if (theme === "day") return false;
-    const sun = this._hass.states["sun.sun"]?.state;
-    if (sun === "below_horizon" || sun === "above_horizon") return sun === "below_horizon";
-    return this._dark();
+    return this._hass.states["sun.sun"]?.state === "below_horizon" || this._dark();
   }
 
   // The pill of the illustration and of the header: the car's level when known, else the charging power.
@@ -549,8 +563,67 @@ class EvChargerCard extends RcCard {
     }
   }
 
-  // The illustrated header, as on the flight and train boards: the scene at the right, its left fading into the sky;
-  // on the sky at the left the badge and `text`. The badge is the state's icon (full card) or the battery ring (mini).
+  // The illustrated header, as on the flight and train boards: 90 px high, the scene at the right (the wallbox on the
+  // house wall, the cable and the car), a concrete strip edge to edge at the bottom; on the sky at the left the badge
+  // and `text`. The badge is a car in the state's colour (full card) or the battery ring (mini).
+  // The status pill: the state's colour (the badge's) as a dot and a tint, its label.
+  _chip(status, raw) {
+    return `<span class="chip" title="${rcEsc(raw || status)}" aria-label="${rcEsc(status)}"><span class="dot"></span><span class="ct">${rcEsc(status)}</span></span>`;
+  }
+
+  // The banner's text: the title line (the title, then the status pill), the subtitle, then a line with the car's level.
+  // Where the pill goes is measured (_fitPill): beside the whole title, else on that last line (its copy there) under
+  // the subtitle, else only its dot (its text stays in its title and aria-label).
+  _subLine(parts) {
+    const text = parts.filter(Boolean).join(" · ");
+    return text ? `<div class="subt" title="${rcEsc(text)}">${rcEsc(text)}</div>` : "";
+  }
+
+  // The status pill, measured after each render and on a new width (in every language), on the banner, the classic
+  // header and the classic mini card: it sits on the title's row, right after the title, only when the whole title and
+  // the pill's whole label fit there; otherwise it takes the line under the subtitle (.below), the title whole on its
+  // row (cut only when it does not fit alone). When the lines do not fit in the banner above the drive, or the label
+  // does not fit its line, the pill shows its dot alone (.dot-only): beside the title when the whole title leaves it
+  // room, else under the subtitle.
+  _fitPill() {
+    for (const t of this.shadowRoot?.querySelectorAll?.(".tt, .mini .body") || []) {
+      const mini = t.matches(".body");
+      const row = mini ? t.querySelector(".head") : t.querySelector(".trow");
+      const pill = row?.querySelector(":scope > .chip, :scope > .st");
+      if (!pill?.getBoundingClientRect) continue;
+      t.classList.remove("below", "dot-only");
+      const name = row.querySelector(".title, .big") || row.firstElementChild;
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const outer = (c) => c.getBoundingClientRect().width + (parseFloat(getComputedStyle(c).marginLeft) || 0) + (parseFloat(getComputedStyle(c).marginRight) || 0);
+      const others = [...row.children].filter((c) => c !== name && c !== pill && c.getClientRects().length);
+      const room = row.getBoundingClientRect().width - others.reduce((w, c) => w + outer(c) + gap, 0);
+      const title = evTextWidth(name) + gap;
+      if (title + pill.getBoundingClientRect().width <= room) continue;
+      t.classList.add("below");
+      const line = mini ? pill : t.querySelector(".pl > .chip");
+      const banner = t.closest(".banner");
+      const ground = banner?.querySelector(".ground");
+      const floor = banner ? (ground ? ground.getBoundingClientRect().top : banner.getBoundingClientRect().bottom - 10) : Infinity;
+      const box = t.getBoundingClientRect();
+      const tx = line?.querySelector(".ct, .pt");
+      const whole = !tx || (tx.scrollWidth <= tx.clientWidth + 0.5 && line.getBoundingClientRect().right <= box.right + 0.5);
+      if (whole && box.bottom <= floor + 0.5 && (!banner || box.top >= banner.getBoundingClientRect().top - 0.5)) continue;
+      t.classList.add("dot-only");
+      if (title + (line || pill).getBoundingClientRect().width <= room) t.classList.remove("below");
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback?.();
+    if (!this._fitObserver && typeof ResizeObserver === "function") this._fitObserver = new ResizeObserver(() => this._fitPill());
+    this._fitObserver?.observe(this);
+    document.fonts?.ready?.then(() => this._fitPill());
+  }
+
+  _titleRow(title, pill, sub, extra = "") {
+    return `<div class="trow">${title}${pill}</div>${sub}<div class="bs"><span class="pl">${pill}</span>${extra}</div>`;
+  }
+
   _banner(m, badge, text) {
     const c = this._config;
     const nav = c.navigation_path;
@@ -569,6 +642,7 @@ class EvChargerCard extends RcCard {
     return `
       <div class="banner${c.show_background === false ? " bare" : this._night() ? " night" : ""}">
         <button class="sc" title="${rcEsc(m.raw || status)}">${scene}</button>
+        ${c.show_background === false ? "" : '<div class="ground" aria-hidden="true"></div>'}
         <div class="head bh${nav ? " nav" : ""}"${nav ? ' role="link" tabindex="0"' : ""}>
           <div class="badge">${badge}</div>
           <div class="tt">${text}</div>
@@ -596,14 +670,23 @@ class EvChargerCard extends RcCard {
     const head = banner
       ? this._banner(
           m,
-          icon,
-          `<div class="title">${rcEsc(m.name)}</div>${m.sub ? `<div class="subt">${rcEsc(m.sub)}</div>` : ""}<div class="bs"><span class="chip" title="${rcEsc(m.raw || status)}">${rcEsc(status)}</span></div>${this._soc(m)}`,
+          '<ha-icon icon="mdi:car"></ha-icon>',
+          // The pill says the state, the power leads the subtitle: the pill keeps its whole label on a narrow card.
+          this._titleRow(
+            `<div class="title">${rcEsc(m.name)}</div>`,
+            this._chip(this._t(`st_${m.state}`), m.raw || status),
+            this._subLine([m.state === "charging" ? this._power(m) : "", m.sub]),
+            this._soc(m),
+          ),
         )
       : `
       <div class="head${c.navigation_path ? " nav" : ""}"${c.navigation_path ? ' role="link" tabindex="0"' : ""}>
         <div class="badge">${icon}</div>
-        <div class="tt"><div class="title">${rcEsc(m.name)}</div>${m.sub ? `<div class="subt">${rcEsc(m.sub)}</div>` : ""}</div>
-        ${m.none ? "" : `<span class="pill" title="${rcEsc(m.raw || status)}"><span class="pt">${rcEsc(status)}</span></span>`}
+        <div class="tt">${
+          m.none
+            ? `<div class="title">${rcEsc(m.name)}</div>`
+            : this._titleRow(`<div class="title">${rcEsc(m.name)}</div>`, this._chip(status, m.raw || status), this._subLine([m.sub]))
+        }</div>
       </div>`;
     // No charger: say so, rather than draw one with no car.
     if (m.none) {
@@ -612,6 +695,7 @@ class EvChargerCard extends RcCard {
     }
     const error = m.error ? `<div class="err" role="alert">${rcEsc(m.error)}</div>` : "";
     this._paint(m.state, head + error, tiles.map((t) => this._tile(t)).join(""));
+    this._fitPill();
   }
 
   _afterGrid() {
@@ -635,6 +719,7 @@ class EvChargerCard extends RcCard {
 
   disconnectedCallback() {
     super.disconnectedCallback?.();
+    this._fitObserver?.disconnect();
     clearTimeout(this._armTimer);
     this._armLock = false;
   }
@@ -699,41 +784,72 @@ class EvChargerCard extends RcCard {
     .subt { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     :host([hide-title]) .head .tt { visibility: hidden; }
     /* The illustrated header: the card's top, edge to edge, in the sky's colours (as the flight and train boards). */
-    .banner { --sw: min(290px, 64%); position: relative; isolation: isolate; display: flex; align-items: center; box-sizing: border-box;
-              padding-left: 12px; overflow: hidden; height: 128px; margin: -12px -12px 0; color: #10283f;
-              background: linear-gradient(90deg, #f3f9ff 0%, #e2f0fc 38%, #c4e1f7 100%); }
-    .banner.night { color: #fff; background: linear-gradient(90deg, #2c4068 0%, #1b2b4e 42%, #0f1a34 100%); }
-    .sc { all: unset; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--sw); cursor: pointer;
-          -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%); mask-image: linear-gradient(90deg, transparent, #000 22%); }
+    .banner { --sw: min(200px, 54%); position: relative; isolation: isolate; display: flex; align-items: center; box-sizing: border-box;
+              padding: 0 0 10px 12px; overflow: hidden; height: 90px; margin: -12px -12px 0; color: #0d2a45;
+              background: linear-gradient(90deg, #f1f8ff 0%, #e2f1fd 34%, #b9def8 70%, #9fd0f3 100%); }
+    .banner.night { color: #fff; background: linear-gradient(90deg, #1b2f52 0%, #15284a 36%, #0f1f3d 72%, #0a1830 100%); }
+    /* The house wall fades into the sky by itself: no mask on the scene. */
+    .sc { all: unset; position: absolute; z-index: -1; right: 0; bottom: 10px; height: 80px; width: var(--sw); cursor: pointer; }
     .sc:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
     .scene { display: block; width: 100%; height: 100%; }
-    .bh { flex: 0 1 auto; min-width: 0; max-width: calc(100% - var(--sw) * .8); }
+    /* The concrete drive in front of the house, edge to edge. */
+    .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; pointer-events: none; background: #9aa1a9; box-shadow: inset 0 2px 0 #b5bbc2; }
+    .banner.night .ground { background: #2c323b; box-shadow: inset 0 2px 0 #3a414c; }
+    .bh { flex: 0 1 auto; min-width: 0; max-width: calc(100% - var(--sw) + 4px); padding-right: 6px; }
     .banner .badge { color: var(--c); background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent); }
     .banner.night .badge { color: color-mix(in srgb, var(--c) 45%, #fff); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
     .banner .title { color: inherit; font-weight: 600; }
-    .banner .subt { color: #3d5670; }
+    .banner .subt { color: #3b5b78; }
     .banner.night .subt { color: rgba(255,255,255,.82); }
-    .bs { display: flex; margin-top: 5px; min-width: 0; }
-    .chip { display: inline-block; max-width: 100%; box-sizing: border-box; padding: 1px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;
-            line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            background: color-mix(in srgb, var(--c) 16%, rgba(255,255,255,.5)); color: color-mix(in srgb, var(--c) 55%, #10283f); }
-    .banner.night .chip { background: rgba(10,20,40,.5); color: color-mix(in srgb, var(--c) 45%, #fff); }
-    .soc { display: flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; }
+    /* The title line: the title, then the status pill when the whole title and the pill's whole label fit there
+       (measured, see _fitPill); otherwise the pill goes under the subtitle (its copy on the level's line), the subtitle
+       on one line; when that does not fit above the drive, or on a card of 200 px or less, only its dot stays. */
+    .bh { flex: 1 1 auto; }
+    .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .trow > :first-child { flex: 0 1 auto; min-width: 0; }
+    .trow > .chip { flex: none; }
+    .tt.below .trow > .chip { display: none; }
+    .tt.below .pl { display: flex; }
+    .tt.below .bs { margin-top: 3px; }
+    .pl .chip { max-width: 100%; }
+    .tt.dot-only .chip { padding: 4px; } .tt.dot-only .chip .ct { display: none; }
+    .bs { display: flex; align-items: center; gap: 8px; margin-top: 4px; min-width: 0; }
+    .pl { display: none; flex: none; max-width: 100%; }
+    /* On that line the pill keeps its label; the car's level goes to the next line when both do not fit. */
+    .bs { flex-wrap: wrap; row-gap: 3px; }
+    .bs:not(:has(.soc)) { margin-top: 0; }
+    .chip { display: inline-flex; align-items: center; gap: 4px; min-width: 0; box-sizing: border-box; padding: 1px 8px; border-radius: 12px; font-size: 11px;
+            font-weight: 500; line-height: 16px; white-space: nowrap; overflow: hidden;
+            background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
+    .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c); flex: none; }
+    .chip .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
+    .soc { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 12px; }
     .soc b { white-space: nowrap; }
-    .soc .bar { flex: 0 1 90px; min-width: 30px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
+    .soc .bar { flex: 0 1 56px; min-width: 24px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
     .soc .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
-    .banner .zoom { position: absolute; top: 6px; right: 6px; margin: 0; width: 28px; height: 28px; color: #10283f; background: rgba(255,255,255,.55); }
-    .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
+    .banner .zoom { color: #33506b; background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
+                    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+    .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+    .banner .zoom:hover { background: rgba(255,255,255,.75); color: #33506b; }
+    .banner.night .zoom:hover { background: rgba(255,255,255,.22); color: #fff; }
     /* show_background: false — the wallbox, the cable and the car on the card itself, in the theme's colours. */
     .banner.bare { color: var(--primary-text-color); background: none; }
     .banner.bare .subt { color: var(--secondary-text-color); }
     .banner.bare .badge { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: none; }
+    /* The classic header (show_scene: false): the pill in the theme's colours. */
+    .head:not(.bh) .chip { background: color-mix(in srgb, var(--c) 16%, transparent); color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); }
     .banner.bare .chip { background: color-mix(in srgb, var(--c) 16%, transparent); color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); }
-    .banner.bare .zoom { color: var(--secondary-text-color); background: none; }
+    .banner.bare .zoom { color: var(--secondary-text-color); background: none; box-shadow: inset 0 0 0 1px var(--divider-color, rgba(127,127,127,.3)); }
     :host([hide-title]) .banner .tt { visibility: visible; }
     :host([hide-title]) .banner .title, :host([hide-title]) .banner .subt { display: none; }
-    @container (max-width: 420px) { .banner { --sw: 52%; } }
-    @container (max-width: 320px) { .banner { --sw: 42%; } }
+    @container (max-width: 320px) { .banner { --sw: 46%; } }
+    /* A card of 200 px or less: only the pill's dot (where it goes is measured all the same). */
+    ha-card { container: ev-card / inline-size; }
+    @container ev-card (max-width: 200px) {
+      .chip { padding: 4px; }
+      .chip .ct { display: none; }
+    }
     @keyframes ev-ring { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
     .ring { animation: ev-ring 1.8s ease-in-out infinite; }
     @keyframes ev-twinkle { from { opacity: .35 } to { opacity: 1 } }
@@ -822,17 +938,24 @@ class EvChargerMiniCard extends rcMini(
   "ev-charger-mini-card",
   `
     .mini > .badge { background: none; }
+    /* The classic mini card: the status pill after the whole title (measured, see _fitPill), else under it, else its dot. */
+    .mini .body.below .head { flex-wrap: wrap; row-gap: 4px; }
+    .mini .body.below .head::after { content: none; }
+    .mini .body.below .head > .title { flex: 1 1 calc(100% - 32px); }
+    .mini .body.below .head:not(:has(> .zoom)) > .title { flex-basis: 100%; }
+    .mini .body.below .head > .st { order: 3; margin-left: 0; }
+    .mini .body.dot-only .head > .st { flex: none; padding: 0; width: 18px; height: 18px; justify-content: center; background: none; }
+    .mini .body.dot-only .head > .st::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+    .mini .body.dot-only .head > .st .pt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     .ringb { width: 40px; height: 40px; }
     ha-card.mb { padding: 0; }
-    .mb > .banner { height: 104px; margin: 0; --sw: min(236px, 52%); }
+    .mb > .banner { height: 90px; margin: 0; }
     .banner .ringb { width: 40px; height: 40px; }
     .banner .badge:has(.ringb) { background: rgba(255,255,255,.62); }
     .banner.night .badge:has(.ringb) { background: rgba(255,255,255,.12); }
     .banner.bare .badge:has(.ringb) { background: none; }
-    .big { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .big b { font-size: 22px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
-    .big b.word { font-size: 18px; overflow: hidden; text-overflow: ellipsis; }
-    .big .chip { flex: 0 1 auto; min-width: 0; }
+    .big { font-size: 22px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .big.word { font-size: 18px; }
     .r { --t: var(--c); }
     .r.dim { --t: var(--rc-idle); }
   `,
@@ -863,16 +986,21 @@ class EvChargerMiniCard extends rcMini(
       waiting: [m.limit?.value != null ? `${Math.round(m.limit.value)} A` : null],
       done: [kwh, m.duration],
     }[m.state] || [m.session != null ? `${this._t("t_last")} ${kwh}` : null];
-    const line = [c.show_title === false ? null : m.name, ...readings].filter(Boolean).join(" · ");
-    const lead = big
-      ? `<div class="big"><b>${rcEsc(big)}</b><span class="chip" title="${rcEsc(m.raw || state)}">${rcEsc(state)}</span></div>`
-      : `<div class="big"><b class="word">${rcEsc(state)}</b></div>`;
+    // The car's level (or the power) in large as the title, else the charger's name; the state as the pill after it.
+    const named = !big && c.show_title !== false;
+    const line = [c.show_title === false || named ? null : m.name, ...readings].filter(Boolean).join(" · ");
+    const lead = this._titleRow(
+      big ? `<b class="big">${rcEsc(big)}</b>` : `<b class="big word">${rcEsc(named ? m.name : state)}</b>`,
+      this._chip(state, m.raw),
+      line ? `<div class="subt" title="${rcEsc(line)}">${rcEsc(line)}</div>` : "",
+    );
     this.shadowRoot.innerHTML = `
       <style>${RC_BASE_STYLES}${this.constructor.styles}</style>
-      <ha-card class="lvl-${m.state} mb">${this._banner(m, this._ring(m), `${lead}${line ? `<div class="subt">${rcEsc(line)}</div>` : ""}`)}</ha-card>`;
+      <ha-card class="lvl-${m.state} mb">${this._banner(m, this._ring(m), lead)}</ha-card>`;
     const root = this.shadowRoot;
     if (c.navigation_path) rcBindNav(root.querySelector(".head"), c.navigation_path);
     root.querySelector(".sc")?.addEventListener("click", () => rcMoreInfo(this, m.ids.status || m.ids.power || m.ids.limit));
+    this._fitPill();
   }
 
   _drawMini(m) {
@@ -885,17 +1013,19 @@ class EvChargerMiniCard extends rcMini(
     const id = m.ids.status || m.ids.power || "";
     const chip = (text, dim) => `<button class="r pill${dim ? " dim" : ""}" data-id="${rcEsc(id)}" title="${rcEsc(text)}"><span>${rcEsc(text)}</span></button>`;
     const kwh = m.session != null ? `${this._fmt(m.session, 1)} kWh` : null;
+    // The state is the status pill after the title; the chips are the readings.
+    const status = m.state === "error" ? m.error || this._t("st_error") : this._t(`st_${m.state}`);
     const chips = {
       charging: [this._power(m), m.soc != null ? `${Math.round(m.soc)} %` : kwh, m.duration],
-      waiting: [this._t("st_waiting"), m.soc != null ? `${Math.round(m.soc)} %` : null, m.limit?.value != null ? `${Math.round(m.limit.value)} A` : null],
-      done: [this._t("st_done"), kwh, m.duration],
-      error: [m.error || this._t("st_error")],
-    }[m.state] || [this._t(`st_${m.state}`), m.session != null ? `${this._t("t_last")} ${kwh}` : null];
+      waiting: [m.soc != null ? `${Math.round(m.soc)} %` : null, m.limit?.value != null ? `${Math.round(m.limit.value)} A` : null],
+      done: [kwh, m.duration],
+      error: [],
+    }[m.state] || [m.session != null ? `${this._t("t_last")} ${kwh}` : null];
     const html = chips
       .filter(Boolean)
       .map((t, i) => chip(t, i > 0))
       .join("");
-    this._paintMini({ level: m.state, icon: EV_ICONS[m.state], status: "", chips: html });
+    this._paintMini({ level: m.state, icon: EV_ICONS[m.state], status, chips: html });
     // The charger's name (or the title), as on the full card.
     const title = this.shadowRoot.querySelector(".mini .title");
     if (title) title.textContent = m.name;
