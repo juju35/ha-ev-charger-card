@@ -283,7 +283,8 @@ test("illustration theme: forced, else the sun below the horizon or the dark the
   };
   assert.equal(sky({ illustration_theme: "night" }, sun("above_horizon")), "night");
   assert.equal(sky({ illustration_theme: "day" }, sun("below_horizon", true)), "day");
-  assert.equal(sky({}, sun("below_horizon")), "night", "the sun has set");
+  assert.equal(sky({}, sun("below_horizon")), "day", "light theme after sunset: day");
+  assert.equal(sky({}, sun("below_horizon", true)), "night", "dark theme after sunset: night");
   assert.equal(sky({}, sun("above_horizon", true)), "night", "dark theme while the sun is up: night");
   assert.equal(sky({}, sun("above_horizon")), "day", "light theme while the sun is up: day");
   assert.equal(sky({ illustration_theme: "day" }, sun("above_horizon", true)), "day");
