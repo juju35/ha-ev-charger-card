@@ -287,34 +287,36 @@ const evCar = (v, { uid, dark, acc, color }) => {
     ${axles.map((x) => `<ellipse cx="${x}" cy="158.6" rx="${evN(ar - 1)}" ry="2.2" fill="#000" opacity="${dark ? 0.65 : 0.4}"/>`).join("")}
     ${car}`;
 };
-// The backdrop, in the colours of the flight and train boards: the sky (sun and clouds by day, stars and the moon
-// by night), two hills, the garage the wallbox hangs on (its window lit at night) and the paved drive.
-const EV_STARS = [[150, 12], [178, 40], [206, 8], [232, 30], [282, 10], [300, 72], [330, 14], [348, 62], [374, 6], [396, 34], [420, 18], [160, 76]];
-const evDecor = (uid, night) => {
+// The backdrop, in the 200 × 80 frame of the header (the flight and train boards' sky behind it): the sun or the moon
+// and stars, a low hill, and the rendered façade of the house the wallbox hangs on — its plinth and its wall lamp (lit
+// at night), its left edge fading softly into the sky under the text. The concrete strip under it is the banner's.
+const EV_STARS = [[96, 8], [130, 14], [170, 6], [186, 22], [150, 4]];
+const evWall = (uid, night) => {
   const n = (dayC, nightC) => (night ? nightC : dayC);
-  const cloud = (x, y, k) => `<path transform="translate(${x} ${y}) scale(${k})" d="M0 6a4 4 0 0 1 6-3.4 5 5 0 0 1 9.4 1.4 3 3 0 0 1 .6 6H2a3 3 0 0 1-2-4Z" fill="#fff" opacity=".9"/>`;
   const sky = night
-    ? `${EV_STARS.map(([x, y], i) => `<circle class="${i % 3 ? "" : "tw"}" cx="${x}" cy="${y}" r="${i % 3 ? 0.7 : 1.1}" fill="#fff" opacity="${i % 2 ? 0.6 : 0.95}"/>`).join("")}<path transform="translate(250 14) scale(1.6)" d="M0 0a6.4 6.4 0 1 0 5.6 9.6 5.2 5.2 0 1 1-5.6-9.6Z" fill="#f4f1dc"/>`
-    : `<circle cx="262" cy="30" r="10" fill="#ffd65a"/>${cloud(200, 18, 1.4)}${cloud(150, 50, 1.1)}`;
-  const pavers = Array.from({ length: 22 }, (_, i) => `<rect x="${i * 20 + 4}" y="170" width="14" height="1.6" rx=".5"/>`).join("");
+    ? `<g fill="#fff">${EV_STARS.map(([x, y], i) => `<circle class="${i % 2 ? "" : "tw"}" cx="${x}" cy="${y}" r=".6" opacity=".8"/>`).join("")}</g><circle cx="112" cy="12" r="4.5" fill="#f3eed2"/>`
+    : '<circle cx="112" cy="12" r="6" fill="#ffd65a"/>';
+  const grain = Array.from({ length: 30 }, (_, i) => `<circle cx="${((i * 17) % 78) - 8}" cy="${((i * 29) % 66) + 3}" r=".7"/>`).join("");
   return `
-    <linearGradient id="sky${uid}" x1="0" x2="1"><stop stop-color="${n("#f3f9ff", "#2c4068")}"/><stop offset=".42" stop-color="${n("#e2f0fc", "#1b2b4e")}"/><stop offset="1" stop-color="${n("#c4e1f7", "#0f1a34")}"/></linearGradient>
-    <rect width="430" height="190" fill="url(#sky${uid})"/>
     ${sky}
-    <path d="M0 120C60 92 120 84 190 102C250 84 330 72 430 92V152H0Z" fill="${n("#c9e3bf", "#23395a")}"/>
-    <path d="M0 128C50 112 110 108 170 120C240 104 300 102 360 114C390 108 412 108 430 110V152H0Z" fill="${n("#a4cf96", "#1d3045")}"/>
-    <path d="M20 46 L84 20 L148 46Z" fill="${n("#c46b4e", "#6e3f36")}"/>
-    <rect x="26" y="44" width="116" height="108" fill="${n("#f1e6d3", "#8d8577")}"/>
-    <rect x="22" y="43" width="124" height="3" rx="1" fill="${n("#d8c8ad", "#6f685d")}"/>
-    <rect x="112" y="58" width="20" height="14" rx="1.5" fill="${n("#8fb9dc", "#ffc45e")}" stroke="${n("#d2c0a2", "#b4935a")}"${night ? ' style="filter:drop-shadow(0 0 3px #ffb347)"' : ""}/>
-    <rect y="152" width="430" height="38" fill="${n("#c3bcb1", "#2b3341")}"/>
-    <rect y="152" width="430" height="2" fill="${n("#ddd7cc", "#3a4352")}"/>
-    <g fill="${n("#b2aa9d", "#38404d")}">${pavers}</g>`;
+    <path d="M0 80C40 70 80 66 120 68L200 66V80Z" fill="${n("#a7d39f", "#1d3a4a")}"/>
+    <defs>
+      <linearGradient id="wf${uid}" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".22" stop-color="#fff"/></linearGradient>
+      <mask id="wm${uid}" maskUnits="userSpaceOnUse" x="-10" y="0" width="80" height="80"><rect x="0" y="0" width="70" height="80" fill="url(#wf${uid})"/></mask>
+    </defs>
+    <g mask="url(#wm${uid})">
+      <rect x="-10" y="0" width="80" height="80" fill="${n("#efe3cf", "#3a3530")}"/>
+      <g fill="${n("#e3d3b9", "#443e38")}">${grain}</g>
+      <rect x="-10" y="70" width="80" height="10" fill="${n("#b9ab96", "#2a2724")}"/>
+      <rect x="-10" y="69" width="80" height="1.4" fill="${n("#d4c6ae", "#4a443c")}"/>
+    </g>
+    <rect x="66" y="0" width="4" height="80" fill="${n("#dccab0", "#2e2a26")}"/>
+    <g transform="translate(56 22)"><rect x="-2" y="-3" width="4" height="6" rx="1" fill="${n("#5f6b7a", "#6b6258")}"/><circle r="1.4" fill="${n("#fff", "#ffd27a")}"/>${night ? '<circle r="10" fill="#ffd27a" opacity=".18"/>' : ""}</g>`;
 };
 
 // The illustration: the wall and the floor, the wallbox and its LED ring, the cable (with energy flowing along it while
-// charging) and the car (`vehicle`, painted `color`) with its charging port, on the backdrop. Drawn at the right of
-// the card's header, its left fading into the sky under the text. No car when none is plugged in: the cable hangs.
+// charging) and the car (`vehicle`, painted `color`) with its charging port, on the house wall. Drawn at the right of
+// the card's header in a 200 × 80 frame (the card's 430 × 190 drawing cropped into it). No car when none is plugged in: the cable hangs.
 const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, vehicle, color }) => {
   const acc = EV_ACCENTS[state];
   const car = state !== "idle" && state !== "offline";
@@ -336,7 +338,9 @@ const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, veh
     : "";
   const carSvg = car ? evCar(EV_VEHICLES[vehicle] || EV_VEHICLES.sedan, { uid, dark, acc, color }) : "";
   return `
-  <svg class="scene" viewBox="0 0 430 190" role="img" aria-label="${rcEsc(label)}" preserveAspectRatio="xMaxYMax meet">
+  <svg class="scene" viewBox="0 0 200 80" role="img" aria-label="${rcEsc(label)}" preserveAspectRatio="xMaxYMax meet">
+    ${backdrop ? evWall(uid, night) : ""}
+    <svg x="0" y="2" width="200" height="78" viewBox="40 26 392 152" preserveAspectRatio="xMidYMax meet" overflow="visible">
     <defs>
       <linearGradient id="p${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${paint[0]}"/><stop offset=".55" stop-color="${paint[0]}"/><stop offset="1" stop-color="${paint[1]}"/></linearGradient>
       <radialGradient id="sh${uid}"><stop offset="0" stop-color="#000" stop-opacity="${dark ? 0.55 : 0.28}"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
@@ -344,7 +348,6 @@ const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, veh
       <filter id="bl${uid}" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="2.5"/></filter>
       <filter id="ds${uid}" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="${dark ? 0.4 : 0.12}"/></filter>
     </defs>
-    ${backdrop ? evDecor(uid, night) : `<rect x="150" y="152" width="280" height="1" fill="${dark ? "#fff" : "#000"}" opacity="${dark ? 0.1 : 0.08}"/>`}
     ${state === "idle" || state === "offline" ? "" : `<circle cx="78" cy="74" r="46" fill="url(#halo${uid})"/>`}
     <ellipse cx="78" cy="156" rx="30" ry="4" fill="url(#sh${uid})"/>
     <rect x="56" y="32" width="44" height="6" rx="3" fill="#000" opacity=".12"/>
@@ -359,7 +362,9 @@ const evScene = ({ state, dark, night, backdrop = true, uid, label, animate, veh
     </g>
     <path id="c${uid}" d="${cable}" fill="none" stroke="${dark ? "#0f1216" : "#2f3540"}" stroke-width="6.5" stroke-linecap="round"/>
     <path d="${cable}" fill="none" stroke="#fff" stroke-opacity="${dark ? 0.08 : 0.22}" stroke-width="1.6" stroke-linecap="round" transform="translate(-1 -1.5)"/>
+    ${backdrop ? "" : `<rect x="150" y="158.5" width="280" height="1" fill="${dark ? "#fff" : "#000"}" opacity="${dark ? 0.1 : 0.08}"/>`}
     ${particles}${carSvg}
+    </svg>
   </svg>`;
 };
 
@@ -549,8 +554,9 @@ class EvChargerCard extends RcCard {
     }
   }
 
-  // The illustrated header, as on the flight and train boards: the scene at the right, its left fading into the sky;
-  // on the sky at the left the badge and `text`. The badge is the state's icon (full card) or the battery ring (mini).
+  // The illustrated header, as on the flight and train boards: 90 px high, the scene at the right (the wallbox on the
+  // house wall, the cable and the car), a concrete strip edge to edge at the bottom; on the sky at the left the badge
+  // and `text`. The badge is a car in the state's colour (full card) or the battery ring (mini).
   _banner(m, badge, text) {
     const c = this._config;
     const nav = c.navigation_path;
@@ -569,6 +575,7 @@ class EvChargerCard extends RcCard {
     return `
       <div class="banner${c.show_background === false ? " bare" : this._night() ? " night" : ""}">
         <button class="sc" title="${rcEsc(m.raw || status)}">${scene}</button>
+        ${c.show_background === false ? "" : '<div class="ground" aria-hidden="true"></div>'}
         <div class="head bh${nav ? " nav" : ""}"${nav ? ' role="link" tabindex="0"' : ""}>
           <div class="badge">${badge}</div>
           <div class="tt">${text}</div>
@@ -596,8 +603,8 @@ class EvChargerCard extends RcCard {
     const head = banner
       ? this._banner(
           m,
-          icon,
-          `<div class="title">${rcEsc(m.name)}</div>${m.sub ? `<div class="subt">${rcEsc(m.sub)}</div>` : ""}<div class="bs"><span class="chip" title="${rcEsc(m.raw || status)}">${rcEsc(status)}</span></div>${this._soc(m)}`,
+          '<ha-icon icon="mdi:car"></ha-icon>',
+          `<div class="title">${rcEsc(m.name)}</div>${m.sub ? `<div class="subt">${rcEsc(m.sub)}</div>` : ""}<div class="bs"><span class="chip" title="${rcEsc(m.raw || status)}">${rcEsc(status)}</span>${this._soc(m)}</div>`,
         )
       : `
       <div class="head${c.navigation_path ? " nav" : ""}"${c.navigation_path ? ' role="link" tabindex="0"' : ""}>
@@ -699,28 +706,31 @@ class EvChargerCard extends RcCard {
     .subt { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     :host([hide-title]) .head .tt { visibility: hidden; }
     /* The illustrated header: the card's top, edge to edge, in the sky's colours (as the flight and train boards). */
-    .banner { --sw: min(290px, 64%); position: relative; isolation: isolate; display: flex; align-items: center; box-sizing: border-box;
-              padding-left: 12px; overflow: hidden; height: 128px; margin: -12px -12px 0; color: #10283f;
-              background: linear-gradient(90deg, #f3f9ff 0%, #e2f0fc 38%, #c4e1f7 100%); }
-    .banner.night { color: #fff; background: linear-gradient(90deg, #2c4068 0%, #1b2b4e 42%, #0f1a34 100%); }
-    .sc { all: unset; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; width: var(--sw); cursor: pointer;
-          -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%); mask-image: linear-gradient(90deg, transparent, #000 22%); }
+    .banner { --sw: min(200px, 54%); position: relative; isolation: isolate; display: flex; align-items: center; box-sizing: border-box;
+              padding: 0 0 10px 12px; overflow: hidden; height: 90px; margin: -12px -12px 0; color: #0d2a45;
+              background: linear-gradient(90deg, #f1f8ff 0%, #e2f1fd 34%, #b9def8 70%, #9fd0f3 100%); }
+    .banner.night { color: #fff; background: linear-gradient(90deg, #1b2f52 0%, #15284a 36%, #0f1f3d 72%, #0a1830 100%); }
+    /* The house wall fades into the sky by itself: no mask on the scene. */
+    .sc { all: unset; position: absolute; z-index: -1; right: 0; bottom: 10px; height: 80px; width: var(--sw); cursor: pointer; }
     .sc:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
     .scene { display: block; width: 100%; height: 100%; }
-    .bh { flex: 0 1 auto; min-width: 0; max-width: calc(100% - var(--sw) * .8); }
+    /* The concrete drive in front of the house, edge to edge. */
+    .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; pointer-events: none; background: #9aa1a9; box-shadow: inset 0 2px 0 #b5bbc2; }
+    .banner.night .ground { background: #2c323b; box-shadow: inset 0 2px 0 #3a414c; }
+    .bh { flex: 0 1 auto; min-width: 0; max-width: calc(100% - var(--sw) + 4px); padding-right: 6px; }
     .banner .badge { color: var(--c); background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent); }
     .banner.night .badge { color: color-mix(in srgb, var(--c) 45%, #fff); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
     .banner .title { color: inherit; font-weight: 600; }
-    .banner .subt { color: #3d5670; }
+    .banner .subt { color: #3b5b78; }
     .banner.night .subt { color: rgba(255,255,255,.82); }
-    .bs { display: flex; margin-top: 5px; min-width: 0; }
+    .bs { display: flex; align-items: center; gap: 8px; margin-top: 4px; min-width: 0; }
     .chip { display: inline-block; max-width: 100%; box-sizing: border-box; padding: 1px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;
             line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             background: color-mix(in srgb, var(--c) 16%, rgba(255,255,255,.5)); color: color-mix(in srgb, var(--c) 55%, #10283f); }
     .banner.night .chip { background: rgba(10,20,40,.5); color: color-mix(in srgb, var(--c) 45%, #fff); }
-    .soc { display: flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; }
+    .soc { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 12px; }
     .soc b { white-space: nowrap; }
-    .soc .bar { flex: 0 1 90px; min-width: 30px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
+    .soc .bar { flex: 0 1 56px; min-width: 24px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
     .soc .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
     .banner .zoom { position: absolute; top: 6px; right: 6px; margin: 0; width: 28px; height: 28px; color: #10283f; background: rgba(255,255,255,.55); }
     .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
@@ -732,8 +742,7 @@ class EvChargerCard extends RcCard {
     .banner.bare .zoom { color: var(--secondary-text-color); background: none; }
     :host([hide-title]) .banner .tt { visibility: visible; }
     :host([hide-title]) .banner .title, :host([hide-title]) .banner .subt { display: none; }
-    @container (max-width: 420px) { .banner { --sw: 52%; } }
-    @container (max-width: 320px) { .banner { --sw: 42%; } }
+    @container (max-width: 320px) { .banner { --sw: 46%; } }
     @keyframes ev-ring { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
     .ring { animation: ev-ring 1.8s ease-in-out infinite; }
     @keyframes ev-twinkle { from { opacity: .35 } to { opacity: 1 } }
@@ -824,7 +833,7 @@ class EvChargerMiniCard extends rcMini(
     .mini > .badge { background: none; }
     .ringb { width: 40px; height: 40px; }
     ha-card.mb { padding: 0; }
-    .mb > .banner { height: 104px; margin: 0; --sw: min(236px, 52%); }
+    .mb > .banner { height: 90px; margin: 0; }
     .banner .ringb { width: 40px; height: 40px; }
     .banner .badge:has(.ringb) { background: rgba(255,255,255,.62); }
     .banner.night .badge:has(.ringb) { background: rgba(255,255,255,.12); }

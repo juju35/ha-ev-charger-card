@@ -48,7 +48,7 @@ The cards share the look of the other ha-* cards (header with a status pill, tin
 
 `custom:ev-charger-card` — The charger of a `device` (the first charger of the home when none is set).
 
-- **Illustrated header**, as on the flight and train boards: the scene (the wallbox with its LED ring on the garage, the cable and the car with its charging port) at the right, fading into the sky; on the sky at the left the charger's icon, name, room and model, a chip with the state and the power (*Charging · 7.2 kW*), and the car's battery level (`battery`) as a bar
+- **Illustrated header** (90 px), as on the flight and train boards: the scene at the right — the wallbox with its LED ring mounted on the house wall (rendered façade, plinth and wall lamp, its left edge fading into the sky), the cable and the car with its charging port — over a concrete strip edge to edge at the bottom; on the sky at the left a car icon in the state's colour (blue charging, amber plugged in, green charged, grey no car, red error), the charger's name, room and model, a chip with the state and the power (*Charging · 7.2 kW*), and the car's battery level (`battery`) as a bar
 - **Five states**, from the charger's own status in the integration's words (*charging*, *awaiting_start*, *Paused by user*, *connected_finished*, *disconnected*…): **charging** (blue, energy flowing along the cable, the LED ring breathing), **plugged in** (amber), **charged** (green), **no car** (grey, the cable hanging from the wallbox), **error** (red, the charger's error under the illustration); *offline* when the charger cannot report. Without a status sensor, the power and the plug sensor tell
 - **Three tiles**, the ones that matter in each state among what the charger reports: the session's energy, time and cost while charging or charged; the current limit, the last session and the lifetime total when a car waits or none is plugged in
 - **Controls**: **Pause** while charging and **Start** when a car waits (the charger's start / stop buttons, or its charging switch), **Unlock cable** once charged, the **current limit** in steps of the number entity (− 32 A +, within its range), and the **lock**: the cable's when the lock is named after the cable (Easee), else the whole charger's (Wallbox), which is never unlocked on its own once charged
@@ -57,7 +57,7 @@ The cards share the look of the other ha-* cards (header with a status pill, tin
 
 ### EV charger mini
 
-`custom:ev-charger-mini-card` — The same illustrated header, lower: a ring as the badge (the car's battery level, or the charging power against `max_power`), the level in large with the state as a chip, then the name and the key readings (*68 % Charging — Wallbox · 7.2 kW · 1 h 42*, *31 % Plugged in — Wallbox · 16 A*), the scene at the right. With `show_scene: false`, two lines with the readings as pills. The **zoom** button (top right) opens the full card in place, a click anywhere else folds it back (`zoom: false` removes the button).
+`custom:ev-charger-mini-card` — The same illustrated header, 90 px high too: a ring as the badge (the car's battery level, or the charging power against `max_power`), the level in large with the state as a chip, then the name and the key readings (*68 % Charging — Wallbox · 7.2 kW · 1 h 42*, *31 % Plugged in — Wallbox · 16 A*), the scene at the right. With `show_scene: false`, two lines with the readings as pills. The **zoom** button (top right) opens the full card in place, a click anywhere else folds it back (`zoom: false` removes the button).
 
 ## Supported integrations
 
@@ -141,7 +141,7 @@ entities:
 | `color` | string | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
 | `illustration_theme` | string | `auto` | The illustration's sky: `auto` (night while `sun.sun` is below the horizon; without `sun.sun`, Home Assistant's dark theme), `day` or `night` |
 | `show_scene` | boolean | `true` | The illustrated header (`false`: a classic header, and the mini card on two lines) |
-| `show_background` | boolean | `true` | The illustration's backdrop (sky, hills, garage, drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
+| `show_background` | boolean | `true` | The illustration's backdrop (sky, house wall, concrete drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
 | `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
 | `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
 | `max_power` | number | `7.4` | Mini card: the power (kW) of a full ring when the car's battery level is unknown |
@@ -161,7 +161,7 @@ entities:
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle.png" alt="No car" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error.png" alt="Error" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact.png" alt="Without the illustration" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-idle-dark.png" alt="No car, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-error-dark.png" alt="Error, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-compact-dark.png" alt="Without the illustration, dark" width="400"> |
 
-**Day and night**: the illustration has the backdrop of the flight and train boards — a sky with the sun and clouds by day, the stars and the moon by night (the garage window lit), hills, the garage and the paved drive. `illustration_theme: auto` follows `sun.sun`, or force `day` / `night`.
+**Day and night**: the illustration has the backdrop of the flight and train boards — a sky with the sun by day, the stars and the moon by night (the wall lamp lit), a low hill, the house wall and the concrete drive. `illustration_theme: auto` follows `sun.sun`, or force `day` / `night`.
 
 | Day (`illustration_theme: day`) | Night (`illustration_theme: night`) |
 |---|---|

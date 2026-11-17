@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 - 2026-11-17
+
+### Features
+- **Illustrated header, harmonised with the other cards**: 90 px high on the full card and the mini card, title and readings on the sky at the left, the scene at the right and a **concrete strip** edge to edge at the bottom (day and night variants).
+- **House wall instead of the garage**: the wallbox (bigger, as the car) is mounted against a rendered façade with its plinth and wall lamp (lit at night), its left edge fading softly into the sky; the sun, or the moon and stars, over a low hill.
+- **The header's icon is a car in the state's colour**: blue charging, amber plugged in, green charged, grey no car or offline, red error — by day and by night.
+
 ## 1.1.0 - 2026-11-16
 
 ### Features
