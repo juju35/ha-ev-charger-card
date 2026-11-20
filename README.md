@@ -77,6 +77,10 @@ The card reads what the charger's device exposes, by device class, unit and doma
 
 When the card picks the wrong entity for a role, or misses one, set it in `entities` (see [Configuration](#configuration)) and open an issue with the charger's entities so that the discovery learns it.
 
+## Prerequisites
+
+Home Assistant 2024.8 or later, with an integration for your charger configured (see [Supported integrations](#supported-integrations)), or entities of your own giving its status and power.
+
 ## Installation
 
 ### Via the Marketplace (recommended)
@@ -129,25 +133,25 @@ entities:
   lock: switch.wallbox_cable_lock
 ```
 
-| Option | Type | Default | Description |
+| Option | Card | Default | Description |
 |---|---|---|---|
-| `device` | string | the first charger found | The charger's device ID |
-| `entity` | string | | Any entity of the charger, instead of `device` |
-| `title` | string | the charger's name | Card title |
-| `show_title` | boolean | `true` | Show the title |
-| `navigation_path` | string | | A tap on the header opens this dashboard path |
-| `battery` | string | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
-| `vehicle` | string | `sedan` | The car of the illustration: `sedan` (saloon), `hatch` (five-door hatchback), `estate`, `crossover` (fastback crossover), `coupe_suv`, `small_suv`, `suv`, `city` (city car) or `van` (MPV / van) |
-| `color` | string | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
-| `illustration_theme` | string | `auto` | The illustration's sky: `auto` (follows the Home Assistant theme: night with a dark theme, day with a light theme), `day` or `night` |
-| `show_scene` | boolean | `true` | The illustrated header (`false`: a classic header, and the mini card on two lines) |
-| `show_background` | boolean | `true` | The illustration's backdrop (sky, house wall, concrete drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
-| `animations` | boolean | `true` | Energy flowing along the cable, the LED ring breathing |
-| `show_controls` | boolean | `true` | Pause / start, current limit and cable lock |
-| `max_power` | number | `7.4` | Mini card: the power (kW) of a full ring when the car's battery level is unknown |
-| `zoom` | boolean | `true` | Mini card: the zoom button |
-| `entities` | map | | Advanced (YAML): the entity of a role, over the discovery — `status`, `plug`, `power`, `energy`, `total`, `limit`, `current`, `phases`, `switch`, `start`, `stop`, `lock`, `cost`, `duration`, `error`, `battery` |
-| `language` | string | Home Assistant's | Advanced: one of the [languages](#translations) |
+| `device` | both | the first charger found | The charger's device ID |
+| `entity` | both | — | **YAML only.** Any entity of the charger, instead of `device` |
+| `title` | both | the charger's name | Card title |
+| `show_title` | both | `true` | Show the title |
+| `navigation_path` | both | — | A tap on the header opens this dashboard path |
+| `battery` | both | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
+| `vehicle` | both | `sedan` | The car of the illustration: `sedan` (saloon), `hatch` (five-door hatchback), `estate`, `crossover` (fastback crossover), `coupe_suv`, `small_suv`, `suv`, `city` (city car) or `van` (MPV / van) |
+| `color` | both | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
+| `illustration_theme` | both | `auto` | The illustration's sky: `auto` (follows the Home Assistant theme: night with a dark theme, day with a light theme), `day` or `night` |
+| `show_scene` | both | `true` | The illustrated header (`false`: a classic header, and the mini card on two lines) |
+| `show_background` | both | `true` | The illustration's backdrop (sky, house wall, concrete drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
+| `animations` | both | `true` | Energy flowing along the cable, the LED ring breathing |
+| `show_controls` | both | `true` | Pause / start, current limit and cable lock |
+| `max_power` | mini | `7.4` | The power (kW) of a full ring when the car's battery level is unknown |
+| `zoom` | mini | `true` | The zoom button |
+| `entities` | both | — | In the editor's *Advanced* section (as YAML): the entity of a role, over the discovery — `status`, `plug`, `power`, `energy`, `total`, `limit`, `current`, `phases`, `switch`, `start`, `stop`, `lock`, `cost`, `duration`, `error`, `battery` |
+| `language` | both | Home Assistant's | In the editor's *Advanced* section. One of the [languages](#translations) |
 
 ## Screenshots
 

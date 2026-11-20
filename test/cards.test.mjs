@@ -62,6 +62,14 @@ test("states: the integrations' words brought down to five", () => {
   assert.equal(ev.evStateOf("42"), undefined);
 });
 
+test("discovery: a plug feeding a phone charger is not taken for a car charger", () => {
+  const h = makeHass();
+  for (const [id, r] of Object.entries(h.entities)) if (r.platform === "easee") h.entities[id] = { ...r, platform: "zha" };
+  assert.deepEqual(json(ev.evChargers(h)), ["charger"]);
+  h.devices.charger = { ...h.devices.charger, name: "Phone charger plug" };
+  assert.deepEqual(json(ev.evChargers(h)), []);
+});
+
 test("discovery: each role on the charger's device, the most likely charger picked", () => {
   const h = makeHass();
   assert.deepEqual(json(ev.evChargers(h)), ["charger"]);

@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.2 - 2026-11-20
+
+### Performance
+- The bundle no longer carries the room cards' code the charger card never runs (room discovery, room grids, toggle cards, room overview fields and their styles): about 500 lines and 27 KB less to download (126 KB with the English strings).
+- The shared translation table keeps only the strings the charger card asks for and its own table lacks: about 680 entries less across the 22 languages (bundle 124.7 KB, smaller language files).
+
+- The charger's entities are looked for again only when one of its own states changes, not on every state change of the home.
+
+### Fixes
+- Discovery: a smart plug named like a phone, laptop, watch or tool charger (with a power sensor) is no longer offered as a car charger when no charger integration is found.
+- README: a Prerequisites section, as in the other cards.
+- README: the options table tells which card each option applies to (`both` / `mini`) and which ones are YAML only, like the other cards.
+
+### Maintenance
+- New test: every top-level declaration and every method of the sources is used, and the shared translations hold no string the card never asks for.
+
 ## 1.2.1 - 2026-11-18
 
 ### Fixes
