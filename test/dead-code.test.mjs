@@ -68,3 +68,20 @@ test("every method is called", () => {
   }
   assert.deepEqual(unused, []);
 });
+
+test("the shared translations hold only what the card asks for and its own table lacks", async () => {
+  const { load } = await import("./load.mjs");
+  const { RC_I18N, EV_I18N } = load();
+  const [shared, card] = sources;
+  const start = shared.indexOf("const RC_I18N = {");
+  const code = shared.slice(0, start) + shared.slice(shared.indexOf("\n};\n", start)) + card;
+  const quoted = new Set([...code.matchAll(/["'`]([A-Za-z_][\w-]*)["'`]/g)].map((m) => m[1]));
+  const plural = [...code.matchAll(/_tn\(\s*["'`](\w+)["'`]/g)].map((m) => m[1]);
+  // Literal keys, editor labels / helpers built from a field name (ed_<name>[_helper]), plural forms of a _tn base.
+  const requested = (k) =>
+    quoted.has(k) || (k.startsWith("ed_") && quoted.has(k.slice(3).replace(/_helper$/, ""))) || plural.some((b) => k.startsWith(`${b}_`));
+  const extra = [];
+  for (const [lang, table] of Object.entries(RC_I18N))
+    for (const k of Object.keys(table)) if (!requested(k) || k in (EV_I18N[lang] ?? {})) extra.push(`${lang}.${k}`);
+  assert.deepEqual(extra, []);
+});
