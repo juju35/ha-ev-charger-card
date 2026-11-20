@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.2 - 2026-11-20
+
+### Performance
+- The bundle no longer carries the room cards' code the charger card never runs (room discovery, room grids, toggle cards, room overview fields and their styles): about 500 lines and 27 KB less to download (126 KB with the English strings).
+
+### Fixes
+- README: the options table tells which card each option applies to (`both` / `mini`) and which ones are YAML only, like the other cards.
+
+### Maintenance
+- New test: every top-level declaration and every method of the sources is used.
+
 ## 1.2.1 - 2026-11-18
 
 ### Fixes
