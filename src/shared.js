@@ -520,6 +520,8 @@ const EV_PLATFORMS = [
   "peblar", "ocpp", "keba", "openwb", "evcc_intg", "wallbox_pulsar", "nrgkick", "smartevse", "v2c", "elli", "hypervolt",
 ];
 const EV_NAME = /charger|wallbox|borne|ladestation|evse|easee|zaptec|zappi|ohme|pulsar|go-?e|wall.?connector|alfen|peblar/i;
+// A smart plug feeding a phone, laptop or tool charger is named like a charger too: never one of ours by name alone.
+const EV_NOT_EV = /phone|t[ée]l[ée]phone|handy|usb|laptop|tablet|ipad|watch|montre|toothbrush|brosse|battery.?pack|power.?bank|drill|perceuse/i;
 
 const evLabel = (hass, id) => `${id} ${hass.states[id]?.attributes.friendly_name || ""}`;
 const evNum = (st) => {
@@ -556,7 +558,8 @@ const evChargers = (hass) => {
   const out = [];
   for (const [device, ids] of Object.entries(evDeviceEntities(hass))) {
     const known = ids.some((id) => EV_PLATFORMS.includes(hass.entities[id]?.platform));
-    const named = EV_NAME.test(`${hass.devices?.[device]?.name || ""} ${ids.join(" ")}`);
+    const label = `${hass.devices?.[device]?.name || ""} ${ids.join(" ")}`;
+    const named = EV_NAME.test(label) && !EV_NOT_EV.test(label);
     const fits = ids.some((id) => id.startsWith("number.") && hass.states[id]?.attributes.unit_of_measurement === "A") ||
       ids.some((id) => id.startsWith("sensor.") && hass.states[id]?.attributes.device_class === "power");
     if (known || (named && fits)) out.push({ device, score: known ? 2 : 1 });

@@ -7,6 +7,8 @@
 - The shared translation table keeps only the strings the charger card asks for and its own table lacks: about 680 entries less across the 22 languages (bundle 124.7 KB, smaller language files).
 
 ### Fixes
+- Discovery: a smart plug named like a phone, laptop, watch or tool charger (with a power sensor) is no longer offered as a car charger when no charger integration is found.
+- README: a Prerequisites section, as in the other cards.
 - README: the options table tells which card each option applies to (`both` / `mini`) and which ones are YAML only, like the other cards.
 
 ### Maintenance
