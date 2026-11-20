@@ -436,7 +436,10 @@ class EvChargerCard extends RcCard {
     const c = this._config;
     const device = this._deviceId();
     // The roles depend on the states too (a status sensor reading "unknown" at start is skipped): found again when they change.
-    const e = rcMemo((this._memo ||= {}), "find", [device, c.entities, h.entities, h.devices, h.states], () => evFind(h, device, c.entities || {}));
+    // Only the states of the device's entities and of the overrides count, not every state of the home.
+    const watched = [...(device ? evDeviceEntities(h)[device] || [] : []), ...Object.values(c.entities || {})];
+    const deps = [device, c.entities, h.entities, h.devices, ...watched.map((id) => (typeof id === "string" ? h.states[id] : id))];
+    const e = rcMemo((this._memo ||= {}), "find", deps, () => evFind(h, device, c.entities || {}));
     const st = (role) => (e[role] ? h.states[e[role]] : undefined);
     const on = (role) => st(role)?.state === "on";
     const watts = evWatts(st("power"));
