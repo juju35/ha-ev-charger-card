@@ -77,6 +77,10 @@ The card reads what the charger's device exposes, by device class, unit and doma
 
 When the card picks the wrong entity for a role, or misses one, set it in `entities` (see [Configuration](#configuration)) and open an issue with the charger's entities so that the discovery learns it.
 
+## Prerequisites
+
+Home Assistant 2024.8 or later, with an integration for your charger configured (see [Supported integrations](#supported-integrations)), or entities of your own giving its status and power.
+
 ## Installation
 
 ### Via the Marketplace (recommended)
