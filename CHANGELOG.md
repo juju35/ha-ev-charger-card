@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 - 2026-11-23
+
+### Features
+- V2C Trydan chargers, with the built-in V2C integration, V2C Trydan (Rain1971) and V2C Cloud (samuelebistoletti): their entities are read from their translation keys — charge power (not the house, solar or home battery power), session energy, charge time, the `Intensity` setpoint as the current limit (not `Max intensity`), the pause switch and the charger lock. Their "meter / slave error" sensor, which reports the house meter's link, no longer shows the charger in error.
+- Charger states in V2C's Spanish and Italian wording (*Manguera conectada (CARGANDO)*, *Vehículo conectado (inactivo)*, *In carica*…), and *Vehicle connected (idle)* read as a car waiting.
+- New `charging` role: a `battery_charging` binary sensor tells charging from waiting when the charger has no status sensor.
+- Charging time given as an *HH:MM:SS* text.
+- Discovery: the charging power is no longer taken from a house, solar or home battery power sensor of the same device.
+- README: V2C in the supported integrations, with its logo.
+
 ## 1.2.4 - 2026-11-22
 
 ### Performance

@@ -560,13 +560,15 @@ const RC_I18N = {
 // enough, by their name. `entities` in the config overrides any role.
 // The state comes from the charger's status sensor, in the integration's own words, brought down to five: charging,
 // waiting (a car is plugged in, not charging), done (charged), idle (no car), error; `offline` when the charger cannot report.
+// V2C Trydan words its states in Spanish or Italian too (Manguera conectada (CARGANDO), Vehículo conectado (inactivo),
+// In attesa del veicolo); its "Vehicle connected (idle)" is a car plugged in, waiting.
 const EV_STATE_RULES = [
-  ["error", /(error|fault|failure|failed|defect)/],
+  ["error", /(error|fault|failure|failed|defect|fallo|guasto|ventilat|ventilac)/],
   ["done", /(complete|finish|full|charged|done|termin)/],
   // Before charging: "not_charging", "charging_stopped" are no charge.
-  ["waiting", /(^|_)not_charging|charging_(stopped|paused|suspended)/],
-  ["charging", /(^|_)(charging|in_progress|laden|ladend|charge_en_cours|en_charge)($|_)/],
-  ["idle", /(disconnected|not_connected|unplugged|no_car|no_ev|no_vehicle|awaiting_car(?!_demand)|waiting_for_car(?!_demand)|ready_for_car|^ready$|available|idle|standby|^off$)/],
+  ["waiting", /(^|_)not_charging|charging_(stopped|paused|suspended)|vehicle_connected|vehiculo_conectado|veicolo_collegato|conectada_no_carga/],
+  ["charging", /(^|_)(charging|in_progress|laden|ladend|charge_en_cours|en_charge|cargando|in_carica)($|_)/],
+  ["idle", /(disconnected|not_connected|no_conectad|unplugged|no_car|no_ev|no_vehicle|awaiting_car(?!_demand)|waiting_for_(car|vehicle)(?!_demand)|esperando_vehiculo|attesa_del_veicolo|ready_for_car|^ready$|available|idle|standby|^off$)/],
   ["waiting", /(connected|plugged|ready|wait|paus|suspend|schedul|preparing|delay|eco|smart|occupied|authori|pending|requesting|reserv)/],
 ];
 const evNorm = (s) =>
@@ -574,7 +576,8 @@ const evNorm = (s) =>
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/[\s-]+/g, "_");
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
 // Normalised state of a raw status, undefined when it is no charger status.
 const evStateOf = (raw) => {
   const n = evNorm(raw);
@@ -585,9 +588,30 @@ const evStateOf = (raw) => {
 // Integrations known to be EV chargers: their devices are offered first.
 const EV_PLATFORMS = [
   "easee", "wallbox", "zaptec", "ohme", "myenergi", "tesla_wall_connector", "go_echarger", "goecharger", "alfen_wallbox",
-  "peblar", "ocpp", "keba", "openwb", "evcc_intg", "wallbox_pulsar", "nrgkick", "smartevse", "v2c", "elli", "hypervolt",
+  "peblar", "ocpp", "keba", "openwb", "evcc_intg", "wallbox_pulsar", "nrgkick", "smartevse", "v2c", "v2c_trydan", "v2c_cloud", "elli", "hypervolt",
 ];
-const EV_NAME = /charger|wallbox|borne|ladestation|evse|easee|zaptec|zappi|ohme|pulsar|go-?e|wall.?connector|alfen|peblar/i;
+const EV_NAME = /charger|wallbox|borne|ladestation|evse|easee|zaptec|zappi|ohme|pulsar|go-?e|wall.?connector|alfen|peblar|trydan|v2c/i;
+
+// Integrations whose entities are known by their translation key (`domain.key`): read before the discovery by name.
+// null: the integration has no such role (V2C's "error" sensors report the house meter's link, not the charger).
+const EV_KEYS = {
+  // Built in (V2C); its charging binary sensor has no key: the `charging` role finds it by device class.
+  v2c: {
+    plug: "binary_sensor.connected", power: "sensor.charge_power", energy: "sensor.charge_energy", total: null,
+    duration: "sensor.charge_time", limit: "number.intensity", switch: "switch.paused", lock: "switch.locked", error: null,
+  },
+  // V2C Trydan (Rain1971).
+  v2c_trydan: {
+    status: "sensor.chargestate", power: "sensor.chargepower", energy: "sensor.chargeenergy", total: null,
+    duration: "sensor.chargetime", limit: "number.intensity", current: null, switch: "switch.paused", lock: "switch.locked", error: null,
+  },
+  // V2C Cloud (samuelebistoletti).
+  v2c_cloud: {
+    status: "sensor.charge_state", power: "sensor.charge_power", energy: "sensor.charge_energy", total: null,
+    duration: "sensor.charge_time", limit: "number.current_intensity", current: "sensor.intensity_l1",
+    switch: "switch.charging_pause", lock: "switch.locked", error: null,
+  },
+};
 // A smart plug feeding a phone, laptop or tool charger is named like a charger too: never one of ours by name alone.
 const EV_NOT_EV = /phone|t[ée]l[ée]phone|handy|usb|laptop|tablet|ipad|watch|montre|toothbrush|brosse|battery.?pack|power.?bank|drill|perceuse/i;
 
@@ -635,9 +659,9 @@ const evChargers = (hass) => {
   return out.sort((a, b) => b.score - a.score).map((x) => x.device);
 };
 
-// The entity of each role on the charger's device: status, plug (a car is plugged in), power, energy (this session), total, limit (a number in A),
+// The entity of each role on the charger's device: status, plug (a car is plugged in), charging (a binary sensor), power, energy (this session), total, limit (a number in A),
 // current, phases, switch (charging allowed), start, stop, lock (cable), cost, duration, error, battery (the car's level).
-const EV_ROLES = ["status", "plug", "power", "energy", "total", "limit", "current", "phases", "switch", "start", "stop", "lock", "cost", "duration", "error", "battery"];
+const EV_ROLES = ["status", "plug", "charging", "power", "energy", "total", "limit", "current", "phases", "switch", "start", "stop", "lock", "cost", "duration", "error", "battery"];
 const evFind = (hass, device, overrides = {}) => {
   const ids = device ? evDeviceEntities(hass)[device] || [] : [];
   const st = (id) => hass.states[id];
@@ -658,7 +682,9 @@ const evFind = (hass, device, overrides = {}) => {
     pick((id) => dom(id) === "select" && statusLike(id) && named(id, STATUS)) ||
     pick((id) => dom(id) === "sensor" && named(id, STATUS) && evNum(st(id)) == null && !named(id, /error|fault/i));
   r.plug = pick((id) => dom(id) === "binary_sensor" && dc(id) === "plug");
-  r.power = pick((id) => dom(id) === "sensor" && dc(id) === "power", (id) => !named(id, /max|limit|offered|avail/i));
+  r.charging = pick((id) => dom(id) === "binary_sensor" && dc(id) === "battery_charging");
+  // The charging power, not the house's, the solar panels' or the home battery's that some chargers report too.
+  r.power = pick((id) => dom(id) === "sensor" && dc(id) === "power", (id) => !named(id, /max|limit|offered|avail|house|home|maison|fv|photovolt|solar|grid|battery|contract/i));
   const energy = ids.filter((id) => dom(id) === "sensor" && dc(id) === "energy" && st(id));
   r.energy = energy.find((id) => named(id, /session|added|charged|last|current|ladung|recharg/i)) || energy.find((id) => st(id).attributes.state_class !== "total_increasing");
   r.total = energy.find((id) => id !== r.energy && (named(id, /total|lifetime|meter|cumul|gesamt/i) || st(id).attributes.state_class === "total_increasing"));
@@ -675,9 +701,16 @@ const evFind = (hass, device, overrides = {}) => {
   r.stop = pick((id) => dom(id) === "button" && named(id, /stop|pause/i));
   r.lock = pick((id) => dom(id) === "lock") || pick((id) => dom(id) === "switch" && named(id, /lock|verrou|sperr/i));
   r.cost = pick((id) => dom(id) === "sensor" && dc(id) === "monetary", (id) => named(id, /session|cost|cout|kosten/i));
-  r.duration = pick((id) => dom(id) === "sensor" && (dc(id) === "duration" || named(id, /charging.?time|duration|duree|ladedauer/i)) && evNum(st(id)) != null);
+  r.duration = pick((id) => dom(id) === "sensor" && (dc(id) === "duration" || named(id, /charging.?time|duration|duree|ladedauer/i)) && evMinutes(st(id)) != null);
   r.error = pick((id) => (dom(id) === "sensor" && named(id, /error|fault|erreur|fehler/i)) || (dom(id) === "binary_sensor" && dc(id) === "problem"));
   r.battery = pick((id) => dom(id) === "sensor" && dc(id) === "battery");
+  // The roles an integration is known to name.
+  const keyed = ids.find((id) => EV_KEYS[hass.entities?.[id]?.platform]);
+  const keys = keyed && EV_KEYS[hass.entities[keyed].platform];
+  if (keys) {
+    const byKey = Object.fromEntries(ids.filter((id) => st(id)).map((id) => [`${dom(id)}.${hass.entities[id]?.translation_key}`, id]));
+    for (const [role, key] of Object.entries(keys)) r[role] = key === null ? undefined : byKey[key] || r[role];
+  }
   for (const role of EV_ROLES) if (overrides[role]) r[role] = overrides[role];
   return r;
 };
@@ -685,12 +718,20 @@ const evFind = (hass, device, overrides = {}) => {
 // An error sensor that says "no error".
 const EV_NO_ERROR = /^(no_?error|none|ok|0|false|off|no_?fault|aucun|normal|keine?)$/;
 
-// A duration in h / min / s → a compact text, *1 h 42*.
-const evDuration = (st) => {
+// A duration in minutes: a number in h / min / s / d, or a text *HH:MM:SS* (V2C Trydan).
+const evMinutes = (st) => {
+  const hms = /^(\d+):(\d{2})(?::(\d{2}))?$/.exec(String(st?.state ?? "").trim());
+  if (hms) return Number(hms[1]) * 60 + Number(hms[2]) + Number(hms[3] || 0) / 60;
   const v = evNum(st);
   if (v == null) return null;
   const u = st.attributes.unit_of_measurement;
-  const min = Math.round(u === "h" ? v * 60 : u === "s" ? v / 60 : u === "d" ? v * 1440 : v);
+  return u === "h" ? v * 60 : u === "s" ? v / 60 : u === "d" ? v * 1440 : v;
+};
+// A duration → a compact text, *1 h 42*.
+const evDuration = (st) => {
+  const m = evMinutes(st);
+  if (m == null) return null;
+  const min = Math.round(m);
   return min >= 60 ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}` : `${min} min`;
 };
 

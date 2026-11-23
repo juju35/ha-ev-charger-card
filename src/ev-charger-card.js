@@ -449,7 +449,7 @@ class EvChargerCard extends RcCard {
     let state = raw && !rcUnavailable(raw) ? evStateOf(raw.state) : undefined;
     // OCPP publishes "Unavailable" with a capital: offline too.
     const rawOff = raw && (rcUnavailable(raw) || evNorm(raw.state) === "unavailable");
-    if (!state) state = watts > 50 ? "charging" : st("plug") ? (on("plug") ? "waiting" : "idle") : rawOff ? "offline" : "idle";
+    if (!state) state = watts > 50 || on("charging") ? "charging" : st("plug") ? (on("plug") ? "waiting" : "idle") : rawOff ? "offline" : "idle";
     if (errOn) state = "error";
     const limit = st("limit");
     const lock = st("lock");

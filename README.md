@@ -16,7 +16,8 @@
   <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/zaptec.svg" alt="Zaptec" height="28">&nbsp;&nbsp;
   <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/ohme.svg" alt="Ohme" height="24">&nbsp;&nbsp;
   <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/myenergi.svg" alt="myenergi" height="24">&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/tesla.svg" alt="Tesla" height="28">
+  <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/tesla.svg" alt="Tesla" height="28">&nbsp;&nbsp;
+  <a href="https://v2charge.com/"><img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/v2c.png" alt="V2C" height="24"></a>
 </p>
 <p align="center">
   <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/go-e.svg" alt="go-e" height="24">&nbsp;&nbsp;
@@ -69,6 +70,7 @@ The card reads what the charger's device exposes, by device class, unit and doma
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/tesla.svg" alt="Tesla" height="20"> | [Tesla Wall Connector](https://www.home-assistant.io/integrations/tesla_wall_connector/) (built in) | Tesla Wall Connector |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/ohme.svg" alt="Ohme" height="17"> | [Ohme](https://www.home-assistant.io/integrations/ohme/) (built in) | Ohme Home Pro, ePod |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/peblar.svg" alt="Peblar" height="17"> | [Peblar](https://www.home-assistant.io/integrations/peblar/) (built in) | Peblar Home, Business |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/v2c.png" alt="V2C" height="17"> | [V2C](https://www.home-assistant.io/integrations/v2c/) (built in), [V2C Trydan](https://github.com/Rain1971/V2C_trydant) and [V2C Cloud](https://github.com/samuelebistoletti/HomeAssistant-V2C-Cloud) (Marketplace) | V2C Trydan |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/easee.svg" alt="Easee" height="17"> | [Easee](https://github.com/nordicopen/easee_hass) (Marketplace) | Easee Home, Charge, One |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/zaptec.svg" alt="Zaptec" height="20"> | [Zaptec](https://github.com/custom-components/zaptec) (Marketplace) | Zaptec Go, Pro |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/myenergi.svg" alt="myenergi" height="17"> | [myenergi](https://github.com/CJNE/ha-myenergi) (Marketplace) | myenergi zappi |
@@ -150,7 +152,7 @@ entities:
 | `show_controls` | both | `true` | Pause / start, current limit and cable lock |
 | `max_power` | mini | `7.4` | The power (kW) of a full ring when the car's battery level is unknown |
 | `zoom` | mini | `true` | The zoom button |
-| `entities` | both | — | In the editor's *Advanced* section (as YAML): the entity of a role, over the discovery — `status`, `plug`, `power`, `energy`, `total`, `limit`, `current`, `phases`, `switch`, `start`, `stop`, `lock`, `cost`, `duration`, `error`, `battery` |
+| `entities` | both | — | In the editor's *Advanced* section (as YAML): the entity of a role, over the discovery — `status`, `plug`, `charging`, `power`, `energy`, `total`, `limit`, `current`, `phases`, `switch`, `start`, `stop`, `lock`, `cost`, `duration`, `error`, `battery` |
 | `language` | both | Home Assistant's | In the editor's *Advanced* section. One of the [languages](#translations) |
 
 ## Screenshots
@@ -215,7 +217,8 @@ entities:
 ## How it works
 
 - **Charger**: the `device` set in the card, or the device of `entity`; without either, the first device of a known charger integration (Easee, Wallbox, Zaptec, Ohme, myenergi, Tesla Wall Connector, go-e, Alfen, Peblar, OCPP…), else the first device named like a charger that has a power sensor or a current limit
-- **Roles**, on the charger's device: `status` (a sensor whose state is a charger status), `plug` (a `plug` binary sensor), `power` (`power` sensor, W or kW), `energy` (an `energy` sensor named *session*, *added*, *charged*…), `total` (the lifetime `energy` sensor), `limit` (a `number` in A), `current`, `phases`, `switch` (a switch named *enable*, *charging*, *pause*…, not a mode switch such as *smart* or *eco*; a *pause* switch is turned on to pause), `start` / `stop` (buttons), `lock` (a `lock`, or a switch named *lock*; a cable lock when named after the cable), `cost` (`monetary` sensor), `duration`, `error` (a sensor named *error*, or a `problem` binary sensor), `battery`; `entities` sets any of them
+- **Roles**, on the charger's device: `status` (a sensor whose state is a charger status), `plug` (a `plug` binary sensor), `charging` (a `battery_charging` binary sensor, when there is no status), `power` (the charging `power` sensor, W or kW, not the house's or the solar panels'), `energy` (an `energy` sensor named *session*, *added*, *charged*…), `total` (the lifetime `energy` sensor), `limit` (a `number` in A), `current`, `phases`, `switch` (a switch named *enable*, *charging*, *pause*…, not a mode switch such as *smart* or *eco*; a *pause* switch is turned on to pause), `start` / `stop` (buttons), `lock` (a `lock`, or a switch named *lock*; a cable lock when named after the cable), `cost` (`monetary` sensor), `duration` (in h / min / s, or a *HH:MM:SS* text), `error` (a sensor named *error*, or a `problem` binary sensor), `battery`; `entities` sets any of them
+- **Known integrations**: for the V2C integrations (built-in V2C, V2C Trydan, V2C Cloud) the roles are read from the entities' translation keys first: the `Intensity` setpoint as the limit (not `Max intensity`), the session's charge energy (no lifetime total), the pause switch, the charger lock, and no error role (their error sensor reports the house meter's link, not the charger)
 - **State**: the status in the integration's words, brought down to five states; an active error sensor wins
 - **Actions**: Pause / Start press the charger's buttons or turn its switch off / on, the limit goes through `number.set_value` within the entity's range and step, the lock through `lock.lock` / `lock.unlock` (or the switch); nothing else
 

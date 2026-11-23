@@ -56,6 +56,20 @@ test("states: the integrations' words brought down to five", () => {
     Reserved: "waiting",
     Faulted: "error",
     "Waiting MID failed": "error",
+    // V2C Trydan, in English, Spanish and Italian.
+    "Waiting for vehicle": "idle",
+    "Vehicle connected (idle)": "waiting",
+    "Manguera no conectada": "idle",
+    "Manguera conectada (NO CARGA)": "waiting",
+    "Manguera conectada (CARGANDO)": "charging",
+    "Esperando vehículo": "idle",
+    "Vehículo conectado (inactivo)": "waiting",
+    Cargando: "charging",
+    "In attesa del veicolo": "idle",
+    "Veicolo collegato": "waiting",
+    "In carica": "charging",
+    "System fault / leak detected": "error",
+    "Ventilation required": "error",
   };
   for (const [raw, want] of Object.entries(cases)) assert.equal(ev.evStateOf(raw), want, raw);
   assert.equal(ev.evStateOf("unavailable"), undefined);
@@ -396,4 +410,108 @@ test("translations: every language has every key of English, with the same place
   }
   const fr = make("ev-charger-card", { device: "charger", language: "fr" });
   assert.equal(fr._status(fr._items), "En charge · 7,2 kW");
+});
+
+// A V2C Trydan as each integration names it: [entity_id, translation_key, state, attributes].
+const v2cHass = (platform, rows) => {
+  const h = makeHass();
+  h.devices = { trydan: { name: "Trydan", model: "Trydan" } };
+  h.entities = Object.fromEntries(rows.map(([id, key]) => [id, { device_id: "trydan", platform, translation_key: key }]));
+  h.states = Object.fromEntries(rows.map(([id, , state, attrs = {}]) => [id, st(id, state, attrs)]));
+  return h;
+};
+const W = { device_class: "power", unit_of_measurement: "W" };
+const A = { unit_of_measurement: "A", min: 6, max: 32, step: 1 };
+
+test("V2C Trydan, built-in integration: charge power and session, the intensity, the pause switch, no meter error", () => {
+  const rows = (charging) => [
+    ["binary_sensor.trydan_connected", "connected", "on", { device_class: "plug" }],
+    ["binary_sensor.trydan_charging", null, charging ? "on" : "off", { device_class: "battery_charging" }],
+    ["sensor.trydan_house_power", "house_power", "2300", W],
+    ["sensor.trydan_photovoltaic_power", "fv_power", "3100", W],
+    ["sensor.trydan_charge_power", "charge_power", charging ? "7200" : "0", W],
+    ["sensor.trydan_charge_energy", "charge_energy", "8.4", { device_class: "energy", unit_of_measurement: "kWh", state_class: "total_increasing" }],
+    ["sensor.trydan_charge_time", "charge_time", "5400", { device_class: "duration", unit_of_measurement: "s" }],
+    ["sensor.trydan_meter_error", "meter_error", "clamp_not_connected", { device_class: "enum", friendly_name: "Trydan Meter error" }],
+    ["number.trydan_max_intensity", "max_intensity", "32", { ...A, friendly_name: "Trydan Max intensity" }],
+    ["number.trydan_intensity", "intensity", "16", { ...A, friendly_name: "Trydan Intensity" }],
+    ["switch.trydan_pause_dynamic_control_modulation", "pause_dynamic", "off", { friendly_name: "Trydan Pause dynamic control modulation" }],
+    ["switch.trydan_pause_session", "paused", "off", { friendly_name: "Trydan Pause session" }],
+    ["switch.trydan_lock_evse", "locked", "off", { friendly_name: "Trydan Lock EVSE" }],
+  ];
+  const h = v2cHass("v2c", rows(true));
+  assert.deepEqual(json(ev.evChargers(h)), ["trydan"]);
+  const r = ev.evFind(h, "trydan");
+  assert.equal(r.power, "sensor.trydan_charge_power");
+  assert.equal(r.energy, "sensor.trydan_charge_energy");
+  assert.equal(r.total, undefined, "the session energy is no lifetime total");
+  assert.equal(r.limit, "number.trydan_intensity");
+  assert.equal(r.switch, "switch.trydan_pause_session");
+  assert.equal(r.lock, "switch.trydan_lock_evse");
+  assert.equal(r.error, undefined, "the meter's link is no charger fault");
+  const card = make("ev-charger-card", { device: "trydan" }, h);
+  assert.equal(card._items.state, "charging");
+  assert.equal(card._items.duration, "1 h 30");
+  assert.equal(card._items.switchPause, true);
+  assert.equal(card._items.lock.cable, false);
+  // Plugged in, paused: waiting, even with a little standby power.
+  const paused = v2cHass("v2c", rows(false));
+  assert.equal(make("ev-charger-card", { device: "trydan" }, paused)._items.state, "waiting");
+});
+
+test("V2C Trydan, Rain1971's integration: its Spanish charge state and its HH:MM:SS charge time", () => {
+  const h = v2cHass("v2c_trydan", [
+    ["sensor.v2c_trydan_charge_state", "chargestate", "Manguera conectada (CARGANDO)", { device_class: "enum", friendly_name: "V2C Trydan Charge State" }],
+    ["sensor.v2c_trydan_numerical_status", null, "2", { friendly_name: "V2C trydan NumericalStatus" }],
+    ["sensor.v2c_trydan_charge_power", "chargepower", "7360", W],
+    ["sensor.v2c_trydan_house_power", "housepower", "900", W],
+    ["sensor.v2c_trydan_charge_energy", "chargeenergy", "3.2", { device_class: "energy", unit_of_measurement: "kWh", state_class: "total_increasing" }],
+    ["sensor.v2c_trydan_charge_time", "chargetime", "01:42:10", { friendly_name: "V2C Trydan Charge Time" }],
+    ["sensor.v2c_trydan_charge_intensity", "intensity", "16", { device_class: "current", unit_of_measurement: "A" }],
+    ["sensor.v2c_trydan_slave_error", "slaveerror", "4", { friendly_name: "V2C Trydan Slave Error" }],
+    ["number.v2c_trydan_maximum_intensity", "max_intensity", "32", A],
+    ["number.v2c_trydan_charge_intensity", "intensity", "16", A],
+    ["switch.v2c_trydan_dynamic_charge", "dynamic", "off", { friendly_name: "V2C Trydan Dynamic Charge" }],
+    ["switch.v2c_trydan_pause_charge", "paused", "off", { friendly_name: "V2C Trydan Pause Charge" }],
+    ["switch.v2c_trydan_lock_charger", "locked", "off", { friendly_name: "V2C Trydan Lock Charger" }],
+  ]);
+  assert.deepEqual(json(ev.evChargers(h)), ["trydan"]);
+  const r = ev.evFind(h, "trydan");
+  assert.equal(r.status, "sensor.v2c_trydan_charge_state");
+  assert.equal(r.limit, "number.v2c_trydan_charge_intensity");
+  assert.equal(r.switch, "switch.v2c_trydan_pause_charge");
+  assert.equal(r.error, undefined);
+  const card = make("ev-charger-card", { device: "trydan" }, h);
+  assert.equal(card._items.state, "charging");
+  assert.equal(card._items.watts, 7360);
+  assert.equal(card._items.duration, "1 h 42");
+});
+
+test("V2C Trydan, V2C Cloud integration: its charge state, the current intensity and the charging pause", () => {
+  const h = v2cHass("v2c_cloud", [
+    ["binary_sensor.trydan_v2c_cloud_connection_status", "connected", "on", { device_class: "connectivity" }],
+    ["sensor.trydan_charging_state", "charge_state", "Vehicle connected (idle)", { friendly_name: "Trydan Charging state" }],
+    ["sensor.trydan_ready_state", "ready_state", "Ready", { friendly_name: "Trydan Ready state" }],
+    ["sensor.trydan_battery_power", "battery_power", "-1200", W],
+    ["sensor.trydan_charging_power", "charge_power", "0", W],
+    ["sensor.trydan_charging_energy", "charge_energy", "11.0", { device_class: "energy", unit_of_measurement: "kWh", state_class: "total_increasing" }],
+    ["sensor.trydan_device_error_code", "slave_error", "Waiting Wi-Fi", { friendly_name: "Trydan Device error code" }],
+    ["sensor.trydan_phase_1_current", "intensity_l1", "0", { device_class: "current", unit_of_measurement: "A" }],
+    ["number.trydan_maximum_intensity", "max_intensity", "32", A],
+    ["number.trydan_current_intensity", "current_intensity", "10", A],
+    ["switch.trydan_pause_dynamic_control", "pause_dynamic", "off", { friendly_name: "Trydan Pause dynamic control" }],
+    ["switch.trydan_charging_pause", "charging_pause", "on", { friendly_name: "Trydan Charging pause" }],
+    ["switch.trydan_charger_lock", "locked", "off", { friendly_name: "Trydan Charger lock" }],
+  ]);
+  const r = ev.evFind(h, "trydan");
+  assert.equal(r.status, "sensor.trydan_charging_state");
+  assert.equal(r.power, "sensor.trydan_charging_power");
+  assert.equal(r.limit, "number.trydan_current_intensity");
+  assert.equal(r.switch, "switch.trydan_charging_pause");
+  assert.equal(r.error, undefined);
+  const card = make("ev-charger-card", { device: "trydan" }, h);
+  assert.equal(card._items.state, "waiting");
+  // Paused with a car waiting: start turns the pause switch off.
+  click(card, ".act-start");
+  assert.deepEqual(json(h.calls.at(-1)), ["switch", "turn_off", { entity_id: "switch.trydan_charging_pause" }]);
 });
