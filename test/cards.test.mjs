@@ -515,3 +515,16 @@ test("V2C Trydan, V2C Cloud integration: its charge state, the current intensity
   click(card, ".act-start");
   assert.deepEqual(json(h.calls.at(-1)), ["switch", "turn_off", { entity_id: "switch.trydan_charging_pause" }]);
 });
+
+test("discovery: a charger named after the house keeps the max power out of the charging power", () => {
+  const h = makeHass();
+  delete h.states["sensor.garage_power"];
+  const add = (id, name, v) => {
+    h.entities[id] = { device_id: "charger", platform: "zha" };
+    h.states[id] = st(id, v, { device_class: "power", unit_of_measurement: "W", friendly_name: name });
+  };
+  add("sensor.borne_maison_max_power", "Borne maison Max power", "22000");
+  add("sensor.borne_maison_house_power", "Borne maison House power", "2300");
+  add("sensor.borne_maison_power", "Borne maison Power", "7200");
+  assert.equal(ev.evFind(h, "charger").power, "sensor.borne_maison_power");
+});

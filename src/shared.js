@@ -669,9 +669,14 @@ const evFind = (hass, device, overrides = {}) => {
   const dc = (id) => st(id)?.attributes.device_class;
   const unit = (id) => st(id)?.attributes.unit_of_measurement;
   const named = (id, re) => re.test(evLabel(hass, id));
-  const pick = (test, prefer) => {
+  // The first entity passing the test, the first matching the earliest preference that any matches.
+  const pick = (test, ...prefer) => {
     const all = ids.filter((id) => st(id) && test(id));
-    return (prefer && all.find(prefer)) || all[0];
+    for (const p of prefer) {
+      const hit = all.find(p);
+      if (hit) return hit;
+    }
+    return all[0];
   };
   const r = {};
   // A sensor first; a select only when named a status (a "Charge mode" select set to *eco* is no status).
@@ -683,8 +688,14 @@ const evFind = (hass, device, overrides = {}) => {
     pick((id) => dom(id) === "sensor" && named(id, STATUS) && evNum(st(id)) == null && !named(id, /error|fault/i));
   r.plug = pick((id) => dom(id) === "binary_sensor" && dc(id) === "plug");
   r.charging = pick((id) => dom(id) === "binary_sensor" && dc(id) === "battery_charging");
-  // The charging power, not the house's, the solar panels' or the home battery's that some chargers report too.
-  r.power = pick((id) => dom(id) === "sensor" && dc(id) === "power", (id) => !named(id, /max|limit|offered|avail|house|home|maison|fv|photovolt|solar|grid|battery|contract/i));
+  // The charging power, not the house's, the solar panels' or the home battery's that some chargers report too; that
+  // second wish gives way when it rules out every sensor (a charger named "… Home" or "Borne maison"), the first never.
+  const notMax = (id) => !named(id, /max|limit|offered|avail/i);
+  r.power = pick(
+    (id) => dom(id) === "sensor" && dc(id) === "power",
+    (id) => notMax(id) && !named(id, /house|fv|photovolt|solar|grid|battery|contract/i),
+    notMax,
+  );
   const energy = ids.filter((id) => dom(id) === "sensor" && dc(id) === "energy" && st(id));
   r.energy = energy.find((id) => named(id, /session|added|charged|last|current|ladung|recharg/i)) || energy.find((id) => st(id).attributes.state_class !== "total_increasing");
   r.total = energy.find((id) => id !== r.energy && (named(id, /total|lifetime|meter|cumul|gesamt/i) || st(id).attributes.state_class === "total_increasing"));
