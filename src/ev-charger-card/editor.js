@@ -30,7 +30,7 @@ export const EV_HELPERS = ["title", "battery", "show_background", "zoom", "entit
 export const EvChargerCardEditor = rcEditor({
   card: EvChargerCard,
   helpers: EV_HELPERS,
-  schema: evSchema(["show_title", "show_scene", "show_background", "animations", "show_controls"]),
+  schema: evSchema(["show_title", "show_scene", "show_background", "animations", "show_controls", "show_settings"]),
 });
 
 rcRegister(

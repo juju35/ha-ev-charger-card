@@ -7,6 +7,8 @@ import { setup } from "./mock.mjs";
 // are SVG animations it does not: they would land elsewhere at each run, and every capture would count as changed.
 const still = (file, s) => pair(file, { ...s, config: { animations: false, ...s.config } });
 const scenes = ["charging", "waiting", "done", "idle", "error"].flatMap((scene) => still(scene, { scene }));
+// Paused, with the current presets open; the charger's own settings unfolded.
+const controls = [...still("paused-presets", { scene: "paused", open: ".sv" }), ...still("settings", { scene: "waiting", settings: true, open: ".sh" })];
 // The other cars of the illustration (`vehicle`), the saloon being the default, and a few paints (`color`).
 const vehicles = ["hatch", "estate", "crossover", "coupe_suv", "small_suv", "suv", "city", "van"].flatMap((vehicle) =>
   still(`vehicle-${vehicle.replace("_", "-")}`, { scene: "charging", config: { vehicle } }),
@@ -14,7 +16,7 @@ const vehicles = ["hatch", "estate", "crossover", "coupe_suv", "small_suv", "suv
 const bare = still("no-background", { scene: "charging", config: { show_background: false } });
 const themes = ["day", "night"].flatMap((theme) => still(theme, { scene: "charging", config: { illustration_theme: theme } }));
 const colors = ["blue", "red", "black"].flatMap((color) => still(`color-${color}`, { scene: "charging", config: { color } }));
-await shoot({ prefix: "ev", tag: "ev-charger-card", shots: [...scenes, ...vehicles, ...colors, ...themes, ...bare, ...still("compact", { scene: "charging", config: { show_scene: false } })], setup });
+await shoot({ prefix: "ev", tag: "ev-charger-card", shots: [...scenes, ...controls, ...vehicles, ...colors, ...themes, ...bare, ...still("compact", { scene: "charging", config: { show_scene: false } })], setup });
 await shoot({
   prefix: "ev-mini",
   tag: "ev-charger-mini-card",

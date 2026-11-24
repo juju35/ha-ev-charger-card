@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Sostituisce le entità trovate, per ruolo: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Vuoto: il nome della wallbox",
     confirm: "Premi di nuovo per sbloccare",
+    st_paused: "In pausa",
+    resume: "Riprendi",
+    t_power: "Potenza",
+    settings: "Impostazioni",
+    choose_current: "Scegli una corrente",
+    ed_show_settings: "Impostazioni della wallbox",
   },
 };

@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Nahrazuje nalezené entity podle role: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Prázdné: název nabíječky",
     confirm: "Stiskněte znovu pro odemknutí",
+    st_paused: "Pozastaveno",
+    resume: "Pokračovat",
+    t_power: "Výkon",
+    settings: "Nastavení",
+    choose_current: "Vybrat proud",
+    ed_show_settings: "Nastavení nabíječky",
   },
 };

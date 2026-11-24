@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Aizstāj atrastās entītijas pēc lomas: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Tukšs: stacijas nosaukums",
     confirm: "Nospiediet vēlreiz, lai atbloķētu",
+    st_paused: "Pauzēts",
+    resume: "Atsākt",
+    t_power: "Jauda",
+    settings: "Iestatījumi",
+    choose_current: "Izvēlēties strāvu",
+    ed_show_settings: "Lādētāja iestatījumi",
   },
 };

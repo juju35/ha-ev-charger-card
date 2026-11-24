@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Замінює знайдені об'єкти за ролями: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Порожньо: назва станції",
     confirm: "Натисніть ще раз для розблокування",
+    st_paused: "Пауза",
+    resume: "Продовжити",
+    t_power: "Потужність",
+    settings: "Налаштування",
+    choose_current: "Вибрати струм",
+    ed_show_settings: "Налаштування зарядної станції",
   },
 };

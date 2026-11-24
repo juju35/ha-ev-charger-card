@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Szerepkör szerint felülírja a talált entitásokat: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Üres: a töltő neve",
     confirm: "Nyomja meg újra a feloldáshoz",
+    st_paused: "Szüneteltetve",
+    resume: "Folytatás",
+    t_power: "Teljesítmény",
+    settings: "Beállítások",
+    choose_current: "Áramerősség választása",
+    ed_show_settings: "A töltő beállításai",
   },
 };

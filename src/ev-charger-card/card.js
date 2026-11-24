@@ -17,7 +17,7 @@ export const evTextWidth = (el) => {
 export class EvChargerCard extends RcCard {
   static tag = "ev-charger-card";
   static i18n = EV_I18N;
-  static defaults = { show_scene: true, animations: true, show_controls: true };
+  static defaults = { show_scene: true, animations: true, show_controls: true, show_settings: true };
 
   // The most likely charger of the home.
   static getStubConfig(hass) {
@@ -75,6 +75,12 @@ export class EvChargerCard extends RcCard {
     const lock = st("lock");
     const dev = device && h.devices?.[device];
     const battery = c.battery ? h.states[c.battery] : st("battery");
+    const swName = e.switch ? `${e.switch} ${h.states[e.switch]?.attributes.friendly_name || ""}` : "";
+    // A "Pause charging" switch is on while paused: pause turns it on, start turns it off.
+    const switchPause = !!e.switch && /pause/i.test(swName) && !/resume/i.test(swName);
+    // Paused (V2C's pause switch on, a status saying so): a car plugged in that the charger holds back.
+    const paused = state === "waiting" && ((switchPause && on("switch")) || /paus/.test(evNorm(raw?.state)));
+    const session = evKwh(st("energy"));
     return {
       device,
       none: !device || !Object.values(e).some(Boolean),
@@ -84,7 +90,9 @@ export class EvChargerCard extends RcCard {
       name: c.title || dev?.name_by_user || dev?.name || this._t("title"),
       sub: [h.areas?.[dev?.area_id]?.name, dev?.model].filter(Boolean).join(" · "),
       watts,
-      session: evKwh(st("energy")),
+      paused,
+      session,
+      last: this._lastKwh(e.energy, session, state),
       total: evKwh(st("total")),
       amps: evNum(st("current")),
       phases: evNum(st("phases")),
@@ -105,12 +113,83 @@ export class EvChargerCard extends RcCard {
         : null,
       switchId: e.switch && h.states[e.switch] && !rcUnavailable(h.states[e.switch]) ? e.switch : null,
       switchOn: on("switch"),
-      // A "Pause charging" switch is on while paused: pause turns it on, start turns it off.
-      switchPause: !!e.switch && /pause/i.test(`${e.switch} ${h.states[e.switch]?.attributes.friendly_name || ""}`) && !/resume/i.test(`${e.switch} ${h.states[e.switch]?.attributes.friendly_name || ""}`),
+      switchPause,
       startId: e.start && h.states[e.start] ? e.start : null,
       stopId: e.stop && h.states[e.stop] ? e.stop : null,
       soc: evNum(battery),
+      settings: this._settingsOf(device, e, dev?.name_by_user || dev?.name || ""),
     };
+  }
+
+  // The energy of the last session: the session sensor while it holds it; once it is back to 0 out of a charge (V2C
+  // resets it when the car leaves), its last value above 0 in the past week, looked up once per reset; none meanwhile.
+  _lastKwh(id, session, state) {
+    if (session == null || session > 0 || state === "charging") return session;
+    const s = this._hass.states[id];
+    const key = `${id}|${s.last_changed}`;
+    if (this._last?.key === key) return this._last.value;
+    const entry = { key, value: null };
+    this._last = entry;
+    const start = new Date(Date.now() - 7 * 864e5).toISOString();
+    Promise.resolve(
+      this._hass.callWS?.({ type: "history/history_during_period", start_time: start, entity_ids: [id], minimal_response: true, no_attributes: true }),
+    )
+      .then((res) => {
+        const rows = res?.[id] || [];
+        for (let i = rows.length - 1; i >= 0; i--) {
+          const v = evKwh({ state: rows[i].s ?? rows[i].state, attributes: s.attributes });
+          if (v > 0) {
+            entry.value = v;
+            break;
+          }
+        }
+        if (entry.value != null && this._last === entry) {
+          this._sig = null;
+          this._render();
+        }
+      })
+      .catch(() => {});
+    return null;
+  }
+
+  // The charger's own settings (V2C's dynamic control and timer, a charge mode…): the switches, selects and numbers of
+  // its device that no role uses, diagnostic ones aside; `settings` lists them instead, `show_settings: false` hides them.
+  _settingsOf(device, roles, devName) {
+    const h = this._hass;
+    const c = this._config;
+    if (c.show_settings === false || c.show_controls === false) return [];
+    const used = new Set(Object.values(roles).filter(Boolean));
+    const ids = Array.isArray(c.settings)
+      ? c.settings
+      : (device ? evDeviceEntities(h)[device] || [] : []).filter((id) => /^(switch|select|number)\./.test(id) && !used.has(id) && h.entities[id]?.entity_category !== "diagnostic");
+    const lower = devName.toLowerCase();
+    return ids
+      .map((id) => h.states[id])
+      .filter((s) => s && !rcUnavailable(s))
+      .map((s) => {
+        const dom = s.entity_id.split(".")[0];
+        const a = s.attributes;
+        const full = a.friendly_name || s.entity_id;
+        const bare = lower && full.toLowerCase().startsWith(`${lower} `) ? full.slice(lower.length + 1) : full;
+        return {
+          id: s.entity_id,
+          dom,
+          name: bare.charAt(0).toUpperCase() + bare.slice(1),
+          state: s.state,
+          on: s.state === "on",
+          options: dom === "select" ? (a.options || []).map((o) => [o, h.formatEntityState?.(s, o) || o]) : null,
+          value: dom === "number" ? evNum(s) : null,
+          min: a.min,
+          max: a.max,
+          step: a.step || 1,
+          unit: a.unit_of_measurement || "",
+        };
+      });
+  }
+
+  // The state's label, *Paused* for a car held back.
+  _stateLabel(m) {
+    return this._t(m.paused ? "st_paused" : `st_${m.state}`);
   }
 
   _dark() {
@@ -132,7 +211,7 @@ export class EvChargerCard extends RcCard {
   }
 
   _status(m) {
-    const label = this._t(`st_${m.state}`);
+    const label = this._stateLabel(m);
     return m.state === "charging" && m.watts != null ? `${label} · ${this._power(m)}` : label;
   }
 
@@ -143,7 +222,8 @@ export class EvChargerCard extends RcCard {
     const amps = m.limit?.value != null ? [String(Math.round(m.limit.value)), m.phases > 1 ? `A · ${this._tn("phases", m.phases)}` : "A"] : null;
     const all = {
       session: ["energy", "t_session", kwh(m.session)],
-      last: ["energy", "t_last", kwh(m.session)],
+      last: ["energy", "t_last", kwh(m.last)],
+      power: ["power", "t_power", m.watts != null ? (m.watts >= 1000 ? [this._fmt(m.watts / 1000, 1), "kW"] : [this._fmt(m.watts, 0), "W"]) : null],
       time: ["time", "t_time", m.duration ? [m.duration, ""] : null],
       cost: ["cost", "t_cost", m.cost ? [m.cost, ""] : null],
       current: ["current", "t_current", m.amps != null ? [this._fmt(m.amps, 0), "A"] : null],
@@ -151,7 +231,7 @@ export class EvChargerCard extends RcCard {
       total: ["total", "t_total", kwh(m.total)],
     };
     const order = {
-      charging: ["session", "time", "cost", "current", "total"],
+      charging: ["session", "time", "cost", "power", "current", "total"],
       done: ["session", "time", "cost", "total"],
       waiting: ["limit", "last", "total", "time"],
     }[m.state] || ["last", "total", "limit"];
@@ -288,7 +368,7 @@ export class EvChargerCard extends RcCard {
     const banner = c.show_scene !== false && !m.none;
     // Redrawn only when something shown changes: a session energy moving by a few Wh, still 12.4 kWh on screen, must
     // not rebuild the card (and restart the energy flowing along the cable).
-    const parts = [m.none, m.state, m.raw, m.name, m.sub, status, m.soc != null && Math.round(m.soc), tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, this._dark(), this._night()];
+    const parts = [m.none, m.state, m.paused, m.raw, m.name, m.sub, status, m.soc != null && Math.round(m.soc), tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, m.settings, this._presetsOpen, this._settingsOpen, this._dark(), this._night()];
     if (!this._changed(parts)) return;
     const icon = `<ha-icon icon="${m.none ? "mdi:ev-station" : EV_ICONS[m.state]}"></ha-icon>`;
     const head = banner
@@ -298,7 +378,7 @@ export class EvChargerCard extends RcCard {
           // The pill says the state, the power leads the subtitle: the pill keeps its whole label on a narrow card.
           this._titleRow(
             `<div class="title">${rcEsc(m.name)}</div>`,
-            this._chip(this._t(`st_${m.state}`), m.raw || status),
+            this._chip(this._stateLabel(m), m.raw || status),
             this._subLine([m.state === "charging" ? this._power(m) : "", m.sub]),
             this._soc(m),
           ),
@@ -326,19 +406,81 @@ export class EvChargerCard extends RcCard {
     const m = this._items;
     if (!m || m.none || this._config.show_controls === false) return "";
     const primary = this._primary(m);
+    // Paused, the start button resumes.
+    const label = primary === "start" && m.paused ? "resume" : primary;
     const btn = primary
-      ? `<button class="pb act-${primary}" data-k="primary">${evIcon(EV_SVG[primary])}<span>${rcEsc(this._t(primary))}</span></button>`
+      ? `<button class="pb act-${primary}" data-k="primary">${evIcon(EV_SVG[primary])}<span>${rcEsc(this._t(label))}</span></button>`
       : "";
+    // The value between − and + opens the current presets, when there are some.
+    const presets = m.limit ? this._presetList(m.limit) : [];
+    const amps = m.limit ? rcEsc(m.limit.value != null ? `${Math.round(m.limit.value)} A` : "—") : "";
+    const value = presets.length
+      ? `<button class="val sv" data-k="presets" aria-expanded="${!!this._presetsOpen}" aria-label="${rcEsc(this._t("choose_current"))}" aria-live="polite">${amps}</button>`
+      : `<b class="val" aria-live="polite">${amps}</b>`;
     const step = m.limit
-      ? `<span class="seg" role="group" aria-label="${rcEsc(this._t("t_limit"))}"><button class="act-lower" data-k="lower" aria-label="${rcEsc(this._t("lower"))}"${m.limit.value <= m.limit.min ? " disabled" : ""}>−</button><b aria-live="polite">${rcEsc(m.limit.value != null ? `${Math.round(m.limit.value)} A` : "—")}</b><button class="act-raise" data-k="raise" aria-label="${rcEsc(this._t("raise"))}"${m.limit.value >= m.limit.max ? " disabled" : ""}>+</button></span>`
+      ? `<span class="seg" role="group" aria-label="${rcEsc(this._t("t_limit"))}"><button class="act-lower" data-k="lower" aria-label="${rcEsc(this._t("lower"))}"${m.limit.value <= m.limit.min ? " disabled" : ""}>−</button>${value}<button class="act-raise" data-k="raise" aria-label="${rcEsc(this._t("raise"))}"${m.limit.value >= m.limit.max ? " disabled" : ""}>+</button></span>`
       : "";
+    const asked = this._askedLimit(m.limit);
+    const cur = Math.round(asked ?? m.limit?.value ?? Number.NaN);
+    const row =
+      presets.length && this._presetsOpen
+        ? `<div class="presets" role="group" aria-label="${rcEsc(this._t("choose_current"))}">${presets.map((v) => `<button class="ps${v === cur ? " on" : ""}" data-k="ps-${v}" data-v="${v}" aria-pressed="${v === cur}">${v} A</button>`).join("")}</div>`
+        : "";
     // The lock button says what a press does (its state is aria-pressed); unlocking while charging asks for a second press.
     const action = m.lock ? `${m.lock.locked ? "unlock" : "lock"}${m.lock.cable ? "" : "_box"}` : "";
     const lock =
       m.lock && primary !== "unlock"
         ? `<button class="gb act-lock${this._armLock ? " armed" : ""}" data-k="lock" aria-pressed="${m.lock.locked}" title="${rcEsc(this._t(m.lock.locked ? "locked" : "unlocked"))}">${evIcon(EV_SVG[m.lock.locked ? "lock" : "unlock"])}<span>${rcEsc(this._t(this._armLock ? "confirm" : action))}</span></button>`
         : "";
-    return btn || step || lock ? `<div class="ctl">${btn}${step}${lock}</div>` : "";
+    return `${btn || step || lock ? `<div class="ctl">${btn}${step}${lock}</div>` : ""}${row}${this._settingsHtml(m)}`;
+  }
+
+  // The current presets: `current_presets` (6, 10, 13, 16, 20, 25 and 32 A by default; false: none), within the
+  // limit's range.
+  _presetList(l) {
+    const p = this._config.current_presets;
+    if (p === false) return [];
+    return (Array.isArray(p) ? p : [6, 10, 13, 16, 20, 25, 32]).map(Number).filter((v) => Number.isFinite(v) && v >= l.min && v <= l.max);
+  }
+
+  // The limit asked last, until the charger reports it (5 s at most).
+  _askedLimit(l) {
+    const a = this._limitAsked;
+    return l && a && a.id === l.id && Date.now() - a.at < 5000 ? a.value : null;
+  }
+
+  // The settings section, folded under its header (chevron right folded, down unfolded).
+  _settingsHtml(m) {
+    if (!m.settings?.length) return "";
+    const open = !!this._settingsOpen;
+    const k = (s, x = "") => `data-id="${rcEsc(s.id)}" data-k="set-${rcEsc(s.id)}${x}"`;
+    const row = (s) => {
+      let ctl;
+      if (s.dom === "switch") {
+        ctl = `<button class="tg${s.on ? " on" : ""}" role="switch" aria-checked="${s.on}" aria-label="${rcEsc(s.name)}" ${k(s)}><i></i></button>`;
+      } else if (s.dom === "select") {
+        ctl = `<select class="ss" aria-label="${rcEsc(s.name)}" ${k(s)}>${s.options.map(([o, label]) => `<option value="${rcEsc(o)}"${o === s.state ? " selected" : ""}>${rcEsc(label)}</option>`).join("")}</select>`;
+      } else {
+        const v = s.value != null ? `${this._fmt(s.value, Number.isInteger(s.step) ? 0 : 1)}${s.unit ? ` ${s.unit}` : ""}` : "—";
+        ctl = `<span class="seg sm"><button ${k(s, "-")} data-d="-1" aria-label="${rcEsc(`${s.name} −`)}"${s.min != null && s.value <= s.min ? " disabled" : ""}>−</button><b>${rcEsc(v)}</b><button ${k(s, "+")} data-d="1" aria-label="${rcEsc(`${s.name} +`)}"${s.max != null && s.value >= s.max ? " disabled" : ""}>+</button></span>`;
+      }
+      return `<div class="sr"><span class="sn" title="${rcEsc(s.name)}">${rcEsc(s.name)}</span>${ctl}</div>`;
+    };
+    return `<div class="set${open ? " open" : ""}"><button class="sh" data-k="settings" aria-expanded="${open}">${evIcon(EV_SVG.settings)}<span>${rcEsc(this._t("settings"))}</span>${evIcon(EV_SVG.chevron)}</button>${open ? `<div class="sl">${m.settings.map(row).join("")}</div>` : ""}</div>`;
+  }
+
+  // The presets row and the settings section fold back on a click elsewhere (as the mini card's zoom), and when the
+  // card leaves the page.
+  _watchFold() {
+    this._foldWatch ??= watchOutside(this, (ev) => {
+      if (!rcOutside(this, ev) || !(this._presetsOpen || this._settingsOpen)) return;
+      this._presetsOpen = false;
+      this._settingsOpen = false;
+      this._watchFold();
+      this._render();
+    });
+    if (this._presetsOpen || this._settingsOpen) this._foldWatch.on();
+    else this._foldWatch.off();
   }
 
   disconnectedCallback() {
@@ -346,6 +488,9 @@ export class EvChargerCard extends RcCard {
     this._fitObserver?.disconnect();
     clearTimeout(this._armTimer);
     this._armLock = false;
+    this._presetsOpen = false;
+    this._settingsOpen = false;
+    this._foldWatch?.off();
   }
 
   _bindAfter(root) {
@@ -381,19 +526,63 @@ export class EvChargerCard extends RcCard {
       this._render();
     });
     // Quick presses add up: each step starts from the value asked last (until the charger reports it), shown at once.
-    const setLimit = (delta) => {
+    const setTo = (value, from) => {
       const l = m.limit;
-      const pending = this._limitAsked && Date.now() - this._limitAsked.at < 5000 && this._limitAsked.id === l.id ? this._limitAsked.value : null;
-      const from = pending ?? l.value ?? l.min;
-      const value = Math.min(l.max, Math.max(l.min, from + delta * l.step));
       if (value === from) return;
       this._limitAsked = { id: l.id, value, at: Date.now() };
-      const shown = root.querySelector(".seg b");
+      const shown = root.querySelector(".seg .val");
       if (shown) shown.textContent = `${Math.round(value)} A`;
       rcCall(h, "number", "set_value", { entity_id: l.id, value });
     };
+    const setLimit = (delta) => {
+      const l = m.limit;
+      const from = this._askedLimit(l) ?? l.value ?? l.min;
+      setTo(Math.min(l.max, Math.max(l.min, from + delta * l.step)), from);
+    };
     on(".act-lower", () => setLimit(-1));
     on(".act-raise", () => setLimit(1));
+    const fold = (key) => {
+      this[key] = !this[key];
+      this._watchFold();
+      this._render();
+    };
+    on(".sv", () => fold("_presetsOpen"));
+    root.querySelector(".presets")?.addEventListener("click", (ev) => {
+      const b = ev.target.closest?.(".ps");
+      if (!b) return;
+      ev.stopPropagation();
+      setTo(Number(b.dataset.v), this._askedLimit(m.limit) ?? m.limit.value);
+      this._presetsOpen = false;
+      this._watchFold();
+      this._sig = null;
+      this._render();
+    });
+    const set = root.querySelector(".set");
+    set?.addEventListener("click", (ev) => {
+      const b = ev.target.closest?.("button");
+      if (!b) return;
+      ev.stopPropagation();
+      if (b.matches(".sh")) return fold("_settingsOpen");
+      const s = m.settings.find((x) => x.id === b.dataset.id);
+      if (s?.dom === "switch") rcCall(h, "switch", s.on ? "turn_off" : "turn_on", { entity_id: s.id });
+      if (s?.dom !== "number") return;
+      const from = s.value ?? s.min ?? 0;
+      let value = +(from + Number(b.dataset.d) * s.step).toFixed(6);
+      if (s.min != null) value = Math.max(s.min, value);
+      if (s.max != null) value = Math.min(s.max, value);
+      if (value !== from) rcCall(h, "number", "set_value", { entity_id: s.id, value });
+    });
+    // An open select is not rewritten under the pointer: the updates wait until it is closed.
+    set?.addEventListener("focusin", (ev) => {
+      if (ev.target.localName === "select") this._pressing = true;
+    });
+    set?.addEventListener("focusout", (ev) => {
+      if (ev.target.localName === "select") this._released();
+    });
+    set?.addEventListener("change", (ev) => {
+      const el = ev.target;
+      if (el.localName === "select") rcCall(h, "select", "select_option", { entity_id: el.dataset.id, option: el.value });
+    });
   }
 
   static styles = `
@@ -501,7 +690,38 @@ export class EvChargerCard extends RcCard {
     .seg button { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; color: var(--primary-text-color); }
     .seg button:hover:not([disabled]) { background: color-mix(in srgb, var(--c) 15%, transparent); }
     .seg button[disabled] { opacity: .35; cursor: default; }
-    .seg b { min-width: 48px; text-align: center; font-size: 14px; font-weight: 500; }
+    .seg b, .sv { min-width: 48px; text-align: center; font-size: 14px; font-weight: 500; }
+    .sv { all: unset; box-sizing: border-box; min-width: 56px; height: 36px; padding: 0 8px; border-radius: 999px; cursor: pointer; text-align: center; font-size: 14px; font-weight: 500; }
+    .sv:hover, .sv[aria-expanded="true"] { background: color-mix(in srgb, var(--c) 15%, transparent); }
+    /* The current presets, a row of pills under the controls. */
+    .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ps { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 999px;
+          font-size: 13px; font-weight: 500; color: var(--primary-text-color); background: var(--secondary-background-color, rgba(127,127,127,.1)); }
+    .ps:hover { background: color-mix(in srgb, var(--c) 15%, transparent); }
+    .ps.on { color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); background: color-mix(in srgb, var(--c) 18%, transparent);
+             box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent); }
+    /* The charger's settings, folded under a header row. */
+    .set { margin-top: 10px; border-radius: 12px; background: var(--secondary-background-color, rgba(127,127,127,.08)); }
+    .sh { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 12px;
+          border-radius: 12px; font-size: 13px; font-weight: 500; color: var(--primary-text-color); }
+    .sh svg { flex: none; width: 16px; height: 16px; color: var(--c); }
+    .sh span { flex: 1 1 auto; min-width: 0; }
+    .sh svg:last-child { color: var(--secondary-text-color); transition: transform .2s; }
+    .set.open .sh svg:last-child { transform: rotate(90deg); }
+    .sl { display: flex; flex-direction: column; padding: 0 12px 6px; }
+    .sr { display: flex; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
+    .sn { flex: 1 1 auto; min-width: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tg { all: unset; box-sizing: border-box; cursor: pointer; flex: none; position: relative; width: 36px; height: 20px; border-radius: 10px;
+          background: color-mix(in srgb, var(--secondary-text-color, #727272) 35%, transparent); transition: background .2s; }
+    .tg i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .2s; }
+    .tg.on { background: var(--c); }
+    .tg.on i { transform: translateX(16px); }
+    .seg.sm { flex: none; min-height: 32px; }
+    .seg.sm button { width: 30px; height: 30px; font-size: 16px; }
+    .seg.sm b { min-width: 52px; font-size: 13px; }
+    .ss { flex: 0 1 auto; max-width: 55%; min-height: 30px; padding: 0 8px; border-radius: 8px; font: inherit; font-size: 13px; color: var(--primary-text-color);
+          background: var(--card-background-color, transparent); border: 1px solid var(--divider-color, rgba(127,127,127,.3)); }
+    .sv:focus-visible, .ps:focus-visible, .sh:focus-visible, .tg:focus-visible, .ss:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .pb:focus-visible, .gb:focus-visible, .seg button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .gb.armed { color: color-mix(in srgb, var(--rc-warn) 50%, var(--primary-text-color, #212121)); background: color-mix(in srgb, var(--rc-warn) 18%, transparent); }
     .none { margin-top: 10px; padding: 12px; border-radius: 12px; font-size: 13px; color: var(--secondary-text-color);
@@ -511,6 +731,6 @@ export class EvChargerCard extends RcCard {
       /* Three tiles on two columns: the third spans the row rather than stand alone. */
       .grid > :nth-child(3):last-child { grid-column: 1 / -1; }
     }
-    @media (prefers-reduced-motion: reduce) { .ring, .scene .tw { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .ring, .scene .tw { animation: none; } .tg, .tg i, .sh svg { transition: none; } }
   `;
 }

@@ -220,7 +220,7 @@ test("quick presses on the limit add up, shown at once", () => {
   const card = make("ev-charger-card", { device: "charger" }, h);
   for (let i = 0; i < 3; i++) click(card, ".act-lower");
   assert.deepEqual(json(h.calls.map((c) => c[2].value)), [31, 30, 29]);
-  assert.equal(card._nodes[".seg b"].textContent, "29 A");
+  assert.equal(card._nodes[".seg .val"].textContent, "29 A");
   assert.doesNotMatch(card.shadowRoot.innerHTML, /<span class="xl">Limit/, "no limit tile above the stepper");
 });
 
@@ -527,4 +527,120 @@ test("discovery: a charger named after the house keeps the max power out of the 
   add("sensor.borne_maison_house_power", "Borne maison House power", "2300");
   add("sensor.borne_maison_power", "Borne maison Power", "7200");
   assert.equal(ev.evFind(h, "charger").power, "sensor.borne_maison_power");
+});
+
+// A click delegated to a container: the button found by `closest`.
+const tap = (card, sel, button, type = "click") => {
+  const target = { localName: button.localName || "button", value: button.value, dataset: button.dataset || {}, matches: (s) => s === button.cls };
+  target.closest = () => target;
+  card._nodes[sel].listeners[type]({ stopPropagation() {}, target });
+};
+
+const trydan = (paused, energy = "8.4") => [
+  ["binary_sensor.trydan_connected", "connected", "on", { device_class: "plug" }],
+  ["sensor.trydan_charge_power", "charge_power", paused ? "0" : "7200", W],
+  ["sensor.trydan_charge_energy", "charge_energy", energy, { device_class: "energy", unit_of_measurement: "kWh", state_class: "total_increasing" }],
+  ["sensor.trydan_charge_time", "charge_time", "5400", { device_class: "duration", unit_of_measurement: "s" }],
+  ["number.trydan_intensity", "intensity", "16", { ...A, friendly_name: "Trydan Intensity" }],
+  ["number.trydan_max_intensity", "max_intensity", "32", { ...A, friendly_name: "Trydan Max intensity" }],
+  ["switch.trydan_pause_dynamic_control_modulation", "pause_dynamic", "off", { friendly_name: "Trydan Pause dynamic control modulation" }],
+  ["switch.trydan_pause_session", "paused", paused ? "on" : "off", { friendly_name: "Trydan Pause session" }],
+  ["switch.trydan_lock_evse", "locked", "off", { friendly_name: "Trydan Lock EVSE" }],
+  ["select.trydan_charge_mode", "mode", "solar", { options: ["grid", "solar"], friendly_name: "Trydan Charge mode" }],
+  ["sensor.trydan_ip", "ip", "10.0.0.9", { friendly_name: "Trydan IP" }],
+];
+
+test("V2C paused: the state says Paused, the start button resumes by turning the pause switch off", () => {
+  const h = v2cHass("v2c", trydan(true));
+  const card = make("ev-charger-card", { device: "trydan" }, h);
+  assert.equal(card._items.state, "waiting");
+  assert.equal(card._items.paused, true);
+  assert.equal(card._status(card._items), "Paused");
+  assert.match(card.shadowRoot.innerHTML, /act-start" data-k="primary">[\s\S]*?<span>Resume<\/span>/);
+  click(card, ".act-start");
+  assert.deepEqual(json(h.calls.at(-1)), ["switch", "turn_off", { entity_id: "switch.trydan_pause_session" }]);
+  const fr = make("ev-charger-card", { device: "trydan", language: "fr" }, h);
+  assert.equal(fr._status(fr._items), "En pause");
+  // Not paused, plugged in: Plugged in, Start.
+  const waiting = make("ev-charger-card", { device: "trydan" }, makeHass({ status: "awaiting_start", power: "0" }));
+  assert.equal(waiting._items.paused, false);
+});
+
+test("charging with no cost: session, time and power in the tiles", () => {
+  const card = make("ev-charger-card", { device: "trydan" }, v2cHass("v2c", trydan(false)));
+  assert.deepEqual(json(card._tileList(card._items).map((t) => [t[1], t[2].join(" ")])), [["t_session", "8.4 kWh"], ["t_time", "1 h 30 "], ["t_power", "7.2 kW"]]);
+  // A cost keeps its place before the power.
+  assert.deepEqual(json(make("ev-charger-card", { device: "charger" })._tileList(make("ev-charger-card", { device: "charger" })._items).map((t) => t[1])), ["t_session", "t_time", "t_cost"]);
+});
+
+test("last session: a session energy back to 0 out of a charge reads its last value above 0 from the history", async () => {
+  const rows = trydan(false, "0").map((r) => (r[0] === "sensor.trydan_charge_power" ? [r[0], r[1], "0", r[3]] : r));
+  rows[0] = ["binary_sensor.trydan_connected", "connected", "off", { device_class: "plug" }];
+  const h = v2cHass("v2c", rows);
+  const asked = [];
+  h.callWS = (msg) => {
+    asked.push(msg);
+    return Promise.resolve({ [msg.entity_ids[0]]: [{ s: "0" }, { s: "5.2" }, { s: "9.7" }, { s: "0" }] });
+  };
+  const card = make("ev-charger-card", { device: "trydan" }, h);
+  assert.equal(card._items.state, "idle");
+  assert.equal(card._items.last, null, "nothing shown while looking it up, no 0.0 kWh");
+  assert.ok(!card._tileList(card._items).some((t) => t[1] === "t_last"));
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(card._items.last, 9.7);
+  assert.deepEqual(json(card._tileList(card._items)[0]), ["energy", "t_last", ["9.7", "kWh"]]);
+  card.hass = { ...h };
+  assert.equal(asked.length, 1, "looked up once per reset");
+  assert.equal(asked[0].type, "history/history_during_period");
+  // A session still held by the sensor is the last one.
+  const held = make("ev-charger-card", { device: "charger" }, makeHass({ status: "disconnected", power: "0" }));
+  assert.equal(held._items.last, 12.4);
+});
+
+test("current presets: the value opens them, a preset sets the limit, within the range; current_presets: false removes them", () => {
+  const h = v2cHass("v2c", trydan(true));
+  h.states["number.trydan_intensity"].attributes.max = 16;
+  const card = make("ev-charger-card", { device: "trydan" }, h);
+  assert.match(card.shadowRoot.innerHTML, /class="val sv" data-k="presets" aria-expanded="false"/);
+  click(card, ".sv");
+  const html = card.shadowRoot.innerHTML;
+  assert.deepEqual([...html.matchAll(/data-v="(\d+)"/g)].map((x) => x[1]), ["6", "10", "13", "16"]);
+  assert.match(html, /class="ps on" data-k="ps-16"/);
+  tap(card, ".presets", { dataset: { v: "10" } });
+  assert.deepEqual(json(h.calls.at(-1)), ["number", "set_value", { entity_id: "number.trydan_intensity", value: 10 }]);
+  assert.equal(card._presetsOpen, false);
+  // A click elsewhere folds them back.
+  click(card, ".sv");
+  card._foldWatch.tap({ composedPath: () => [] });
+  assert.equal(card._presetsOpen, false);
+  const none = make("ev-charger-card", { device: "trydan", current_presets: false }, h);
+  assert.doesNotMatch(none.shadowRoot.innerHTML, /data-k="presets"/);
+  assert.match(none.shadowRoot.innerHTML, /<b class="val"/);
+});
+
+test("settings: the charger's switches, selects and numbers no role uses, folded; each control calls its service", () => {
+  const h = v2cHass("v2c", trydan(false));
+  const card = make("ev-charger-card", { device: "trydan" }, h);
+  assert.deepEqual(json(card._items.settings.map((s) => [s.id, s.name])), [
+    ["number.trydan_max_intensity", "Max intensity"],
+    ["switch.trydan_pause_dynamic_control_modulation", "Pause dynamic control modulation"],
+    ["select.trydan_charge_mode", "Charge mode"],
+  ]);
+  assert.match(card.shadowRoot.innerHTML, /<div class="set"><button class="sh" data-k="settings" aria-expanded="false">/);
+  assert.doesNotMatch(card.shadowRoot.innerHTML, /class="sr"/, "folded");
+  tap(card, ".set", { cls: ".sh" });
+  assert.equal(card._settingsOpen, true);
+  assert.match(card.shadowRoot.innerHTML, /<div class="set open">[\s\S]*class="tg" role="switch" aria-checked="false"/);
+  tap(card, ".set", { dataset: { id: "switch.trydan_pause_dynamic_control_modulation" } });
+  assert.deepEqual(json(h.calls.at(-1)), ["switch", "turn_on", { entity_id: "switch.trydan_pause_dynamic_control_modulation" }]);
+  tap(card, ".set", { dataset: { id: "number.trydan_max_intensity", d: "-1" } });
+  assert.deepEqual(json(h.calls.at(-1)), ["number", "set_value", { entity_id: "number.trydan_max_intensity", value: 31 }]);
+  tap(card, ".set", { localName: "select", value: "grid", dataset: { id: "select.trydan_charge_mode" } }, "change");
+  assert.deepEqual(json(h.calls.at(-1)), ["select", "select_option", { entity_id: "select.trydan_charge_mode", option: "grid" }]);
+  card._foldWatch.tap({ composedPath: () => [] });
+  assert.equal(card._settingsOpen, false);
+  assert.deepEqual(json(make("ev-charger-card", { device: "trydan", show_settings: false }, h)._items.settings), []);
+  assert.deepEqual(json(make("ev-charger-card", { device: "trydan", settings: ["switch.trydan_pause_dynamic_control_modulation"] }, h)._items.settings.map((s) => s.id)), ["switch.trydan_pause_dynamic_control_modulation"]);
+  // The mock Easee charger has nothing more: no settings section.
+  assert.doesNotMatch(make("ev-charger-card", { device: "charger" }).shadowRoot.innerHTML, /class="set/);
 });

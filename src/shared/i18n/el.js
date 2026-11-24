@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Αντικαθιστά τις οντότητες που βρέθηκαν, ανά ρόλο: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Κενό: το όνομα του φορτιστή",
     confirm: "Πατήστε ξανά για ξεκλείδωμα",
+    st_paused: "Σε παύση",
+    resume: "Συνέχεια",
+    t_power: "Ισχύς",
+    settings: "Ρυθμίσεις",
+    choose_current: "Επιλογή ρεύματος",
+    ed_show_settings: "Ρυθμίσεις φορτιστή",
   },
 };

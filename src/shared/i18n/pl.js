@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Zastępuje znalezione encje według roli: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Puste: nazwa ładowarki",
     confirm: "Naciśnij ponownie, aby odblokować",
+    st_paused: "Wstrzymano",
+    resume: "Wznów",
+    t_power: "Moc",
+    settings: "Ustawienia",
+    choose_current: "Wybierz natężenie",
+    ed_show_settings: "Ustawienia ładowarki",
   },
 };

@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Заменяет найденные объекты по ролям: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Пусто: название станции",
     confirm: "Нажмите ещё раз для разблокировки",
+    st_paused: "Пауза",
+    resume: "Продолжить",
+    t_power: "Мощность",
+    settings: "Настройки",
+    choose_current: "Выбрать ток",
+    ed_show_settings: "Настройки зарядной станции",
   },
 };

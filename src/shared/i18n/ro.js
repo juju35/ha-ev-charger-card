@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Înlocuiește entitățile găsite, pe rol: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Gol: numele stației",
     confirm: "Apăsați din nou pentru deblocare",
+    st_paused: "În pauză",
+    resume: "Reia",
+    t_power: "Putere",
+    settings: "Setări",
+    choose_current: "Alege un curent",
+    ed_show_settings: "Setările încărcătorului",
   },
 };

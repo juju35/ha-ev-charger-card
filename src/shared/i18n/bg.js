@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Заменя намерените обекти по роля: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Празно: името на станцията",
     confirm: "Натиснете отново за отключване",
+    st_paused: "На пауза",
+    resume: "Продължи",
+    t_power: "Мощност",
+    settings: "Настройки",
+    choose_current: "Изберете ток",
+    ed_show_settings: "Настройки на зарядното",
   },
 };
