@@ -7,8 +7,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { setup } from "../scripts/screenshots/mock.mjs";
+import { sources } from "./source.mjs";
 
-const src = ["shared", "ev-charger-card"].map((n) => readFileSync(new URL(`../src/${n}.js`, import.meta.url), "utf8")).join("\n{\n") + "\n}\n";
+const src = ["shared", "ev-charger-card"].map((n) => (sources[`${n}.js`] ?? readFileSync(new URL(`../src/${n}.js`, import.meta.url), "utf8"))).join("\n{\n") + "\n}\n";
 const ICONS = `customElements.define("ha-icon", class extends HTMLElement {});`;
 const HA_CARD = `customElements.define("ha-card", class extends HTMLElement { constructor() { super();
   this.attachShadow({ mode: "open" }).innerHTML = "<style>:host{display:block;overflow:hidden}</style><slot></slot>"; } });`;
