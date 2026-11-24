@@ -690,9 +690,10 @@ export class EvChargerCard extends RcCard {
     .seg button { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; color: var(--primary-text-color); }
     .seg button:hover:not([disabled]) { background: color-mix(in srgb, var(--c) 15%, transparent); }
     .seg button[disabled] { opacity: .35; cursor: default; }
-    .seg b, .sv { min-width: 48px; text-align: center; font-size: 14px; font-weight: 500; }
-    .sv { all: unset; box-sizing: border-box; min-width: 56px; height: 36px; padding: 0 8px; border-radius: 999px; cursor: pointer; text-align: center; font-size: 14px; font-weight: 500; }
-    .sv:hover, .sv[aria-expanded="true"] { background: color-mix(in srgb, var(--c) 15%, transparent); }
+    .seg b { min-width: 48px; text-align: center; font-size: 14px; font-weight: 500; }
+    /* The limit's value, a button when it opens the presets: the size of the plain value, not of − and +. */
+    .seg .sv { width: auto; min-width: 48px; height: 32px; padding: 0 8px; border-radius: 999px; font-size: 14px; font-weight: 500; }
+    .seg .sv:hover, .seg .sv[aria-expanded="true"] { background: color-mix(in srgb, var(--c) 15%, transparent); }
     /* The current presets, a row of pills under the controls. */
     .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .ps { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 999px;
