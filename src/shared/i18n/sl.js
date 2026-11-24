@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Nadomesti najdene entitete po vlogi: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Prazno: ime polnilnice",
     confirm: "Pritisnite znova za odklepanje",
+    st_paused: "Zaustavljeno",
+    resume: "Nadaljuj",
+    t_power: "Moč",
+    settings: "Nastavitve",
+    choose_current: "Izberi tok",
+    ed_show_settings: "Nastavitve polnilnice",
   },
 };

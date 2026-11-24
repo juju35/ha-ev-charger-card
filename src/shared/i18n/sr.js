@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Замењује пронађене ентитете по улози: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Празно: назив пуњача",
     confirm: "Притисните поново за откључавање",
+    st_paused: "Паузирано",
+    resume: "Настави",
+    t_power: "Снага",
+    settings: "Подешавања",
+    choose_current: "Изабери струју",
+    ed_show_settings: "Подешавања пуњача",
   },
 };

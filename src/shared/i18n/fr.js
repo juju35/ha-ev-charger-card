@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Remplace les entités trouvées, par rôle : status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Vide : le nom de la borne",
     confirm: "Appuyez encore pour déverrouiller",
+    st_paused: "En pause",
+    resume: "Reprendre",
+    t_power: "Puissance",
+    settings: "Réglages",
+    choose_current: "Choisir un courant",
+    ed_show_settings: "Réglages de la borne",
   },
 };

@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Ersätter hittade entiteter per roll: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Tomt: laddboxens namn",
     confirm: "Tryck igen för att låsa upp",
+    st_paused: "Pausad",
+    resume: "Återuppta",
+    t_power: "Effekt",
+    settings: "Inställningar",
+    choose_current: "Välj en strömstyrka",
+    ed_show_settings: "Laddboxens inställningar",
   },
 };

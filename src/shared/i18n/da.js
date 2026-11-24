@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Erstatter fundne enheder efter rolle: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Tom: ladeboksens navn",
     confirm: "Tryk igen for at låse op",
+    st_paused: "På pause",
+    resume: "Genoptag",
+    t_power: "Effekt",
+    settings: "Indstillinger",
+    choose_current: "Vælg en strømstyrke",
+    ed_show_settings: "Laderens indstillinger",
   },
 };

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 - 2026-11-24
+
+### Features
+- Paused: a car plugged in and held back (V2C's pause switch on, a status saying *paused*) reads *Paused*, and the start button *Resume* (#20).
+- Charging power as a tile: while charging with no session cost (V2C), the tiles are the session energy, the time and the power (#20).
+- Current presets: a tap on the limit between − and + opens 6, 10, 13, 16, 20, 25 and 32 A (those within the limit's range); a preset sets the limit. `current_presets` sets them, `false` removes them (#20).
+- Settings: the charger's own switches, selects and numbers that no role uses (V2C's dynamic control and its modes, a schedule, a minimum current…), folded under the controls, with a toggle, a list or − / + each; a click elsewhere folds them back. `settings` picks them, `show_settings: false` hides them (#20).
+
+### Fixes
+- Last session no longer reads 0.0 kWh once the charger resets its session energy (V2C, when the car leaves): the last value above 0 of the past week's history is shown, and no tile at all meanwhile (#20).
+
 ## 1.3.1 - 2026-11-24
 
 ### Maintenance

@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Substitui as entidades encontradas, por função: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Vazio: o nome do carregador",
     confirm: "Prima de novo para desbloquear",
+    st_paused: "Em pausa",
+    resume: "Retomar",
+    t_power: "Potência",
+    settings: "Definições",
+    choose_current: "Escolher uma corrente",
+    ed_show_settings: "Definições do carregador",
   },
 };

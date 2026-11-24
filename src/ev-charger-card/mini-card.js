@@ -52,12 +52,12 @@ export class EvChargerMiniCard extends rcMini(
     const car = m.state !== "idle" && m.state !== "offline";
     const kwh = m.session != null ? `${this._fmt(m.session, 1)} kWh` : null;
     const big = car && m.soc != null ? `${Math.round(m.soc)} %` : m.state === "charging" ? this._power(m) : "";
-    const state = m.state === "error" ? m.error || this._t("st_error") : this._t(`st_${m.state}`);
+    const state = m.state === "error" ? m.error || this._t("st_error") : this._stateLabel(m);
     const readings = {
       charging: [big === this._power(m) ? kwh : this._power(m), m.duration],
       waiting: [m.limit?.value != null ? `${Math.round(m.limit.value)} A` : null],
       done: [kwh, m.duration],
-    }[m.state] || [m.session != null ? `${this._t("t_last")} ${kwh}` : null];
+    }[m.state] || [m.last != null ? `${this._t("t_last")} ${this._fmt(m.last, 1)} kWh` : null];
     // The car's level (or the power) in large as the title, else the charger's name; the state as the pill after it.
     const named = !big && c.show_title !== false;
     const line = [c.show_title === false || named ? null : m.name, ...readings].filter(Boolean).join(" · ");
@@ -77,22 +77,22 @@ export class EvChargerMiniCard extends rcMini(
 
   _drawMini(m) {
     if (this._config.show_scene !== false) {
-      const sig = ["banner", m.state, m.raw, m.watts && Math.round(m.watts / 100), m.session, m.duration, m.soc, m.error, m.limit?.value, m.name, this._dark(), this._night()];
+      const sig = ["banner", m.state, m.paused, m.last, m.raw, m.watts && Math.round(m.watts / 100), m.session, m.duration, m.soc, m.error, m.limit?.value, m.name, this._dark(), this._night()];
       if (this._changed(sig)) this._drawBanner(m);
       return;
     }
-    if (!this._changed(["mini", m.state, m.watts && Math.round(m.watts / 100), m.session, m.duration, m.soc, m.error, m.limit?.value, m.name])) return;
+    if (!this._changed(["mini", m.state, m.paused, m.last, m.watts && Math.round(m.watts / 100), m.session, m.duration, m.soc, m.error, m.limit?.value, m.name])) return;
     const id = m.ids.status || m.ids.power || "";
     const chip = (text, dim) => `<button class="r pill${dim ? " dim" : ""}" data-id="${rcEsc(id)}" title="${rcEsc(text)}"><span>${rcEsc(text)}</span></button>`;
     const kwh = m.session != null ? `${this._fmt(m.session, 1)} kWh` : null;
     // The state is the status pill after the title; the chips are the readings.
-    const status = m.state === "error" ? m.error || this._t("st_error") : this._t(`st_${m.state}`);
+    const status = m.state === "error" ? m.error || this._t("st_error") : this._stateLabel(m);
     const chips = {
       charging: [this._power(m), m.soc != null ? `${Math.round(m.soc)} %` : kwh, m.duration],
       waiting: [m.soc != null ? `${Math.round(m.soc)} %` : null, m.limit?.value != null ? `${Math.round(m.limit.value)} A` : null],
       done: [kwh, m.duration],
       error: [],
-    }[m.state] || [m.session != null ? `${this._t("t_last")} ${kwh}` : null];
+    }[m.state] || [m.last != null ? `${this._t("t_last")} ${this._fmt(m.last, 1)} kWh` : null];
     const html = chips
       .filter(Boolean)
       .map((t, i) => chip(t, i > 0))
@@ -111,7 +111,7 @@ export const EvChargerMiniCardEditor = rcEditor({
   card: EvChargerMiniCard,
   helpers: [...EV_HELPERS, "max_power"],
   schema: (lang) => [
-    ...evSchema(["show_title", "show_scene", "show_background", "animations", "show_controls", "zoom"])(lang).slice(0, -1),
+    ...evSchema(["show_title", "show_scene", "show_background", "animations", "show_controls", "show_settings", "zoom"])(lang).slice(0, -1),
     { name: "max_power", selector: { number: { min: 1, max: 50, step: 0.1, mode: "box", unit_of_measurement: "kW" } } },
     ...rcAdvanced(EV_I18N, lang, "entities", "language"),
   ],

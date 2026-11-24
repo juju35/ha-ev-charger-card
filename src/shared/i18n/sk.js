@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Nahrádza nájdené entity podľa úlohy: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Prázdne: názov nabíjačky",
     confirm: "Stlačte znova na odomknutie",
+    st_paused: "Pozastavené",
+    resume: "Pokračovať",
+    t_power: "Výkon",
+    settings: "Nastavenia",
+    choose_current: "Vybrať prúd",
+    ed_show_settings: "Nastavenia nabíjačky",
   },
 };

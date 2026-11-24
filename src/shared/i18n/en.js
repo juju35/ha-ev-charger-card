@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Overrides of the found entities, by role: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Empty: the charger's name",
     confirm: "Press again to unlock",
+    st_paused: "Paused",
+    resume: "Resume",
+    t_power: "Power",
+    settings: "Settings",
+    choose_current: "Choose a current",
+    ed_show_settings: "Charger settings",
   },
 };

@@ -83,5 +83,11 @@ export default {
     ed_entities_helper: "Vervangt gevonden entiteiten per rol: status, power, energy, total, limit, current, phases, switch, start, stop, lock, cost, duration, error, battery",
     ed_title_helper: "Leeg: de naam van de laadpaal",
     confirm: "Druk nogmaals om te ontgrendelen",
+    st_paused: "Gepauzeerd",
+    resume: "Hervatten",
+    t_power: "Vermogen",
+    settings: "Instellingen",
+    choose_current: "Kies een stroomsterkte",
+    ed_show_settings: "Instellingen van de laadpaal",
   },
 };
