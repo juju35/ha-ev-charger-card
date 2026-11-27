@@ -32,6 +32,7 @@ export default {
     t_current: "Ρεύμα",
     t_total: "Σύνολο",
     t_limit: "Όριο",
+    t_mode: "Λειτουργία φόρτισης",
     t_last: "Τελευταία συνεδρία",
     phases_one: "{n} φάση",
     phases_many: "{n} φάσεις",

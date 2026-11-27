@@ -32,6 +32,7 @@ export default {
     t_current: "Stroom",
     t_total: "Totaal",
     t_limit: "Limiet",
+    t_mode: "Laadmodus",
     t_last: "Laatste sessie",
     phases_one: "{n} fase",
     phases_many: "{n} fasen",

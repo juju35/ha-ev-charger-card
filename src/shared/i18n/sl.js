@@ -32,6 +32,7 @@ export default {
     t_current: "Tok",
     t_total: "Skupaj",
     t_limit: "Omejitev",
+    t_mode: "Način polnjenja",
     t_last: "Zadnja seja",
     phases_one: "{n} faza",
     phases_many: "{n} faz",

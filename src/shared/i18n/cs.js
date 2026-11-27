@@ -32,6 +32,7 @@ export default {
     t_current: "Proud",
     t_total: "Celkem",
     t_limit: "Limit",
+    t_mode: "Režim nabíjení",
     t_last: "Poslední relace",
     phases_one: "{n} fáze",
     phases_many: "{n} fází",

@@ -382,4 +382,5 @@ export const EV_SVG = {
   power: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/>',
   settings: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
   chevron: '<path d="M9 6l6 6-6 6"/>',
+  mode: '<path d="M5 20c0-9 6-15 15-15 0 9-6 15-15 15z"/><path d="M5 20l8-8"/>',
 };

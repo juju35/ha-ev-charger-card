@@ -32,6 +32,7 @@ export default {
     t_current: "Ток",
     t_total: "Всего",
     t_limit: "Лимит",
+    t_mode: "Режим зарядки",
     t_last: "Последняя сессия",
     phases_one: "{n} фаза",
     phases_many: "{n} фазы",

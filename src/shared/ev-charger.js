@@ -34,8 +34,9 @@ export const evStateOf = (raw) => {
 export const EV_PLATFORMS = [
   "easee", "wallbox", "zaptec", "ohme", "myenergi", "tesla_wall_connector", "go_echarger", "goecharger", "alfen_wallbox",
   "peblar", "ocpp", "keba", "openwb", "evcc_intg", "wallbox_pulsar", "nrgkick", "smartevse", "v2c", "v2c_trydan", "v2c_cloud", "elli", "hypervolt",
+  "wattpilot",
 ];
-export const EV_NAME = /charger|wallbox|borne|ladestation|evse|easee|zaptec|zappi|ohme|pulsar|go-?e|wall.?connector|alfen|peblar|trydan|v2c/i;
+export const EV_NAME = /charger|wallbox|borne|ladestation|evse|easee|zaptec|zappi|ohme|pulsar|go-?e|wall.?connector|alfen|peblar|trydan|v2c|wattpilot|fronius/i;
 
 // Integrations whose entities are known by their translation key (`domain.key`): read before the discovery by name.
 // null: the integration has no such role (V2C's "error" sensors report the house meter's link, not the charger).
@@ -105,8 +106,9 @@ export const evChargers = (hass) => {
 };
 
 // The entity of each role on the charger's device: status, plug (a car is plugged in), charging (a binary sensor), power, energy (this session), total, limit (a number in A),
-// current, phases, switch (charging allowed), start, stop, lock (cable), cost, duration, error, battery (the car's level).
-export const EV_ROLES = ["status", "plug", "charging", "power", "energy", "total", "limit", "current", "phases", "switch", "start", "stop", "lock", "cost", "duration", "error", "battery"];
+// current, phases, switch (charging allowed), start, stop, lock (cable), cost, duration, error, battery (the car's level),
+// mode (the charge mode select: Wattpilot's Default / Eco / Next Trip, zappi's Fast / Eco / Eco+).
+export const EV_ROLES = ["status", "plug", "charging", "power", "energy", "total", "limit", "current", "phases", "switch", "start", "stop", "lock", "cost", "duration", "error", "battery", "mode"];
 export const evFind = (hass, device, overrides = {}) => {
   const ids = device ? evDeviceEntities(hass)[device] || [] : [];
   const st = (id) => hass.states[id];
@@ -141,9 +143,18 @@ export const evFind = (hass, device, overrides = {}) => {
     (id) => notMax(id) && !named(id, /house|fv|photovolt|solar|grid|battery|contract/i),
     notMax,
   );
-  const energy = ids.filter((id) => dom(id) === "sensor" && dc(id) === "energy" && st(id));
-  r.energy = energy.find((id) => named(id, /session|added|charged|last|current|ladung|recharg/i)) || energy.find((id) => st(id).attributes.state_class !== "total_increasing");
-  r.total = energy.find((id) => id !== r.energy && (named(id, /total|lifetime|meter|cumul|gesamt/i) || st(id).attributes.state_class === "total_increasing"));
+  // The session and the lifetime energy; a sensor named *total* is never the session, even named *charged* too
+  // (Wattpilot's "Totally Charged" beside its session "Connection Charged", whose state class is total_increasing).
+  // The energy charged per ID chip (Wattpilot, go-e) is neither.
+  const energy = ids.filter((id) => dom(id) === "sensor" && dc(id) === "energy" && st(id) && !named(id, /id.?chip|rfid|badge/i));
+  const TOTAL = /total|lifetime|meter|cumul|gesamt/i;
+  const SESSION = /session|added|charged|last|current|connection|ladung|recharg/i;
+  r.energy =
+    energy.find((id) => named(id, SESSION) && !named(id, TOTAL)) ||
+    energy.find((id) => st(id).attributes.state_class !== "total_increasing" && !named(id, TOTAL)) ||
+    energy.find((id) => named(id, SESSION));
+  r.total =
+    energy.find((id) => id !== r.energy && named(id, TOTAL)) || energy.find((id) => id !== r.energy && st(id).attributes.state_class === "total_increasing");
   r.limit = pick((id) => dom(id) === "number" && (unit(id) === "A" || dc(id) === "current"), (id) => named(id, /limit|max|current|courant|strom/i));
   r.current = pick((id) => dom(id) === "sensor" && dc(id) === "current", (id) => !named(id, /max|limit/i));
   r.phases = pick((id) => dom(id) === "sensor" && named(id, /phase/i) && evNum(st(id)) != null);
@@ -160,6 +171,11 @@ export const evFind = (hass, device, overrides = {}) => {
   r.duration = pick((id) => dom(id) === "sensor" && (dc(id) === "duration" || named(id, /charging.?time|duration|duree|ladedauer/i)) && evMinutes(st(id)) != null);
   r.error = pick((id) => (dom(id) === "sensor" && named(id, /error|fault|erreur|fehler/i)) || (dom(id) === "binary_sensor" && dc(id) === "problem"));
   r.battery = pick((id) => dom(id) === "sensor" && dc(id) === "battery");
+  // The charge mode: a select named a mode, not the phases', the LED's or a status.
+  r.mode = pick(
+    (id) => dom(id) === "select" && named(id, /mode|modus|modo|tryb/i) && !named(id, /phase|led|light|display|lumi|status|state|etat|log/i) && (st(id).attributes.options || []).length > 1,
+    (id) => named(id, /charg|lade|recharg|carga|ricarica/i),
+  );
   // The roles an integration is known to name.
   const keyed = ids.find((id) => EV_KEYS[hass.entities?.[id]?.platform]);
   const keys = keyed && EV_KEYS[hass.entities[keyed].platform];

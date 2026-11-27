@@ -624,7 +624,6 @@ test("settings: the charger's switches, selects and numbers no role uses, folded
   assert.deepEqual(json(card._items.settings.map((s) => [s.id, s.name])), [
     ["number.trydan_max_intensity", "Max intensity"],
     ["switch.trydan_pause_dynamic_control_modulation", "Pause dynamic control modulation"],
-    ["select.trydan_charge_mode", "Charge mode"],
   ]);
   assert.match(card.shadowRoot.innerHTML, /<div class="set"><button class="sh" data-k="settings" aria-expanded="false">/);
   assert.doesNotMatch(card.shadowRoot.innerHTML, /class="sr"/, "folded");
@@ -635,7 +634,9 @@ test("settings: the charger's switches, selects and numbers no role uses, folded
   assert.deepEqual(json(h.calls.at(-1)), ["switch", "turn_on", { entity_id: "switch.trydan_pause_dynamic_control_modulation" }]);
   tap(card, ".set", { dataset: { id: "number.trydan_max_intensity", d: "-1" } });
   assert.deepEqual(json(h.calls.at(-1)), ["number", "set_value", { entity_id: "number.trydan_max_intensity", value: 31 }]);
-  tap(card, ".set", { localName: "select", value: "grid", dataset: { id: "select.trydan_charge_mode" } }, "change");
+  // A select listed in `settings` (the charge mode is in its own row otherwise).
+  const listed = make("ev-charger-card", { device: "trydan", settings: ["select.trydan_charge_mode"] }, h);
+  tap(listed, ".set", { localName: "select", value: "grid", dataset: { id: "select.trydan_charge_mode" } }, "change");
   assert.deepEqual(json(h.calls.at(-1)), ["select", "select_option", { entity_id: "select.trydan_charge_mode", option: "grid" }]);
   card._foldWatch.tap({ composedPath: () => [] });
   assert.equal(card._settingsOpen, false);
@@ -643,4 +644,88 @@ test("settings: the charger's switches, selects and numbers no role uses, folded
   assert.deepEqual(json(make("ev-charger-card", { device: "trydan", settings: ["switch.trydan_pause_dynamic_control_modulation"] }, h)._items.settings.map((s) => s.id)), ["switch.trydan_pause_dynamic_control_modulation"]);
   // The mock Easee charger has nothing more: no settings section.
   assert.doesNotMatch(make("ev-charger-card", { device: "charger" }).shadowRoot.innerHTML, /class="set/);
+});
+
+// Fronius Wattpilot (mk-maddin's integration): no translation keys, entities named "<charger> <name>".
+const wattpilot = () => {
+  const E = { device_class: "energy", unit_of_measurement: "Wh" };
+  const rows = [
+    ["sensor.wattpilot_carstate", "Charging", { device_class: "enum", friendly_name: "Wattpilot CarState" }],
+    ["sensor.wattpilot_charging_power", "7360", { ...W, friendly_name: "Wattpilot Charging Power" }],
+    ["sensor.wattpilot_totally_charged", "1523400", { ...E, state_class: "total", friendly_name: "Wattpilot Totally Charged" }],
+    ["sensor.wattpilot_connection_charged", "12345", { ...E, state_class: "total_increasing", friendly_name: "Wattpilot Connection Charged" }],
+    ["sensor.wattpilot_id_chip_0", "9000", { ...E, state_class: "total", friendly_name: "Wattpilot ID Chip 0" }],
+    ["number.wattpilot_charging_current", "16", { ...A, friendly_name: "Wattpilot Charging Current" }],
+    ["select.wattpilot_phase_switch", "Auto", { options: ["Auto", "1 Phase", "3 Phases"], friendly_name: "Wattpilot Phase Switch" }],
+    ["select.wattpilot_charging_mode", "Eco", { options: ["Default", "Eco", "Next Trip"], friendly_name: "Wattpilot Charging Mode" }],
+  ];
+  const h = makeHass();
+  h.devices = { wp: { name: "Wattpilot", model: "Wattpilot Home 11 J" } };
+  h.entities = Object.fromEntries(rows.map(([id]) => [id, { device_id: "wp", platform: "wattpilot" }]));
+  h.states = Object.fromEntries(rows.map(([id, state, attrs]) => [id, st(id, state, attrs)]));
+  return h;
+};
+
+test("Fronius Wattpilot: the session and the lifetime energy not swapped, ID chips aside, the charge mode in its own row", () => {
+  const h = wattpilot();
+  assert.deepEqual(json(ev.evChargers(h)), ["wp"]);
+  const card = make("ev-charger-card", { device: "wp" }, h);
+  const m = card._items;
+  assert.equal(m.ids.energy, "sensor.wattpilot_connection_charged");
+  assert.equal(m.ids.total, "sensor.wattpilot_totally_charged");
+  assert.equal(m.session, 12.345);
+  assert.equal(m.total, 1523.4);
+  assert.equal(m.ids.mode, "select.wattpilot_charging_mode");
+  assert.deepEqual(json(m.settings.map((s) => s.id)), ["select.wattpilot_phase_switch"]);
+  const html = card.shadowRoot.innerHTML;
+  assert.match(html, /<div class="modes" role="group" aria-label="Charging mode">/);
+  assert.match(html, /<button class="ps md on" data-o="Eco" aria-pressed="true">Eco<\/button>/);
+  tap(card, ".modes", { dataset: { o: "Next Trip" }, cls: ".md" });
+  assert.deepEqual(json(h.calls.at(-1)), ["select", "select_option", { entity_id: "select.wattpilot_charging_mode", option: "Next Trip" }]);
+  // The current mode again: nothing called.
+  const n = h.calls.length;
+  tap(card, ".modes", { dataset: { o: "Next Trip" }, cls: ".md" });
+  assert.equal(h.calls.length, n);
+  assert.doesNotMatch(make("ev-charger-card", { device: "wp", show_mode: false }, h).shadowRoot.innerHTML, /class="modes"/);
+  assert.doesNotMatch(make("ev-charger-card", { device: "wp", show_controls: false }, h).shadowRoot.innerHTML, /class="modes"/);
+});
+
+test("several cars: the one plugged in last, with its name and its body; else every car not known unplugged", () => {
+  const h = makeHass({ status: "charging" });
+  const at = (s, t) => ({ ...s, last_changed: t });
+  h.devices.bmw = { name: "BMW i4" };
+  h.devices.tesla = { name: "Model Y" };
+  h.entities["sensor.i4_battery"] = { device_id: "bmw", platform: "bmw_connected_drive" };
+  h.entities["sensor.my_battery"] = { device_id: "tesla", platform: "tesla_fleet" };
+  h.states["sensor.i4_battery"] = st("sensor.i4_battery", "78", { device_class: "battery", unit_of_measurement: "%" });
+  h.states["sensor.my_battery"] = st("sensor.my_battery", "45", { device_class: "battery", unit_of_measurement: "%" });
+  h.states["binary_sensor.i4_plug"] = at(st("binary_sensor.i4_plug", "on"), "2026-11-27T08:00:00Z");
+  h.states["binary_sensor.my_plug"] = at(st("binary_sensor.my_plug", "on"), "2026-11-27T09:00:00Z");
+  const cars = [
+    { entity: "sensor.i4_battery", plug: "binary_sensor.i4_plug", vehicle: "sedan" },
+    { entity: "sensor.my_battery", plug: "binary_sensor.my_plug", name: "Tesla", vehicle: "crossover", color: "white" },
+  ];
+  const both = make("ev-charger-card", { device: "charger", cars }, h);
+  assert.deepEqual(json(both._items.cars.map((x) => [x.name, x.soc])), [["Tesla", 45]]);
+  assert.equal(both._items.soc, 45);
+  assert.equal(both._items.vehicle, "crossover");
+  assert.match(both.shadowRoot.innerHTML, /<div class="soc"><span class="cn" title="Tesla">Tesla<\/span><span class="bar"><i style="width:45%"><\/i><\/span><b>45 %<\/b><\/div>/);
+  // The BMW plugged in after: it is the one.
+  h.states["binary_sensor.i4_plug"] = at(st("binary_sensor.i4_plug", "on"), "2026-11-27T10:00:00Z");
+  h.states = { ...h.states };
+  assert.deepEqual(json(make("ev-charger-card", { device: "charger", cars }, h)._items.cars.map((x) => [x.name, x.soc])), [["BMW i4", 78]]);
+  // Neither plugged in: both levels, each named, on the default illustration.
+  const noPlug = make("ev-charger-card", { device: "charger", cars: ["sensor.i4_battery", "sensor.my_battery"] }, h);
+  assert.deepEqual(json(noPlug._items.cars.map((x) => [x.name, x.soc])), [["BMW i4", 78], ["Model Y", 45]]);
+  assert.equal(noPlug._items.vehicle, undefined);
+  assert.match(noPlug.shadowRoot.innerHTML, /<div class="socs"><div class="soc"><span class="cn" title="BMW i4">/);
+  // A car known unplugged stays out.
+  h.states["binary_sensor.i4_plug"] = st("binary_sensor.i4_plug", "off");
+  h.states["binary_sensor.my_plug"] = st("binary_sensor.my_plug", "off");
+  const off = [{ entity: "sensor.i4_battery", plug: "binary_sensor.i4_plug" }, "sensor.my_battery"];
+  assert.deepEqual(json(make("ev-charger-card", { device: "charger", cars: off }, h)._items.cars.map((x) => x.name)), ["Model Y"]);
+  // `battery` alone: one level, no name.
+  const one = make("ev-charger-card", { device: "charger", battery: "sensor.i4_battery" }, h);
+  assert.deepEqual(json(one._items.cars.map((x) => [x.soc, !!x.named])), [[78, false]]);
+  assert.match(one.shadowRoot.innerHTML, /<div class="soc"><span class="bar">/);
 });

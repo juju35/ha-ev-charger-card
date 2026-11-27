@@ -32,6 +32,7 @@ export default {
     t_current: "Струм",
     t_total: "Усього",
     t_limit: "Ліміт",
+    t_mode: "Режим заряджання",
     t_last: "Остання сесія",
     phases_one: "{n} фаза",
     phases_many: "{n} фази",

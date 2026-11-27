@@ -32,6 +32,7 @@ export default {
     t_current: "Strom",
     t_total: "Gesamt",
     t_limit: "Grenze",
+    t_mode: "Lademodus",
     t_last: "Letzte Sitzung",
     phases_one: "{n} Phase",
     phases_many: "{n} Phasen",

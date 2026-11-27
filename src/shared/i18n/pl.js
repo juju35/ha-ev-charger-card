@@ -32,6 +32,7 @@ export default {
     t_current: "Prąd",
     t_total: "Łącznie",
     t_limit: "Limit",
+    t_mode: "Tryb ładowania",
     t_last: "Ostatnia sesja",
     phases_one: "{n} faza",
     phases_many: "{n} faz",
