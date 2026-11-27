@@ -32,6 +32,7 @@ export default {
     t_current: "Ток",
     t_total: "Общо",
     t_limit: "Лимит",
+    t_mode: "Режим на зареждане",
     t_last: "Последна сесия",
     phases_one: "{n} фаза",
     phases_many: "{n} фази",

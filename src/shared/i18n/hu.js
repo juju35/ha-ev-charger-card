@@ -32,6 +32,7 @@ export default {
     t_current: "Áram",
     t_total: "Összesen",
     t_limit: "Korlát",
+    t_mode: "Töltési mód",
     t_last: "Utolsó munkamenet",
     phases_one: "{n} fázis",
     phases_many: "{n} fázis",

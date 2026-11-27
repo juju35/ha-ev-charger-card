@@ -32,6 +32,7 @@ export default {
     t_current: "Prúd",
     t_total: "Celkom",
     t_limit: "Limit",
+    t_mode: "Režim nabíjania",
     t_last: "Posledná relácia",
     phases_one: "{n} fáza",
     phases_many: "{n} fáz",

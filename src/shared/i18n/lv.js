@@ -32,6 +32,7 @@ export default {
     t_current: "Strāva",
     t_total: "Kopā",
     t_limit: "Limits",
+    t_mode: "Uzlādes režīms",
     t_last: "Pēdējā sesija",
     phases_one: "{n} fāze",
     phases_many: "{n} fāzes",

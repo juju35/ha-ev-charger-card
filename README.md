@@ -49,10 +49,10 @@ The cards share the look of the other ha-* cards (header with a status pill, tin
 
 `custom:ev-charger-card` — The charger of a `device` (the first charger of the home when none is set).
 
-- **Illustrated header** (90 px), as on the flight and train boards: the scene at the right — the wallbox with its LED ring mounted on the house wall (rendered façade, plinth and wall lamp, its left edge fading into the sky), the cable and the car with its charging port — over a concrete strip edge to edge at the bottom; on the sky at the left a car icon in the state's colour (blue charging, amber plugged in, green charged, grey no car, red error), the charger's name, room and model, a chip with the state and the power (*Charging · 7.2 kW*), and the car's battery level (`battery`) as a bar
+- **Illustrated header** (90 px), as on the flight and train boards: the scene at the right — the wallbox with its LED ring mounted on the house wall (rendered façade, plinth and wall lamp, its left edge fading into the sky), the cable and the car with its charging port — over a concrete strip edge to edge at the bottom; on the sky at the left a car icon in the state's colour (blue charging, amber plugged in, green charged, grey no car, red error), the charger's name, room and model, a chip with the state and the power (*Charging · 7.2 kW*), and the car's battery level (`battery`) as a bar — with several cars on one charger (`cars`), the car plugged in last with its name, its body and its paint, or each car's level when none says it is plugged in
 - **Five states**, from the charger's own status in the integration's words (*charging*, *awaiting_start*, *Paused by user*, *connected_finished*, *disconnected*…): **charging** (blue, energy flowing along the cable, the LED ring breathing), **plugged in** (amber), **charged** (green), **no car** (grey, the cable hanging from the wallbox), **error** (red, the charger's error under the illustration); *offline* when the charger cannot report. Without a status sensor, the power and the plug sensor tell
 - **Three tiles**, the ones that matter in each state among what the charger reports: the session's energy, time and cost while charging or charged; the current limit, the last session and the lifetime total when a car waits or none is plugged in
-- **Controls**: **Pause** while charging and **Start** when a car waits (the charger's start / stop buttons, or its charging switch), **Unlock cable** once charged, the **current limit** in steps of the number entity (− 32 A +, within its range), and the **lock**: the cable's when the lock is named after the cable (Easee), else the whole charger's (Wallbox), which is never unlocked on its own once charged
+- **Controls**: **Pause** while charging and **Start** when a car waits (the charger's start / stop buttons, or its charging switch), **Unlock cable** once charged, the **current limit** in steps of the number entity (− 32 A +, within its range), and the **lock**: the cable's when the lock is named after the cable (Easee), else the whole charger's (Wallbox), which is never unlocked on its own once charged; the **charge mode** (Wattpilot's *Default / Eco / Next Trip*, zappi's *Fast / Eco / Eco+*…) as a row of pills
 - A tap on the illustration opens the charger's status dialog
 - `show_scene: false` gives a classic header (name and state pill) over the tiles and controls; `animations: false` stops the flow and the breathing (also when the system asks for reduced motion); `show_controls: false` leaves the card read-only
 
@@ -75,6 +75,7 @@ The card reads what the charger's device exposes, by device class, unit and doma
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/zaptec.svg" alt="Zaptec" height="20"> | [Zaptec](https://github.com/custom-components/zaptec) (Marketplace) | Zaptec Go, Pro |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/myenergi.svg" alt="myenergi" height="17"> | [myenergi](https://github.com/CJNE/ha-myenergi) (Marketplace) | myenergi zappi |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/ocpp.svg" alt="Open Charge Alliance (OCPP)" height="20"> | [OCPP](https://github.com/lbbrhzn/ocpp) (Marketplace) | Any OCPP charger: Alfen, ABB, Schneider Electric… |
+| | [Fronius Wattpilot](https://github.com/mk-maddin/wattpilot-HA) (Marketplace) | Fronius Wattpilot Home, Flex |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/go-e.svg" alt="go-e" height="17">&nbsp;<img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/images/alfen.svg" alt="Alfen" height="17"> | go-e, Alfen and other charger integrations | Their chargers |
 
 When the card picks the wrong entity for a role, or misses one, set it in `entities` (see [Configuration](#configuration)) and open an issue with the charger's entities so that the discovery learns it.
@@ -135,6 +136,19 @@ settings:
   - switch.trydan_dynamic
   - select.trydan_dynamic_power_mode
 
+# Two cars on one charger: the one plugged in last is shown
+type: custom:ev-charger-card
+device: 3f2a…
+cars:
+  - entity: sensor.i4_battery
+    plug: binary_sensor.i4_charging_port   # optional: on while this car is plugged in
+    name: i4
+    vehicle: sedan
+  - entity: sensor.model_y_battery
+    plug: binary_sensor.model_y_charge_cable
+    vehicle: crossover
+    color: white
+
 # A role the discovery missed
 type: custom:ev-charger-card
 device: 3f2a…
@@ -151,6 +165,7 @@ entities:
 | `show_title` | both | `true` | Show the title |
 | `navigation_path` | both | — | A tap on the header opens this dashboard path |
 | `battery` | both | the charger's own battery sensor, if any | The car's battery level, for the illustration and the mini card's ring |
+| `cars` | both | — | **YAML only.** Several cars on one charger, over `battery`: each `entity` (its battery level) with, optional, `plug` (a binary sensor on while that car is plugged in), `name` (default: its device's name), `vehicle` and `color`. The car plugged in last is shown, with its name, body and paint; when none says it is plugged in, the level of each car not known unplugged, each with its name |
 | `vehicle` | both | `sedan` | The car of the illustration: `sedan` (saloon), `hatch` (five-door hatchback), `estate`, `crossover` (fastback crossover), `coupe_suv`, `small_suv`, `suv`, `city` (city car) or `van` (MPV / van) |
 | `color` | both | the theme's | The car's paint: `white`, `silver`, `grey`, `black`, `blue`, `red` or `green`; none: white in a light theme, graphite in a dark one |
 | `illustration_theme` | both | `auto` | The illustration's sky: `auto` (follows the Home Assistant theme: night with a dark theme, day with a light theme), `day` or `night` |
@@ -158,12 +173,13 @@ entities:
 | `show_background` | both | `true` | The illustration's backdrop (sky, house wall, concrete drive); `false` keeps the wallbox, the cable and the car on the card itself, the header in the theme's colours |
 | `animations` | both | `true` | Energy flowing along the cable, the LED ring breathing |
 | `show_controls` | both | `true` | Pause / start (*Resume* when paused), current limit and cable lock |
+| `show_mode` | both | `true` | **YAML only.** The charge mode row under the controls (hidden with `show_controls: false` too) |
 | `current_presets` | both | `[6, 10, 13, 16, 20, 25, 32]` | **YAML only.** The currents (A) offered by a tap on the limit between − and +, those within the limit's range; `false`: none |
 | `show_settings` | both | `true` | The charger's own settings (dynamic control, schedule, charge mode…), folded under the controls |
 | `settings` | both | the device's switches, selects and numbers no role uses | **YAML only.** The entities of the settings section, in this order |
 | `max_power` | mini | `7.4` | The power (kW) of a full ring when the car's battery level is unknown |
 | `zoom` | mini | `true` | The zoom button |
-| `entities` | both | — | In the editor's *Advanced* section (as YAML): the entity of a role, over the discovery — `status`, `plug`, `charging`, `power`, `energy`, `total`, `limit`, `current`, `phases`, `switch`, `start`, `stop`, `lock`, `cost`, `duration`, `error`, `battery` |
+| `entities` | both | — | In the editor's *Advanced* section (as YAML): the entity of a role, over the discovery — `status`, `plug`, `charging`, `power`, `energy`, `total`, `limit`, `current`, `phases`, `switch`, `start`, `stop`, `lock`, `cost`, `duration`, `error`, `battery`, `mode` |
 | `language` | both | Home Assistant's | In the editor's *Advanced* section. One of the [languages](#translations) |
 
 ## Screenshots
@@ -186,6 +202,13 @@ entities:
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-paused-presets.png" alt="Paused, the presets open" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-settings.png" alt="Settings unfolded" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-paused-presets-dark.png" alt="Paused, the presets open, dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-settings-dark.png" alt="Settings unfolded, dark" width="400"> |
+
+**Charge mode and several cars**: the charger's charge mode select is a row of pills under the controls, the current mode lit (`show_mode: false` hides it). With `cars`, the car plugged in last is shown with its name, body and paint; when none says it is plugged in, each car's level.
+
+| Charge mode, two cars |
+|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mode-cars.png" alt="Charge mode, two cars" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-ev-charger-card/main/screenshots/ev-mode-cars-dark.png" alt="Charge mode, two cars, dark" width="400"> |
 
 **Day and night**: the illustration has the backdrop of the flight and train boards — a sky with the sun by day, the stars and the moon by night (the wall lamp lit), a low hill, the house wall and the concrete drive. `illustration_theme: auto` follows the Home Assistant theme (night with a dark theme, day with a light theme), or force `day` / `night`.
 
@@ -236,8 +259,8 @@ entities:
 
 ## How it works
 
-- **Charger**: the `device` set in the card, or the device of `entity`; without either, the first device of a known charger integration (Easee, Wallbox, Zaptec, Ohme, myenergi, Tesla Wall Connector, go-e, Alfen, Peblar, OCPP…), else the first device named like a charger that has a power sensor or a current limit
-- **Roles**, on the charger's device: `status` (a sensor whose state is a charger status), `plug` (a `plug` binary sensor), `charging` (a `battery_charging` binary sensor, when there is no status), `power` (the charging `power` sensor, W or kW, not the house's or the solar panels'), `energy` (an `energy` sensor named *session*, *added*, *charged*…), `total` (the lifetime `energy` sensor), `limit` (a `number` in A), `current`, `phases`, `switch` (a switch named *enable*, *charging*, *pause*…, not a mode switch such as *smart* or *eco*; a *pause* switch is turned on to pause), `start` / `stop` (buttons), `lock` (a `lock`, or a switch named *lock*; a cable lock when named after the cable), `cost` (`monetary` sensor), `duration` (in h / min / s, or a *HH:MM:SS* text), `error` (a sensor named *error*, or a `problem` binary sensor), `battery`; `entities` sets any of them
+- **Charger**: the `device` set in the card, or the device of `entity`; without either, the first device of a known charger integration (Easee, Wallbox, Zaptec, Ohme, myenergi, Tesla Wall Connector, go-e, Alfen, Peblar, Fronius Wattpilot, OCPP…), else the first device named like a charger that has a power sensor or a current limit
+- **Roles**, on the charger's device: `status` (a sensor whose state is a charger status), `plug` (a `plug` binary sensor), `charging` (a `battery_charging` binary sensor, when there is no status), `power` (the charging `power` sensor, W or kW, not the house's or the solar panels'), `energy` (an `energy` sensor named *session*, *added*, *charged*…, never one named *total*), `total` (the lifetime `energy` sensor, named *total* first; the energies per ID chip are neither), `limit` (a `number` in A), `current`, `phases`, `switch` (a switch named *enable*, *charging*, *pause*…, not a mode switch such as *smart* or *eco*; a *pause* switch is turned on to pause), `start` / `stop` (buttons), `lock` (a `lock`, or a switch named *lock*; a cable lock when named after the cable), `cost` (`monetary` sensor), `duration` (in h / min / s, or a *HH:MM:SS* text), `error` (a sensor named *error*, or a `problem` binary sensor), `battery`, `mode` (a select named a *mode*, not the phases' or the LED's; its options are the pills); `entities` sets any of them
 - **Known integrations**: for the V2C integrations (built-in V2C, V2C Trydan, V2C Cloud) the roles are read from the entities' translation keys first: the `Intensity` setpoint as the limit (not `Max intensity`), the session's charge energy (no lifetime total), the pause switch, the charger lock, and no error role (their error sensor reports the house meter's link, not the charger)
 - **State**: the status in the integration's words, brought down to five states; an active error sensor wins; a car plugged in and held back (a *pause* switch on, a status saying *paused*) is shown *Paused*
 - **Tiles**: while charging, the session energy, the time, then the cost or the charging power; out of a charge, the last session — once the session sensor is back to 0 (V2C resets it), its last value above 0 in the past week's history

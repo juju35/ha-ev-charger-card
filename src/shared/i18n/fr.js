@@ -32,6 +32,7 @@ export default {
     t_current: "Courant",
     t_total: "Total",
     t_limit: "Limite",
+    t_mode: "Mode de charge",
     t_last: "Dernière session",
     phases_one: "{n} phase",
     phases_many: "{n} phases",

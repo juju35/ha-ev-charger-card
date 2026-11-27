@@ -32,6 +32,7 @@ export default {
     t_current: "Струја",
     t_total: "Укупно",
     t_limit: "Ограничење",
+    t_mode: "Режим пуњења",
     t_last: "Последња сесија",
     phases_one: "{n} фаза",
     phases_many: "{n} фаза",

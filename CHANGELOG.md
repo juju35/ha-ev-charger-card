@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.0 - 2026-11-27
+
+### Features
+- Charge mode on the main screen: the charger's charge mode select (Fronius Wattpilot's *Default / Eco / Next Trip*, zappi's *Fast / Eco / Eco+*…) is a row of pills under the controls, the current mode lit; `show_mode: false` hides it, `entities.mode` picks it (#27).
+- Several cars on one charger: `cars` lists each car's battery level, with an optional `plug` sensor, `name`, `vehicle` and `color`; the car plugged in last is shown with its name, body and paint, else the level of each car (#28).
+- Fronius Wattpilot (mk-maddin's integration) is a known charger integration (#27).
+
+### Fixes
+- Fronius Wattpilot: the session energy (*Connection Charged*) and the lifetime total (*Totally Charged*) are no longer swapped; a sensor named *total* is never taken for the session, and the energies per ID chip for neither (#27).
+
 ## 1.4.1 - 2026-11-27
 
 ### Fixes

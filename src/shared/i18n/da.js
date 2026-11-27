@@ -32,6 +32,7 @@ export default {
     t_current: "Strøm",
     t_total: "I alt",
     t_limit: "Grænse",
+    t_mode: "Ladetilstand",
     t_last: "Seneste session",
     phases_one: "{n} fase",
     phases_many: "{n} faser",

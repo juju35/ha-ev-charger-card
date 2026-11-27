@@ -32,6 +32,7 @@ export default {
     t_current: "Curent",
     t_total: "Total",
     t_limit: "Limită",
+    t_mode: "Mod de încărcare",
     t_last: "Ultima sesiune",
     phases_one: "{n} fază",
     phases_many: "{n} faze",

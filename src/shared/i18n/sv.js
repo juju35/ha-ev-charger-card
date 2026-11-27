@@ -32,6 +32,7 @@ export default {
     t_current: "Ström",
     t_total: "Totalt",
     t_limit: "Gräns",
+    t_mode: "Laddningsläge",
     t_last: "Senaste session",
     phases_one: "{n} fas",
     phases_many: "{n} faser",

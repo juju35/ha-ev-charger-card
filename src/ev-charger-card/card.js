@@ -74,7 +74,8 @@ export class EvChargerCard extends RcCard {
     const limit = st("limit");
     const lock = st("lock");
     const dev = device && h.devices?.[device];
-    const battery = c.battery ? h.states[c.battery] : st("battery");
+    const cars = this._carList(st("battery"));
+    const modeSt = st("mode");
     const swName = e.switch ? `${e.switch} ${h.states[e.switch]?.attributes.friendly_name || ""}` : "";
     // A "Pause charging" switch is on while paused: pause turns it on, start turns it off.
     const switchPause = !!e.switch && /pause/i.test(swName) && !/resume/i.test(swName);
@@ -116,9 +117,53 @@ export class EvChargerCard extends RcCard {
       switchPause,
       startId: e.start && h.states[e.start] ? e.start : null,
       stopId: e.stop && h.states[e.stop] ? e.stop : null,
-      soc: evNum(battery),
+      // The car shown (or the cars, several of them and none known plugged in): its level, its name, its illustration.
+      cars,
+      soc: cars[0]?.soc ?? null,
+      vehicle: cars.length === 1 ? cars[0].vehicle : undefined,
+      color: cars.length === 1 ? cars[0].color : undefined,
+      mode: modeSt && !rcUnavailable(modeSt) && c.show_mode !== false
+        ? { id: modeSt.entity_id, state: modeSt.state, options: (modeSt.attributes.options || []).map((o) => [o, h.formatEntityState?.(modeSt, o) || o]) }
+        : null,
       settings: this._settingsOf(device, e, dev?.name_by_user || dev?.name || ""),
     };
+  }
+
+  // The cars charging here. `battery` is one car's level; `cars` lists several (BMW and Tesla on one wallbox), each
+  // `entity` (its battery level) with, optional, `plug` (a binary sensor on while that car is plugged in), `name`,
+  // `vehicle` and `color`. The car plugged in last is the one shown, with its name, its body and its paint; when none
+  // says it is plugged in, every car whose plug is not known off (or every car), each with its name, on the default
+  // illustration.
+  _carList(own) {
+    const h = this._hass;
+    const c = this._config;
+    if (!Array.isArray(c.cars) || !c.cars.length) {
+      const b = c.battery ? h.states[c.battery] : own;
+      return b ? [{ id: b.entity_id, soc: evNum(b) }].filter((x) => x.soc != null) : [];
+    }
+    const all = c.cars
+      .map((x) => (typeof x === "string" ? { entity: x } : x))
+      .filter((x) => x?.entity && h.states[x.entity])
+      .map((x) => {
+        const b = h.states[x.entity];
+        const dev = h.devices?.[h.entities?.[x.entity]?.device_id];
+        const plug = x.plug ? h.states[x.plug] : undefined;
+        return {
+          id: x.entity,
+          soc: evNum(b),
+          name: x.name || dev?.name_by_user || dev?.name || b.attributes.friendly_name || x.entity,
+          vehicle: x.vehicle,
+          color: x.color,
+          plug: plug && !rcUnavailable(plug) ? plug.state === "on" : undefined,
+          since: plug ? Date.parse(plug.last_changed) || 0 : 0,
+        };
+      })
+      .filter((x) => x.soc != null);
+    const plugged = all.filter((x) => x.plug === true).sort((a, b) => b.since - a.since);
+    if (plugged.length) return plugged.slice(0, 1).map((x) => ({ ...x, named: all.length > 1 }));
+    const maybe = all.filter((x) => x.plug !== false);
+    const shown = maybe.length ? maybe : all;
+    return shown.map((x) => ({ ...x, vehicle: shown.length === 1 ? x.vehicle : undefined, color: shown.length === 1 ? x.color : undefined, named: all.length > 1 }));
   }
 
   // The energy of the last session: the session sensor while it holds it; once it is back to 0 out of a charge (V2C
@@ -340,8 +385,8 @@ export class EvChargerCard extends RcCard {
       backdrop: c.show_background !== false,
       label: status,
       animate: this._animate(),
-      vehicle: c.vehicle,
-      color: c.color,
+      vehicle: m.vehicle || c.vehicle,
+      color: m.color || c.color,
     });
     return `
       <div class="banner${c.show_background === false ? " bare" : this._night() ? " night" : ""}">
@@ -354,11 +399,16 @@ export class EvChargerCard extends RcCard {
       </div>`;
   }
 
-  // The car's battery level as a bar and a figure, when a car is plugged in and its level known.
+  // The car's battery level as a bar and a figure, when a car is plugged in and its level known; with several cars
+  // (`cars`), the name before each level, without the bar when there are more than one.
   _soc(m) {
-    if (m.soc == null || m.state === "idle" || m.state === "offline") return "";
-    const pct = Math.max(0, Math.min(100, m.soc));
-    return `<div class="soc"><span class="bar"><i style="width:${pct.toFixed(0)}%"></i></span><b>${Math.round(m.soc)} %</b></div>`;
+    if (!m.cars.length || m.state === "idle" || m.state === "offline") return "";
+    const one = (x) => {
+      const pct = Math.max(0, Math.min(100, x.soc));
+      const name = x.named ? `<span class="cn" title="${rcEsc(x.name)}">${rcEsc(x.name)}</span>` : "";
+      return `<div class="soc">${name}<span class="bar"><i style="width:${pct.toFixed(0)}%"></i></span><b>${Math.round(x.soc)} %</b></div>`;
+    };
+    return m.cars.length > 1 ? `<div class="socs">${m.cars.map(one).join("")}</div>` : one(m.cars[0]);
   }
 
   _draw(m) {
@@ -368,7 +418,7 @@ export class EvChargerCard extends RcCard {
     const banner = c.show_scene !== false && !m.none;
     // Redrawn only when something shown changes: a session energy moving by a few Wh, still 12.4 kWh on screen, must
     // not rebuild the card (and restart the energy flowing along the cable).
-    const parts = [m.none, m.state, m.paused, m.raw, m.name, m.sub, status, m.soc != null && Math.round(m.soc), tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, m.settings, this._presetsOpen, this._settingsOpen, this._dark(), this._night()];
+    const parts = [m.none, m.state, m.paused, m.raw, m.name, m.sub, status, m.cars.map((x) => [x.name, Math.round(x.soc)]), m.vehicle, m.color, m.mode, tiles, m.error, m.limit, m.lock, m.switchId, m.startId, m.stopId, this._armLock, m.settings, this._presetsOpen, this._settingsOpen, this._dark(), this._night()];
     if (!this._changed(parts)) return;
     const icon = `<ha-icon icon="${m.none ? "mdi:ev-station" : EV_ICONS[m.state]}"></ha-icon>`;
     const head = banner
@@ -432,7 +482,19 @@ export class EvChargerCard extends RcCard {
       m.lock && primary !== "unlock"
         ? `<button class="gb act-lock${this._armLock ? " armed" : ""}" data-k="lock" aria-pressed="${m.lock.locked}" title="${rcEsc(this._t(m.lock.locked ? "locked" : "unlocked"))}">${evIcon(EV_SVG[m.lock.locked ? "lock" : "unlock"])}<span>${rcEsc(this._t(this._armLock ? "confirm" : action))}</span></button>`
         : "";
-    return `${btn || step || lock ? `<div class="ctl">${btn}${step}${lock}</div>` : ""}${row}${this._settingsHtml(m)}`;
+    return `${btn || step || lock ? `<div class="ctl">${btn}${step}${lock}</div>` : ""}${row}${this._modeHtml(m)}${this._settingsHtml(m)}`;
+  }
+
+  // The charge mode (Wattpilot's Default / Eco / Next Trip…) as a row of pills under the controls, the current one lit.
+  _modeHtml(m) {
+    if (!m.mode || m.mode.options.length < 2) return "";
+    const label = this._t("t_mode");
+    const asked = this._modeAsked && this._modeAsked.id === m.mode.id && Date.now() - this._modeAsked.at < 5000 ? this._modeAsked.option : null;
+    const cur = asked ?? m.mode.state;
+    const pills = m.mode.options
+      .map(([o, text]) => `<button class="ps md${o === cur ? " on" : ""}" data-o="${rcEsc(o)}" aria-pressed="${o === cur}">${rcEsc(text)}</button>`)
+      .join("");
+    return `<div class="modes" role="group" aria-label="${rcEsc(label)}"><span class="ml">${evIcon(EV_SVG.mode)}<span>${rcEsc(label)}</span></span><span class="mp">${pills}</span></div>`;
   }
 
   // The current presets: `current_presets` (6, 10, 13, 16, 20, 25 and 32 A by default; false: none), within the
@@ -557,6 +619,17 @@ export class EvChargerCard extends RcCard {
       this._sig = null;
       this._render();
     });
+    root.querySelector(".modes")?.addEventListener("click", (ev) => {
+      const b = ev.target.closest?.(".md");
+      if (!b || b.dataset.o === (this._modeAsked?.id === m.mode.id ? this._modeAsked.option : m.mode.state)) return;
+      ev.stopPropagation();
+      this._modeAsked = { id: m.mode.id, option: b.dataset.o, at: Date.now() };
+      for (const x of root.querySelectorAll(".modes .md")) {
+        x.classList.toggle("on", x === b);
+        x.setAttribute("aria-pressed", String(x === b));
+      }
+      rcCall(h, "select", "select_option", { entity_id: m.mode.id, option: b.dataset.o });
+    });
     const set = root.querySelector(".set");
     set?.addEventListener("click", (ev) => {
       const b = ev.target.closest?.("button");
@@ -637,6 +710,11 @@ export class EvChargerCard extends RcCard {
     .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c); flex: none; }
     .chip .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
+    /* Several cars: each name and level, no bar, so that the names keep room. */
+    .socs { display: flex; gap: 12px; min-width: 0; flex: 0 1 auto; }
+    .socs .soc { gap: 4px; }
+    .socs .soc .bar { display: none; }
+    .soc .cn { flex: 0 1 auto; min-width: 3ch; max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .85; }
     .soc { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 12px; }
     .soc b { white-space: nowrap; }
     .soc .bar { flex: 0 1 56px; min-width: 24px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
@@ -701,6 +779,11 @@ export class EvChargerCard extends RcCard {
     .ps:hover { background: color-mix(in srgb, var(--c) 15%, transparent); }
     .ps.on { color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); background: color-mix(in srgb, var(--c) 18%, transparent);
              box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent); }
+    /* The charge mode, a row of pills under the controls. */
+    .modes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; }
+    .ml { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--secondary-text-color); }
+    .ml svg { width: 15px; height: 15px; color: var(--c); }
+    .mp { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
     /* The charger's settings, folded under a header row. */
     .set { margin-top: 10px; border-radius: 12px; background: var(--secondary-background-color, rgba(127,127,127,.08)); }
     .sh { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 12px;

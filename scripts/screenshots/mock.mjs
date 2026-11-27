@@ -2,7 +2,7 @@
 const st = (entity_id, state, attributes = {}) => ({ entity_id, state, attributes, last_changed: new Date().toISOString() });
 
 // `scene`: charging, waiting (plugged in, off-peak), paused (plugged in, held back), done, idle (no car), error;
-// `settings`: the charger has a few settings of its own too (a switch, a select, a number).
+// `settings`: the charger has a few settings of its own too (switches, a mode select, a number); `cars`: a second car.
 const SCENES = {
   charging: { status: "charging", power: "7.2", soc: "68", time: "1.7", energy: "12.4", cost: "2.30", error: "no_error" },
   waiting: { status: "awaiting_start", power: "0", soc: "31", time: "0", energy: "38.6", cost: "7.10", error: "no_error", limit: "16" },
@@ -26,6 +26,7 @@ export const setup = (s) => {
     "sensor.garage_charging_time": st("sensor.garage_charging_time", v.time, { device_class: "duration", unit_of_measurement: "h", friendly_name: "Wallbox Charging time" }),
     "sensor.garage_session_cost": st("sensor.garage_session_cost", v.cost, { device_class: "monetary", unit_of_measurement: "€", friendly_name: "Wallbox Session cost" }),
     "sensor.car_battery": st("sensor.car_battery", v.soc, { device_class: "battery", unit_of_measurement: "%" }),
+    ...(s.cars && { "sensor.car2_battery": st("sensor.car2_battery", "45", { device_class: "battery", unit_of_measurement: "%" }) }),
     ...(s.settings && {
       "switch.garage_dynamic_charging": st("switch.garage_dynamic_charging", "on", { friendly_name: "Wallbox Dynamic charging" }),
       "switch.garage_schedule": st("switch.garage_schedule", "off", { friendly_name: "Wallbox Schedule" }),
