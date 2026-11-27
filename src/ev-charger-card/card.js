@@ -400,7 +400,7 @@ export class EvChargerCard extends RcCard {
   }
 
   // The car's battery level as a bar and a figure, when a car is plugged in and its level known; with several cars
-  // (`cars`), the name before each level, the bars shorter when there are more than one.
+  // (`cars`), the name before each level, without the bar when there are more than one.
   _soc(m) {
     if (!m.cars.length || m.state === "idle" || m.state === "offline") return "";
     const one = (x) => {
@@ -710,9 +710,11 @@ export class EvChargerCard extends RcCard {
     .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c); flex: none; }
     .chip .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
-    .socs { display: flex; gap: 10px; min-width: 0; flex: 0 1 auto; }
-    .socs .soc .bar { flex-basis: 28px; min-width: 16px; }
-    .soc .cn { min-width: 0; max-width: 9ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .85; }
+    /* Several cars: each name and level, no bar, so that the names keep room. */
+    .socs { display: flex; gap: 12px; min-width: 0; flex: 0 1 auto; }
+    .socs .soc { gap: 4px; }
+    .socs .soc .bar { display: none; }
+    .soc .cn { flex: 0 1 auto; min-width: 3ch; max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .85; }
     .soc { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 12px; }
     .soc b { white-space: nowrap; }
     .soc .bar { flex: 0 1 56px; min-width: 24px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); overflow: hidden; }
