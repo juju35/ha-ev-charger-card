@@ -69,10 +69,11 @@ export class EvChargerCard extends RcCard {
     let state = raw && !rcUnavailable(raw) ? evStateOf(raw.state) : undefined;
     // OCPP publishes "Unavailable" with a capital: offline too.
     const rawOff = raw && (rcUnavailable(raw) || evNorm(raw.state) === "unavailable");
-    const plugged = evPlugged(st("plug"));
-    // No status: a connection sensor reading "charging" or "complete" says so; else plugged in means waiting.
-    const plugSays = plugged ? evStateOf(st("plug").state) : undefined;
-    if (!state && (plugSays === "charging" || plugSays === "done")) state = plugSays;
+    const plugSt = st("plug");
+    const plugged = evPlugged(plugSt);
+    // No status: a connection sensor reading "charging", "complete" or an error says so; else plugged in means waiting.
+    const plugSays = plugSt && !plugSt.entity_id.startsWith("binary_sensor.") && plugged !== false ? evStateOf(plugSt.state) : undefined;
+    if (!state && (plugSays === "charging" || plugSays === "done" || plugSays === "error")) state = plugSays;
     if (!state) state = watts > 50 || on("charging") ? "charging" : plugged !== undefined ? (plugged ? "waiting" : "idle") : rawOff ? "offline" : "idle";
     // No car plugged in: a status still saying "waiting" or "done" (Wattpilot's CarState in Eco mode) is no car there.
     if (plugged === false && (state === "waiting" || state === "done") && !(watts > 50)) state = "idle";
@@ -136,7 +137,7 @@ export class EvChargerCard extends RcCard {
   }
 
   // The cars charging here. `battery` is one car's level; `cars` lists several (BMW and Tesla on one wallbox), each
-  // `entity` (its battery level) with, optional, `plug` (a binary sensor on while that car is plugged in), `name`,
+  // `entity` (its battery level) with, optional, `plug` (a binary sensor on, or a sensor saying a car is there, while that car is plugged in), `name`,
   // `vehicle` and `color`. The car plugged in last is the one shown, with its name, its body and its paint; when none
   // says it is plugged in, every car whose plug is not known off (or every car), each with its name, on the default
   // illustration.
@@ -160,7 +161,8 @@ export class EvChargerCard extends RcCard {
           name: x.name || dev?.name_by_user || dev?.name || b.attributes.friendly_name || x.entity,
           vehicle: x.vehicle,
           color: x.color,
-          plug: plug && !rcUnavailable(plug) ? plug.state === "on" : undefined,
+          // A binary sensor or a text one ("no car" / "ready"…), like the charger's plug.
+          plug: evPlugged(plug),
           since: plug ? Date.parse(plug.last_changed) || 0 : 0,
         };
       })
