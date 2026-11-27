@@ -69,7 +69,13 @@ export class EvChargerCard extends RcCard {
     let state = raw && !rcUnavailable(raw) ? evStateOf(raw.state) : undefined;
     // OCPP publishes "Unavailable" with a capital: offline too.
     const rawOff = raw && (rcUnavailable(raw) || evNorm(raw.state) === "unavailable");
-    if (!state) state = watts > 50 || on("charging") ? "charging" : st("plug") ? (on("plug") ? "waiting" : "idle") : rawOff ? "offline" : "idle";
+    const plugged = evPlugged(st("plug"));
+    // No status: a connection sensor reading "charging" or "complete" says so; else plugged in means waiting.
+    const plugSays = plugged ? evStateOf(st("plug").state) : undefined;
+    if (!state && (plugSays === "charging" || plugSays === "done")) state = plugSays;
+    if (!state) state = watts > 50 || on("charging") ? "charging" : plugged !== undefined ? (plugged ? "waiting" : "idle") : rawOff ? "offline" : "idle";
+    // No car plugged in: a status still saying "waiting" or "done" (Wattpilot's CarState in Eco mode) is no car there.
+    if (plugged === false && (state === "waiting" || state === "done") && !(watts > 50)) state = "idle";
     if (errOn) state = "error";
     const limit = st("limit");
     const lock = st("lock");

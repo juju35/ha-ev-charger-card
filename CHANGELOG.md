@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.1 - 2026-11-27
+
+### Fixes
+- Fronius Wattpilot: no longer shows a car plugged in when there is none. A sensor saying whether a car is connected (the Wattpilot's *carConnected*: *no car* / *ready* / *charging* / *complete*) is now taken as the plug, not as the status, and a plug saying no car wins over a status still reading waiting or charged; without a status sensor, it tells the state too (#30).
+
 ## 1.5.0 - 2026-11-27
 
 ### Features
