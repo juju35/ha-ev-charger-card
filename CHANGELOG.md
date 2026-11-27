@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1 - 2026-11-27
+
+### Fixes
+- Fronius Wattpilot: no longer shows a car plugged in when there is none. A sensor saying whether a car is connected (the Wattpilot's *carConnected*: *no car* / *ready* / *charging* / *complete*) is now taken as the plug, not as the status, and a plug saying no car wins over a status still reading waiting or charged; without a status sensor, it tells the state too, errors included (#30).
+- The plug sensor is told by the entity's own name, without the device's (a *Car Charger* device, a *Wall Connector* in every entity id), and never a cloud, network or error sensor; a text it does not understand (in any language) leaves the state to the status instead of meaning a car is there.
+- Several cars: a car's `plug` may be a text sensor too (*no car* / *ready*…), not only a binary sensor.
+
 ## 1.5.0 - 2026-11-27
 
 ### Features

@@ -651,6 +651,7 @@ const wattpilot = () => {
   const E = { device_class: "energy", unit_of_measurement: "Wh" };
   const rows = [
     ["sensor.wattpilot_carstate", "Charging", { device_class: "enum", friendly_name: "Wattpilot CarState" }],
+    ["sensor.wattpilot_carconnected", "charging", { friendly_name: "Wattpilot carConnected" }],
     ["sensor.wattpilot_charging_power", "7360", { ...W, friendly_name: "Wattpilot Charging Power" }],
     ["sensor.wattpilot_totally_charged", "1523400", { ...E, state_class: "total", friendly_name: "Wattpilot Totally Charged" }],
     ["sensor.wattpilot_connection_charged", "12345", { ...E, state_class: "total_increasing", friendly_name: "Wattpilot Connection Charged" }],
@@ -665,6 +666,113 @@ const wattpilot = () => {
   h.states = Object.fromEntries(rows.map(([id, state, attrs]) => [id, st(id, state, attrs)]));
   return h;
 };
+
+test("Fronius Wattpilot: carConnected saying no car wins over a status still waiting (#30)", () => {
+  const h = wattpilot();
+  const set = (id, state) => (h.states[id] = { ...h.states[id], state });
+  set("sensor.wattpilot_charging_power", "0");
+  set("sensor.wattpilot_carstate", "Wait Car");
+  set("sensor.wattpilot_carconnected", "no car");
+  let m = make("ev-charger-card", { device: "wp" }, h)._items;
+  assert.equal(m.ids.status, "sensor.wattpilot_carstate");
+  assert.equal(m.ids.plug, "sensor.wattpilot_carconnected");
+  assert.equal(m.state, "idle");
+  assert.equal(make("ev-charger-mini-card", { device: "wp" }, h)._items.state, "idle");
+  // A car there, waiting: plugged in.
+  set("sensor.wattpilot_carconnected", "ready");
+  m = make("ev-charger-card", { device: "wp" }, h)._items;
+  assert.equal(m.state, "waiting");
+  // Charged, then unplugged.
+  set("sensor.wattpilot_carstate", "Complete");
+  assert.equal(make("ev-charger-card", { device: "wp" }, h)._items.state, "done");
+  set("sensor.wattpilot_carconnected", "no car");
+  assert.equal(make("ev-charger-card", { device: "wp" }, h)._items.state, "idle");
+  // Unknown connection: the status alone decides.
+  set("sensor.wattpilot_carconnected", "unknown");
+  assert.equal(make("ev-charger-card", { device: "wp" }, h)._items.state, "done");
+  // No status sensor: the connection sensor tells the state.
+  delete h.states["sensor.wattpilot_carstate"];
+  set("sensor.wattpilot_carconnected", "charging");
+  assert.equal(make("ev-charger-card", { device: "wp" }, h)._items.state, "charging");
+  set("sensor.wattpilot_carconnected", "ready");
+  assert.equal(make("ev-charger-card", { device: "wp" }, h)._items.state, "waiting");
+  set("sensor.wattpilot_carconnected", "no car");
+  assert.equal(make("ev-charger-card", { device: "wp" }, h)._items.state, "idle");
+});
+
+test("plug: a binary plug sensor off wins over a status still waiting or charged, not over charging", () => {
+  const plugOff = (status, power = "0") => {
+    const h = makeHass({ status, power });
+    h.entities["binary_sensor.garage_plug"] = { device_id: "charger", platform: "easee" };
+    h.states["binary_sensor.garage_plug"] = st("binary_sensor.garage_plug", "off", { device_class: "plug", friendly_name: "Garage Plug" });
+    return make("ev-charger-card", { device: "charger" }, h)._items;
+  };
+  assert.equal(plugOff("awaiting_start").ids.plug, "binary_sensor.garage_plug");
+  assert.equal(plugOff("awaiting_start").state, "idle");
+  assert.equal(plugOff("completed").state, "idle");
+  assert.equal(plugOff("charging", "7.2").state, "charging");
+});
+
+test("plug: links to the cloud or the network and the device's own name are no plug sensor", () => {
+  const rows = [
+    ["sensor.car_charger_status", "awaiting_start", { friendly_name: "Car Charger Status" }],
+    ["binary_sensor.car_charger_cloud_connected", "off", { device_class: "connectivity", friendly_name: "Car Charger Cloud connected" }],
+    ["sensor.car_charger_wifi_connection", "disconnected", { friendly_name: "Car Charger WiFi connection" }],
+    ["sensor.car_charger_connector_error", "no_error", { friendly_name: "Car Charger Connector error" }],
+  ];
+  const h = makeHass();
+  h.devices = { cc: { name: "Car Charger" } };
+  h.entities = Object.fromEntries(rows.map(([id]) => [id, { device_id: "cc", platform: "ocpp" }]));
+  h.states = Object.fromEntries(rows.map(([id, state, attrs]) => [id, st(id, state, attrs)]));
+  const m = make("ev-charger-card", { device: "cc" }, h)._items;
+  assert.equal(m.ids.plug, undefined);
+  assert.equal(m.state, "waiting");
+  // Tesla Wall Connector: "connector" in every entity id, its "Vehicle connected" binary sensor is the plug.
+  const tw = [
+    ["sensor.tesla_wall_connector_state", "charging_ready", { friendly_name: "Tesla Wall Connector State" }],
+    ["sensor.tesla_wall_connector_vehicle_name", "Model 3", { friendly_name: "Tesla Wall Connector Vehicle name" }],
+    ["binary_sensor.tesla_wall_connector_vehicle_connected", "on", { device_class: "plug", friendly_name: "Tesla Wall Connector Vehicle connected" }],
+  ];
+  h.devices = { tw: { name: "Tesla Wall Connector" } };
+  h.entities = Object.fromEntries(tw.map(([id]) => [id, { device_id: "tw", platform: "tesla_wall_connector" }]));
+  h.states = Object.fromEntries(tw.map(([id, state, attrs]) => [id, st(id, state, attrs)]));
+  assert.equal(make("ev-charger-card", { device: "tw" }, h)._items.ids.plug, "binary_sensor.tesla_wall_connector_vehicle_connected");
+});
+
+test("plug: a text connection sensor is plugged, unplugged or unknown, never plugged by default", () => {
+  const h = wattpilot();
+  delete h.states["sensor.wattpilot_carstate"];
+  h.states["sensor.wattpilot_charging_power"] = { ...h.states["sensor.wattpilot_charging_power"], state: "0" };
+  const say = (state) => {
+    h.states["sensor.wattpilot_carconnected"] = { ...h.states["sensor.wattpilot_carconnected"], state };
+    return make("ev-charger-card", { device: "wp" }, h)._items.state;
+  };
+  assert.equal(say("Nicht angeschlossen"), "idle");
+  assert.equal(say("Kein Auto"), "idle");
+  assert.equal(say("non collegato"), "idle");
+  assert.equal(say("Angeschlossen"), "waiting");
+  // Neither: the status alone (none here, no power) decides.
+  assert.equal(say("Lorem ipsum"), "idle");
+  // An error from the connection sensor, with no status.
+  assert.equal(say("error"), "error");
+});
+
+test("several cars: a text plug sensor (carConnected) tells which car is there", () => {
+  const h = wattpilot();
+  const add = (id, state, attrs = {}) => (h.states[id] = st(id, state, attrs));
+  add("sensor.ev1_battery", "40", { device_class: "battery", unit_of_measurement: "%" });
+  add("sensor.ev2_battery", "70", { device_class: "battery", unit_of_measurement: "%" });
+  add("sensor.ev1_link", "ready");
+  add("sensor.ev2_link", "no car");
+  const cars = [
+    { entity: "sensor.ev1_battery", plug: "sensor.ev1_link", name: "One" },
+    { entity: "sensor.ev2_battery", plug: "sensor.ev2_link", name: "Two" },
+  ];
+  assert.deepEqual(json(make("ev-charger-card", { device: "wp", cars }, h)._items.cars.map((x) => x.name)), ["One"]);
+  // Neither there: each car again, as before any plug says so.
+  add("sensor.ev1_link", "no car");
+  assert.deepEqual(json(make("ev-charger-card", { device: "wp", cars }, h)._items.cars.map((x) => x.name)), ["One", "Two"]);
+});
 
 test("Fronius Wattpilot: the session and the lifetime energy not swapped, ID chips aside, the charge mode in its own row", () => {
   const h = wattpilot();

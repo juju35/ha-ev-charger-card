@@ -128,12 +128,34 @@ export const evFind = (hass, device, overrides = {}) => {
   const r = {};
   // A sensor first; a select only when named a status (a "Charge mode" select set to *eco* is no status).
   const STATUS = /status|state|etat|zustand/i;
-  const statusLike = (id) => !dc(id) && evNum(st(id)) == null && !named(id, /error|fault|erreur|fehler/i) && !!evStateOf(st(id).state);
+  // A sensor saying whether a car is connected (Wattpilot's "carConnected") is the plug, not the status. Told by the
+  // entity's own name, the device's left out (a "Car Charger" device, a "Wall Connector" in every entity id), and never
+  // a link to the cloud or the network, nor an error.
+  const own = (id) => evOwnName(hass, id);
+  const plugNamed = (id) =>
+    EV_PLUG_NAME.test(own(id)) &&
+    EV_PLUG_WORD.test(own(id)) &&
+    !STATUS.test(own(id)) &&
+    !EV_PLUG_NOT.test(own(id)) &&
+    dc(id) !== "connectivity" &&
+    dc(id) !== "problem";
+  const statusLike = (id) =>
+    !dc(id) && evNum(st(id)) == null && !plugNamed(id) && !named(id, /error|fault|erreur|fehler/i) && !!evStateOf(st(id).state);
   r.status =
     pick((id) => dom(id) === "sensor" && statusLike(id), (id) => named(id, STATUS)) ||
     pick((id) => dom(id) === "select" && statusLike(id) && named(id, STATUS)) ||
     pick((id) => dom(id) === "sensor" && named(id, STATUS) && evNum(st(id)) == null && !named(id, /error|fault/i));
-  r.plug = pick((id) => dom(id) === "binary_sensor" && dc(id) === "plug");
+  // A plug binary sensor; else a sensor saying whether a car is connected (Wattpilot's "carConnected": no car / ready /
+  // charging / complete), apart from the status.
+  r.plug =
+    pick((id) => dom(id) === "binary_sensor" && dc(id) === "plug") ||
+    pick(
+      (id) =>
+        (dom(id) === "sensor" || dom(id) === "binary_sensor") &&
+        id !== r.status &&
+        plugNamed(id) &&
+        evNum(st(id)) == null,
+    );
   r.charging = pick((id) => dom(id) === "binary_sensor" && dc(id) === "battery_charging");
   // The charging power, not the house's, the solar panels' or the home battery's that some chargers report too; that
   // second wish gives way when it rules out every sensor (a charger named "… Home" or "Borne maison"), the first never.
@@ -185,6 +207,40 @@ export const evFind = (hass, device, overrides = {}) => {
   }
   for (const role of EV_ROLES) if (overrides[role]) r[role] = overrides[role];
   return r;
+};
+
+// An entity's own name: its friendly name (else its object id) without the device's name in front.
+export const evOwnName = (hass, id) => {
+  const ent = hass.entities?.[id];
+  const dev = hass.devices?.[ent?.device_id];
+  const devName = String(dev?.name_by_user || dev?.name || "");
+  const fn = String(hass.states[id]?.attributes.friendly_name || "");
+  if (fn) return devName && fn.toLowerCase().startsWith(devName.toLowerCase()) ? fn.slice(devName.length).trim() : fn;
+  const obj = id.split(".").slice(1).join(".");
+  const slug = evNorm(devName);
+  return slug && obj.startsWith(`${slug}_`) ? obj.slice(slug.length + 1) : obj;
+};
+// A sensor named after the car (or the cable) being connected…
+export const EV_PLUG_NAME = /car|vehicle|fahrzeug|auto|voiture|vehicule|veicolo|vehiculo|cable|kabel|plug|stecker/i;
+export const EV_PLUG_WORD = /connect|plug|angeschlossen|verbunden|stecker|branch|collegat|conectad/i;
+// …and not a link to the cloud or the network, nor an error.
+export const EV_PLUG_NOT = /cloud|wi-?fi|wlan|network|reseau|netzwerk|internet|server|ocpp|lan\b|bluetooth|online|mqtt|error|fault|erreur|fehler/i;
+// A connection sensor that says no car is there…
+export const EV_NO_CAR =
+  /(^|_)(no_car|no_ev|no_vehicle|not_connected|not_plugged|disconnected|unplugged|nicht_verbunden|nicht_angeschlossen|nicht_eingesteckt|kein_fahrzeug|kein_auto|getrennt|aucun_vehicule|pas_de_vehicule|non_branche|debranche|deconnecte|non_connecte|non_connesso|non_collegato|scollegato|nessun_veicolo|no_conectado|desconectad[oa]|sin_vehiculo|niet_verbonden|geen_auto|ontkoppeld)($|_)|^(off|false|none|empty)$/;
+// …or that one is (Wattpilot's "ready": a car there, waiting).
+export const EV_CAR_THERE =
+  /(^|_)(connected|plugged|plugged_in|ready|charging|complete|completed|finished|waiting|wait_car|occupied|in_use|angeschlossen|verbunden|eingesteckt|branche|connecte|collegato|connesso|conectado|verbonden)($|_)/;
+// Whether a car is plugged in, from the plug role: true, false, or undefined when the state says neither.
+export const evPlugged = (st) => {
+  if (!st) return undefined;
+  const n = evNorm(st.state);
+  if (!n || n === "unknown" || n === "unavailable") return undefined;
+  if (st.entity_id?.startsWith("binary_sensor.")) return n === "on" ? true : n === "off" ? false : undefined;
+  if (EV_NO_CAR.test(n)) return false;
+  if (EV_CAR_THERE.test(n)) return true;
+  const s = evStateOf(st.state);
+  return s === "charging" || s === "done" || s === "waiting" ? true : undefined;
 };
 
 // An error sensor that says "no error".
